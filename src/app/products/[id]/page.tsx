@@ -20,7 +20,6 @@ interface ProductDetailContentProps {
 }
 
 function ProductDetailContent({ product }: ProductDetailContentProps) {
-  const router = useRouter();
   const [isAdding, setIsAdding] = useState(false);
   const [quantity, setQuantity] = useState(1);
 

@@ -4,8 +4,7 @@ export type ApiFetchOptions = RequestInit & {
 
 export async function apiFetch<T>(
   endpoint: string,
-  init: ApiFetchOptions = {},
-  isRetry = false
+  init: ApiFetchOptions = {}
 ): Promise<T | undefined> {
   const headers = new Headers(init.headers);
 

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ShoppingCart, LogIn, Menu, X, Store, Info, Package } from 'lucide-react';
+import { ShoppingCart, LogIn, Menu, X, Store, Info } from 'lucide-react';
 import ProductSearch from '@/components/product/ProductSearch';
 
 export default function NavBar() {
