@@ -1,5 +1,3 @@
-import { BASE_URL } from '../config';
-
 export type ApiFetchOptions = RequestInit & {
   auth?: boolean;
 };
@@ -11,7 +9,8 @@ export async function apiFetch<T>(
 ): Promise<T | undefined> {
   const headers = new Headers(init.headers);
 
-  const response = await fetch(`${BASE_URL}${endpoint}`, { ...init, headers });
+  // All endpoints (/api/products, /api/categories, /api/brands) are local Next.js Route Handlers
+  const response = await fetch(endpoint, { ...init, headers });
 
   if (!response.ok) {
     if (response.status === 400) {

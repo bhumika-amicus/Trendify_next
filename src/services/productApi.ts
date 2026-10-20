@@ -16,32 +16,33 @@ import type { ProductSearchResult } from '../types/ProductSearchResult';
 import { apiFetch } from './api';
 
 export async function getProducts(signal?: AbortSignal): Promise<Product[]> {
-  const data = await apiFetch<ProductDto[]>('/api/v1/Products', { signal });
-  return data ? data.map(transformProduct) : [];
+  const data = await apiFetch<ProductSearchResult>('/api/products?pageSize=8', {
+    signal,
+  });
+  return data?.products || [];
 }
 
 export async function getProductById(
   id: number,
   signal?: AbortSignal
 ): Promise<Product | undefined> {
-  const data = await apiFetch<ProductDto>(`/api/v1/Products/${id}`, { signal });
-  return data ? transformProduct(data) : undefined;
+  return apiFetch<Product>(`/api/products/${id}`, { signal });
 }
 
 export async function getCategories(
   signal?: AbortSignal
 ): Promise<Category[]> {
-  const data = await apiFetch<CategoryDto[]>('/api/Categories?api-version=1', {
+  const data = await apiFetch<Category[]>('/api/categories', {
     signal,
   });
-  return data ? data.map(transformCategory) : [];
+  return data || [];
 }
 
 export async function getBrands(signal?: AbortSignal): Promise<Brand[]> {
-  const data = await apiFetch<BrandDto[]>('/api/Brands?api-version=1', {
+  const data = await apiFetch<Brand[]>('/api/brands', {
     signal,
   });
-  return data ? data.map(transformBrand) : [];
+  return data || [];
 }
 
 export async function searchProducts(
@@ -53,47 +54,47 @@ export async function searchProducts(
   const search = params.search?.trim();
 
   if (search) {
-    queryParams.set('Search', search);
+    queryParams.set('search', search);
   }
 
   if (params.categoryId !== undefined) {
-    queryParams.set('CategoryId', String(params.categoryId));
+    queryParams.set('categoryId', String(params.categoryId));
   }
 
   if (params.brandId !== undefined) {
-    queryParams.set('BrandId', String(params.brandId));
+    queryParams.set('brandId', String(params.brandId));
   }
 
   if (params.minPrice !== undefined) {
-    queryParams.set('MinPrice', String(params.minPrice));
+    queryParams.set('minPrice', String(params.minPrice));
   }
 
   if (params.maxPrice !== undefined) {
-    queryParams.set('MaxPrice', String(params.maxPrice));
+    queryParams.set('maxPrice', String(params.maxPrice));
   }
 
   if (params.minRating !== undefined) {
-    queryParams.set('MinRating', String(params.minRating));
+    queryParams.set('minRating', String(params.minRating));
   }
 
   if (params.sortBy) {
-    queryParams.set('SortBy', params.sortBy);
+    queryParams.set('sortBy', params.sortBy);
   }
 
   if (params.sortOrder) {
-    queryParams.set('SortOrder', params.sortOrder);
+    queryParams.set('sortOrder', params.sortOrder);
   }
 
   if (params.page !== undefined) {
-    queryParams.set('Page', String(params.page));
+    queryParams.set('page', String(params.page));
   }
 
   if (params.pageSize !== undefined) {
-    queryParams.set('PageSize', String(params.pageSize));
+    queryParams.set('pageSize', String(params.pageSize));
   }
 
-  const data = await apiFetch<ProductSearchResultDto>(
-    `/api/v1/Products/search?${queryParams.toString()}`,
+  const data = await apiFetch<ProductSearchResult>(
+    `/api/products?${queryParams.toString()}`,
     { signal }
   );
 
@@ -107,8 +108,5 @@ export async function searchProducts(
     };
   }
 
-  return {
-    ...data,
-    products: data.products.map(transformProduct),
-  };
+  return data;
 }

@@ -12,7 +12,17 @@ export default function NavBar() {
   const pathname = usePathname();
 
   const closeMenu = () => setIsMobileMenuOpen(false);
-  const isLinkActive = (path: string) => pathname === path;
+  const isLinkActive = (path: string) => {
+    if (path === '/') return pathname === '/';
+    return pathname.startsWith(path);
+  };
+
+  const getMobileLinkClass = (path: string) =>
+    `flex items-center gap-3 py-3 border-b border-gray-100 text-base font-medium transition-colors hover:text-brand-orange ${
+      isLinkActive(path)
+        ? 'text-brand-orange underline underline-offset-4 decoration-2 font-bold'
+        : 'text-gray-700'
+    }`;
 
   return (
     <header className="relative w-full border-b border-border-subtle bg-white">
@@ -135,7 +145,7 @@ export default function NavBar() {
             <Link
               href="/"
               onClick={closeMenu}
-              className="flex items-center gap-3 py-3 border-b border-gray-100 text-base font-medium text-gray-700 hover:text-brand-orange"
+              className={getMobileLinkClass('/')}
             >
               Home
             </Link>
@@ -143,7 +153,7 @@ export default function NavBar() {
             <Link
               href="/products"
               onClick={closeMenu}
-              className="flex items-center gap-3 py-3 border-b border-gray-100 text-base font-medium text-gray-700 hover:text-brand-orange"
+              className={getMobileLinkClass('/products')}
             >
               <Store size={20} />
               Products
@@ -152,7 +162,7 @@ export default function NavBar() {
             <Link
               href="/about"
               onClick={closeMenu}
-              className="flex items-center gap-3 py-3 border-b border-gray-100 text-base font-medium text-gray-700 hover:text-brand-orange"
+              className={getMobileLinkClass('/about')}
             >
               <Info size={20} />
               About
