@@ -14,7 +14,7 @@ export default function NotFound() {
       </h1>
 
       <p className="text-lg text-gray-600 max-w-md mx-auto mb-10">
-        Oops! The page you are looking for doesn&apos;t exist, has been moved, or is temporarily unavailable.
+        Oops! The page you are looking for does not exist, has been moved, or is temporarily unavailable.
       </p>
 
       <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-sm sm:max-w-none mx-auto">

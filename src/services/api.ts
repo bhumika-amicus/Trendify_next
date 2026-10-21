@@ -8,7 +8,15 @@ export async function apiFetch<T>(
 ): Promise<T | undefined> {
   const headers = new Headers(init.headers);
 
-  // All endpoints (/api/products, /api/categories, /api/brands) are local Next.js Route Handlers
+  // Attach Bearer token from localStorage for authenticated client requests
+  if (init.auth && typeof window !== 'undefined') {
+    const token = localStorage.getItem('token');
+    if (token) {
+      headers.set('Authorization', `Bearer ${token}`);
+    }
+  }
+
+  // All endpoints (/api/products, /api/categories, /api/brands, /api/auth) are local Next.js Route Handlers
   const response = await fetch(endpoint, { ...init, headers });
 
   if (!response.ok) {

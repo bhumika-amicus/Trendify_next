@@ -101,3 +101,60 @@ export async function searchProducts(
 
   return data;
 }
+
+export async function createProduct(
+  product: {
+    name: string;
+    description?: string;
+    price: number;
+    categoryId: number;
+    brandId: number;
+    rating?: number;
+  },
+  signal?: AbortSignal
+): Promise<Product | undefined> {
+  return apiFetch<Product>('/api/products', {
+    method: 'POST',
+    auth: true,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(product),
+    signal,
+  });
+}
+
+export async function updateProduct(
+  id: number,
+  product: {
+    name: string;
+    description?: string;
+    categoryId: number;
+    brandId: number;
+    rating?: number;
+  },
+  signal?: AbortSignal
+): Promise<void> {
+  await apiFetch<void>(`/api/products/${id}`, {
+    method: 'PUT',
+    auth: true,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(product),
+    signal,
+  });
+}
+
+export async function deleteProduct(
+  id: number,
+  signal?: AbortSignal
+): Promise<void> {
+  await apiFetch<void>(`/api/products/${id}`, {
+    method: 'DELETE',
+    auth: true,
+    signal,
+  });
+}
+
+

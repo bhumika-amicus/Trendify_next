@@ -8,24 +8,57 @@ import Button from '@/components/common/Button';
 export default function LoginPage() {
   const router = useRouter();
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('bhumika@example.com');
+  const [password, setPassword] = useState('bhumika123');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
+    setErrorMessage(null);
     try {
-      // Simulate authentication request
-      await new Promise((resolve) => setTimeout(resolve, 600));
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Login failed. Please check your credentials.');
+      }
+
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+      }
+      if (data.refreshToken) {
+        localStorage.setItem('refreshToken', data.refreshToken);
+      }
+      if (data.role) {
+        localStorage.setItem('role', data.role);
+      }
+      if (data.name) {
+        localStorage.setItem('userName', data.name);
+      }
+      if (data.customerId) {
+        localStorage.setItem('customerId', String(data.customerId));
+      }
+
       setIsSuccess(true);
       setTimeout(() => {
         router.push('/');
       }, 500);
     } catch (error) {
       console.error('Login error:', error);
+      setErrorMessage(
+        error instanceof Error ? error.message : 'An error occurred during sign in.'
+      );
     } finally {
       setIsLoading(false);
     }
@@ -38,6 +71,12 @@ export default function LoginPage() {
           SIGN IN
         </h2>
       </div>
+
+      {errorMessage && (
+        <div className="rounded-md bg-red-50 p-4 border border-red-200 text-sm text-red-700">
+          {errorMessage}
+        </div>
+      )}
 
       <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
         <div className="space-y-5">
