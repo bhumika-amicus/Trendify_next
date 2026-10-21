@@ -48,41 +48,70 @@ Testing was conducted using both the live Next.js application and the automated 
 
 #### Running the Verification Script:
 ```bash
+# Ensure dev server is running (npm run dev), then:
 node scripts/test-crud.mjs
 ```
 
 #### Test Execution & Verification Results:
 
 ```text
---- 1. Authenticating as Admin ---
-Authenticated: bhumika (Admin), Status: 200
+===============================================================
+ TESTING NEXT.JS PRODUCT CATALOG REST API WRAPPER (ASSIGNMENT 4)
+ Target: http://localhost:3000/api
+===============================================================
 
---- 2. Testing POST Product Shell ---
-POST Product Status: 201, Created ID: 58
+1. [AUTH] Logging in as Admin via POST /api/auth/login...
+   --> Status: 200 OK | Logged in as: bhumika (Admin)
 
---- 3. Testing POST ProductPrice ---
-POST ProductPrice Status: 201
+2. [GET /api/products] Testing paginated product list...
+   --> Status: 200 OK | Products count: 5 | TotalCount: 30 | TotalPages: 6
 
---- 4. Testing GET Product by ID ---
-GET Product Status: 200, Name: "Automated CRUD Test Mouse", Price: 1299
+3. [400 ERROR] Testing GET /api/products/abc with non-numeric ID...
+   --> Status: 400 Bad Request | Message: "Invalid product ID. Must be a numeric value."
 
---- 5. Testing PUT Product Update ---
-PUT Product Status: 204 (Expected: 204)
+4. [401 ERROR] Testing POST /api/products without Authorization header...
+   --> Status: 401 Unauthorized | Message: "Unauthorized: Admin authentication token is required."
 
---- 6. Testing DELETE Product ---
-DELETE Product Status: 204 (Expected: 204)
+5. [400 ERROR] Testing POST /api/products with missing/invalid price...
+   --> Status: 400 Bad Request | Message: "A valid positive price is required."
 
---- 7. Testing GET Deleted Product (Expected: 404) ---
-GET Deleted Product Status: 404 (Expected: 404)
+6. [201 CREATED] Testing POST /api/products (Unified 2-step Product + Price)...
+   --> Status: 201 Created | Created ID: #62 | Name: "Trendify Wireless Gaming Headset" | Price: ₹2499
 
-=== ALL 5 CRUD OPERATIONS FULLY VERIFIED! ===
+7. [200 OK] Testing GET /api/products/62 to verify no 500 error...
+   --> Status: 200 OK | Name: "Trendify Wireless Gaming Headset" | Price: ₹2499
+
+8. [401 ERROR] Testing PUT /api/products/62 without token...
+   --> Status: 401 Unauthorized | Message: "Unauthorized: Admin authentication token is required."
+
+9. [204 NO CONTENT] Testing PUT /api/products/62 with valid update...
+   --> Status: 204 No Content (Update successful)
+
+10. [401 ERROR] Testing DELETE /api/products/62 without token...
+    --> Status: 401 Unauthorized | Message: "Unauthorized: Admin authentication token is required."
+
+11. [204 NO CONTENT] Testing DELETE /api/products/62 with Admin token...
+    --> Status: 204 No Content (Deletion successful)
+
+12. [404 NOT FOUND] Testing GET /api/products/62 after deletion...
+    --> Status: 404 Not Found | Message: "Product with ID 62 was not found."
+
+13. [404 NOT FOUND] Testing DELETE on non-existent product ID #999999...
+    --> Status: 404 Not Found | Message: "Product with ID 999999 was not found."
+
+===============================================================
+ SUMMARY: ALL 13 TEST CASES PASSED WITH CORRECT STATUS CODES!
+ Covered: 200 OK, 201 Created, 204 No Content, 400 Bad Request,
+          401 Unauthorized, 404 Not Found
+===============================================================
 ```
 
 #### Status Code Coverage:
 - **`200 OK`**: Verified on `GET /api/products` (returns paginated results with `totalCount`) and `GET /api/products/[id]`.
-- **`201 Created`**: Verified on `POST /api/products` (creates product shell and price).
+- **`201 Created`**: Verified on `POST /api/products` (creates product shell and price atomically).
 - **`204 No Content`**: Verified on `PUT /api/products/[id]` and `DELETE /api/products/[id]`.
-- **`400 Bad Request`**: Tested when passing non-numeric IDs (e.g. `/api/products/abc`) or missing required fields (`name`, `price <= 0`, `categoryId`).
+- **`400 Bad Request`**: Tested with non-numeric IDs (e.g. `/api/products/abc`) and invalid request bodies (missing price or invalid price).
 - **`401 Unauthorized`**: Tested when attempting `POST`, `PUT`, or `DELETE` without providing the Bearer token in the `Authorization` header.
-- **`404 Not Found`**: Verified when querying or deleting a non-existent product ID.
-- **`502 Bad Gateway`**: Tested when the upstream .NET server is unreachable.
+- **`404 Not Found`**: Verified when querying or deleting a non-existent or previously deleted product ID.
+- **`502 Bad Gateway`**: Handled when upstream .NET server is unreachable or fails to create price.
+

@@ -1,41 +1,78 @@
 import type { ReactNode } from 'react';
-import Button from './Button';
+import { AlertCircle, RefreshCw, PackageOpen, Info } from 'lucide-react';
+import Button, { type ButtonVariant } from './Button';
 
-interface StateMessageProps {
+export interface StateMessageProps {
   title: string;
   message: string;
   buttonText?: string;
+  buttonVariant?: ButtonVariant;
   onAction?: () => void;
   children?: ReactNode;
   className?: string;
+  variant?: 'error' | 'empty' | 'info';
+  compact?: boolean;
 }
 
 export default function StateMessage({
   title,
   message,
   buttonText,
+  buttonVariant = 'primary',
   onAction,
   children,
-  className = 'mt-7.5',
+  className = '',
+  variant = 'error',
+  compact = false,
 }: StateMessageProps) {
+  const iconConfig = {
+    error: {
+      icon: <AlertCircle className="h-6 w-6 text-red-500" />,
+      badge: 'bg-red-50 text-red-600',
+    },
+    empty: {
+      icon: <PackageOpen className="h-6 w-6 text-brand-orange" />,
+      badge: 'bg-orange-50 text-brand-orange',
+    },
+    info: {
+      icon: <Info className="h-6 w-6 text-blue-500" />,
+      badge: 'bg-blue-50 text-blue-600',
+    },
+  }[variant];
+
   return (
     <div
-      className={`flex w-full items-start justify-center ${className}`.trim()}
+      className={`mx-auto flex w-full max-w-xl flex-col items-center justify-center text-center transition-all ${
+        compact ? 'py-6 px-4' : 'py-8 px-6 sm:px-10 my-2'
+      } ${className}`.trim()}
     >
-      <div className="flex w-full max-w-125 flex-col items-center p-5 text-center">
-        <h2 className="mb-6 text-lg md:text-xl lg:text-2xl font-bold text-gray-700">
-          {title}
-        </h2>
-        <p className="mb-6 text-base text-gray-600">{message}</p>
-
-        {children}
-
-        {buttonText && onAction && (
-          <Button variant="outline" className="mt-8" onClick={onAction}>
-            {buttonText}
-          </Button>
-        )}
+      <div
+        className={`mb-4 flex h-12 w-12 items-center justify-center rounded-full ${iconConfig.badge}`}
+      >
+        {iconConfig.icon}
       </div>
+
+      <h3 className="mb-2 text-lg font-bold text-gray-900 md:text-xl">
+        {title}
+      </h3>
+
+      <p className="mb-5 max-w-md text-sm leading-relaxed text-gray-600 sm:text-base">
+        {message}
+      </p>
+
+      {children}
+
+      {buttonText && onAction && (
+        <Button
+          variant={buttonVariant}
+          className="mt-2 inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-xs font-semibold uppercase tracking-wider transition-all hover:shadow-xs"
+          onClick={onAction}
+        >
+          <RefreshCw size={14} className="shrink-0" />
+          {buttonText}
+        </Button>
+      )}
     </div>
   );
 }
+

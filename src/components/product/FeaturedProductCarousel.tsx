@@ -55,6 +55,8 @@ export default function FeaturedProductCarousel({
           message="We're having trouble connecting to our servers right now."
           buttonText="Try Again"
           onAction={onRetry}
+          variant="error"
+          compact
         />
       ) : products.length === 0 ? (
         <StateMessage
@@ -62,6 +64,8 @@ export default function FeaturedProductCarousel({
           message="The store is currently empty. Please check back later!"
           buttonText="Refresh"
           onAction={onRetry}
+          variant="empty"
+          compact
         />
       ) : (
         <div className="relative">

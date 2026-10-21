@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DOTNET_API_BASE_URL } from '@/config';
-import { toClientSearchResult } from '@/lib/productAdapter';
+import { toClientSearchResult, toDotnetCreatePayload } from '@/lib/productAdapter';
 import type { ProductSearchResultDto } from '@/types/ProductSearchResultDto';
+import type { CreateProductDto } from '@/types/ProductDto';
 
 /**
  * GET /api/products
@@ -12,8 +13,14 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = request.nextUrl;
 
-    const page = searchParams.get('page') || '1';
-    const pageSize = searchParams.get('pageSize') || '12';
+    const parsedPage = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1);
+    const parsedPageSize = Math.min(
+      100,
+      Math.max(1, parseInt(searchParams.get('pageSize') || '12', 10) || 12)
+    );
+
+    const page = String(parsedPage);
+    const pageSize = String(parsedPageSize);
     const search = searchParams.get('search')?.trim();
     const categoryId = searchParams.get('categoryId');
     const brandId = searchParams.get('brandId');
@@ -80,10 +87,6 @@ export async function GET(request: NextRequest) {
 /**
  * POST /api/products
  * Creates a new product. Requires Admin Bearer token.
- * Orchestrates a 2-step process with the .NET backend:
- *   1. POST /api/v1/Products (creates product shell, returns { productId })
- *   2. POST /api/ProductPrices (creates price record { productId, price })
- * If step 2 fails, automatically rolls back step 1 to prevent 500 null-price catalog errors.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -137,14 +140,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 3. Step 1: Create Product Shell in .NET API
-    const productPayload = {
-      name: name.trim(),
-      description: description ? String(description).trim() : '',
-      categoryId: Number(categoryId),
-      brandId: Number(brandId),
-      rating: typeof rating === 'number' && !isNaN(rating) ? rating : 0,
+    // 3.  Create Product Shell in .NET API using reverse adapter
+    const createDto: CreateProductDto = {
+      name,
+      description,
+      price,
+      categoryId,
+      brandId,
+      rating,
     };
+    const productPayload = toDotnetCreatePayload(createDto);
 
     const productResponse = await fetch(`${DOTNET_API_BASE_URL}/api/v1/Products`, {
       method: 'POST',
@@ -183,7 +188,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 4. Step 2: Create Product Price in .NET API
+    // 4 Create Product Price in .NET API
     const pricePayload = {
       productId: createdProductId,
       price: Number(price),

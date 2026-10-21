@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Card from '@/components/common/Card';
+import StateMessage from '@/components/common/StateMessage';
 import type { Category } from '@/types/product';
 
 interface ShopByCategoryProps {
@@ -35,21 +36,23 @@ export default function ShopByCategory({
           ))}
         </div>
       ) : error ? (
-        <div className="text-center py-6 text-status-danger">
-          <p>Unable to load categories.</p>
-          {onRetry && (
-            <button
-              onClick={onRetry}
-              className="mt-2 text-sm text-brand-orange underline"
-            >
-              Try Again
-            </button>
-          )}
-        </div>
+        <StateMessage
+          title="Unable to load categories"
+          message="We're having trouble connecting to our servers right now."
+          buttonText="Try Again"
+          onAction={onRetry}
+          variant="error"
+          compact
+        />
       ) : categories.length === 0 ? (
-        <div className="text-center py-6 text-text-muted">
-          No categories available at the moment.
-        </div>
+        <StateMessage
+          title="No categories available"
+          message="No categories are available at the moment. Please check back later."
+          buttonText={onRetry ? 'Refresh' : undefined}
+          onAction={onRetry}
+          variant="empty"
+          compact
+        />
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           {categories.map((category) => (

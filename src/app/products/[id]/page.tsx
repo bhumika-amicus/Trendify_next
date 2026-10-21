@@ -98,7 +98,7 @@ function ProductDetailContent({ product }: ProductDetailContentProps) {
                 quantity={quantity}
                 onQuantityChange={setQuantity}
                 disabled={isAdding}
-                className="!mx-0"
+                className="mx-0!"
               />
 
               <Button
@@ -146,17 +146,17 @@ export default function ProductDetailPage() {
 
   if (error) {
     return (
-      <div className="mx-auto min-h-[50vh] w-full max-w-7xl px-3 py-8 sm:px-5 md:px-8">
+      <div className="mx-auto min-h-[50vh] w-full max-w-7xl px-3 py-12 sm:px-5 md:px-8">
         <StateMessage
           title="Unable to load product"
           message={error}
-          className="py-12"
+          variant="error"
         >
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            <Button variant="primary" onClick={refetch}>
+          <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
+            <Button variant="outline" onClick={refetch}>
               Try Again
             </Button>
-            <Button variant="outline" onClick={() => router.push('/products')}>
+            <Button variant="primary" onClick={() => router.push('/products')}>
               Return to Products
             </Button>
           </div>
@@ -167,14 +167,14 @@ export default function ProductDetailPage() {
 
   if (!isValidId || !product) {
     return (
-      <div className="mx-auto min-h-[50vh] w-full max-w-7xl px-3 py-16 text-center">
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">Product Not Found</h2>
-        <p className="text-gray-500 mb-6">
-          Oops! The product you are looking for doesn&apos;t exist or is temporarily unavailable.
-        </p>
-        <Button variant="primary" onClick={() => router.push('/products')}>
-          Back to Products
-        </Button>
+      <div className="mx-auto min-h-[50vh] w-full max-w-7xl px-3 py-12 sm:px-5 md:px-8">
+        <StateMessage
+          title="Product Not Found"
+          message="Oops! The product you are looking for doesn't exist or is temporarily unavailable."
+          buttonText="Back to Products"
+          onAction={() => router.push('/products')}
+          variant="empty"
+        />
       </div>
     );
   }

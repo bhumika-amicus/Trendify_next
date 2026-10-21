@@ -79,6 +79,7 @@ function ProductListingContent() {
         }
         buttonText="Clear All Filters"
         onAction={resetAllFilters}
+        variant="empty"
       />
     ) : (
       <StateMessage
@@ -86,6 +87,7 @@ function ProductListingContent() {
         message="The store is currently empty. We might be restocking!"
         buttonText="Refresh"
         onAction={refetchProducts}
+        variant="empty"
       />
     );
   } else {

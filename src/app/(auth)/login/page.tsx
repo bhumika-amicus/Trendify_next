@@ -50,6 +50,9 @@ export default function LoginPage() {
         localStorage.setItem('customerId', String(data.customerId));
       }
 
+      // Notify components (like NavBar) that authentication succeeded
+      window.dispatchEvent(new Event('auth:login'));
+
       setIsSuccess(true);
       setTimeout(() => {
         router.push('/');

@@ -3,6 +3,7 @@ import type { Category } from '../types/Categories';
 import type { Brand } from '../types/Brands';
 import type { ProductSearchParams } from '../types/ProductSearchParams';
 import type { ProductSearchResult } from '../types/ProductSearchResult';
+import type { CreateProductDto, UpdateProductDto } from '../types/ProductDto';
 
 import { apiFetch } from './api';
 
@@ -103,14 +104,7 @@ export async function searchProducts(
 }
 
 export async function createProduct(
-  product: {
-    name: string;
-    description?: string;
-    price: number;
-    categoryId: number;
-    brandId: number;
-    rating?: number;
-  },
+  product: CreateProductDto,
   signal?: AbortSignal
 ): Promise<Product | undefined> {
   return apiFetch<Product>('/api/products', {
@@ -126,13 +120,7 @@ export async function createProduct(
 
 export async function updateProduct(
   id: number,
-  product: {
-    name: string;
-    description?: string;
-    categoryId: number;
-    brandId: number;
-    rating?: number;
-  },
+  product: UpdateProductDto,
   signal?: AbortSignal
 ): Promise<void> {
   await apiFetch<void>(`/api/products/${id}`, {

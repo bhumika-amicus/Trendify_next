@@ -1,15 +1,43 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ShoppingCart, LogIn, Menu, X, Store, Info } from 'lucide-react';
+import { ShoppingCart, LogIn, LogOut, Menu, X, Store, Info } from 'lucide-react';
 import ProductSearch from '@/components/product/ProductSearch';
+import { logout } from '@/services/api';
 
 export default function NavBar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [cartCount] = useState(0);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userName, setUserName] = useState('');
   const pathname = usePathname();
+
+  useEffect(() => {
+    const checkAuth = () => {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+      const name = typeof window !== 'undefined' ? localStorage.getItem('userName') : null;
+      setIsLoggedIn(Boolean(token));
+      setUserName(name || '');
+    };
+
+    checkAuth();
+    window.addEventListener('auth:login', checkAuth);
+    window.addEventListener('auth:logout', checkAuth);
+    window.addEventListener('storage', checkAuth);
+    return () => {
+      window.removeEventListener('auth:login', checkAuth);
+      window.removeEventListener('auth:logout', checkAuth);
+      window.removeEventListener('storage', checkAuth);
+    };
+  }, [pathname]);
+
+  const handleLogout = () => {
+    logout();
+    setIsLoggedIn(false);
+    setUserName('');
+  };
 
   const closeMenu = () => setIsMobileMenuOpen(false);
   const isLinkActive = (path: string) => {
@@ -90,13 +118,29 @@ export default function NavBar() {
             About
           </Link>
 
-          <Link
-            href="/login"
-            className="flex cursor-pointer items-center gap-1.75 border-0 bg-transparent text-sm font-medium text-gray-600 transition-colors hover:text-brand-orange focus-visible:outline-none"
-          >
-            <span>Sign In</span>
-            <LogIn size={18} />
-          </Link>
+          {isLoggedIn ? (
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="flex cursor-pointer items-center gap-1.75 border-0 bg-transparent text-sm font-medium text-gray-600 transition-colors hover:text-brand-orange focus-visible:outline-none"
+              title={userName ? `Logged in as ${userName}` : 'Sign Out'}
+            >
+              <span>Sign Out</span>
+              <LogOut size={18} />
+            </button>
+          ) : (
+            <Link
+              href="/login"
+              className={`flex cursor-pointer items-center gap-1.75 border-0 bg-transparent text-sm font-medium transition-colors hover:text-brand-orange focus-visible:outline-none ${
+                isLinkActive('/login')
+                  ? 'text-brand-orange underline underline-offset-4 decoration-2'
+                  : 'text-gray-600'
+              }`}
+            >
+              <span>Sign In</span>
+              <LogIn size={18} />
+            </Link>
+          )}
 
           <Link
             href="/cart"
@@ -108,15 +152,26 @@ export default function NavBar() {
           </Link>
         </nav>
 
-        {/* Mobile Icons (Right) - Sign In & Cart */}
+        {/* Mobile Icons (Right) - Sign In / Out & Cart */}
         <div className="flex items-center gap-4 md:hidden">
-          <Link
-            href="/login"
-            className="flex items-center text-gray-700 hover:text-brand-orange transition-colors focus-visible:outline-none"
-            aria-label="Sign In"
-          >
-            <LogIn size={24} />
-          </Link>
+          {isLoggedIn ? (
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="flex items-center text-gray-700 hover:text-brand-orange transition-colors focus-visible:outline-none border-0 bg-transparent p-0 cursor-pointer"
+              aria-label="Sign Out"
+            >
+              <LogOut size={24} />
+            </button>
+          ) : (
+            <Link
+              href="/login"
+              className="flex items-center text-gray-700 hover:text-brand-orange transition-colors focus-visible:outline-none"
+              aria-label="Sign In"
+            >
+              <LogIn size={24} />
+            </Link>
+          )}
 
           <Link
             href="/cart"
@@ -167,6 +222,29 @@ export default function NavBar() {
               <Info size={20} />
               About
             </Link>
+
+            {isLoggedIn ? (
+              <button
+                type="button"
+                onClick={() => {
+                  handleLogout();
+                  closeMenu();
+                }}
+                className="flex items-center gap-3 py-3 border-b border-gray-100 text-base font-medium text-gray-700 transition-colors hover:text-brand-orange text-left border-0 bg-transparent cursor-pointer w-full"
+              >
+                <LogOut size={20} />
+                Sign Out ({userName || 'User'})
+              </button>
+            ) : (
+              <Link
+                href="/login"
+                onClick={closeMenu}
+                className={getMobileLinkClass('/login')}
+              >
+                <LogIn size={20} />
+                Sign In
+              </Link>
+            )}
           </nav>
         </div>
       )}

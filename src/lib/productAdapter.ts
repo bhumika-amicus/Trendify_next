@@ -1,4 +1,10 @@
-import type { ProductDto } from '@/types/ProductDto';
+import type {
+  ProductDto,
+  CreateProductDto,
+  UpdateProductDto,
+  DotnetCreateProductPayload,
+  DotnetUpdateProductPayload,
+} from '@/types/ProductDto';
 import type { Product } from '@/types/Products';
 import type { ProductSearchResultDto } from '@/types/ProductSearchResultDto';
 import type { ProductSearchResult } from '@/types/ProductSearchResult';
@@ -40,3 +46,34 @@ export function toClientSearchResult(
     totalCount: data.totalRecords ?? 0,
   };
 }
+
+/**
+ * Transforms an incoming client CreateProductDto into the payload shape expected by .NET API.
+ */
+export function toDotnetCreatePayload(
+  dto: CreateProductDto
+): DotnetCreateProductPayload {
+  return {
+    name: dto.name.trim(),
+    description: dto.description ? String(dto.description).trim() : '',
+    categoryId: Number(dto.categoryId),
+    brandId: Number(dto.brandId),
+    rating: typeof dto.rating === 'number' && !isNaN(dto.rating) ? dto.rating : 0,
+  };
+}
+
+/**
+ * Transforms an incoming client UpdateProductDto into the payload shape expected by .NET API.
+ */
+export function toDotnetUpdatePayload(
+  dto: UpdateProductDto
+): DotnetUpdateProductPayload {
+  return {
+    name: dto.name.trim(),
+    description: dto.description ? String(dto.description).trim() : '',
+    categoryId: Number(dto.categoryId),
+    brandId: Number(dto.brandId),
+    rating: typeof dto.rating === 'number' && !isNaN(dto.rating) ? dto.rating : 0,
+  };
+}
+
