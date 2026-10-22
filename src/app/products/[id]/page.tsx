@@ -1,39 +1,99 @@
-'use client';
-
-import { useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import Image from 'next/image';
-import { getProductById } from '@/services/productApi';
-import { useFetch } from '@/hooks/useFetch';
-import type { Product } from '@/types/Products';
+import Link from 'next/link';
+import { getProductByIdServer } from '@/services/serverProductService';
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
 import Breadcrumbs from '@/components/common/Breadcrumbs';
 import StateMessage from '@/components/common/StateMessage';
 import RatingStars from '@/components/common/RatingStars';
-import QuantitySelector from '@/components/cart/QuantitySelector';
-import ProductDetailSkeleton from '@/components/product/ProductDetailSkeleton';
+import ProductAddToCart from '@/components/product/ProductAddToCart';
 import { formatINR } from '@/utils/formatters';
 
-interface ProductDetailContentProps {
-  product: Product;
+interface ProductDetailPageProps {
+  params: Promise<{ id: string }>;
 }
 
-function ProductDetailContent({ product }: ProductDetailContentProps) {
-  const [isAdding, setIsAdding] = useState(false);
-  const [quantity, setQuantity] = useState(1);
+export async function generateMetadata({
+  params,
+}: ProductDetailPageProps): Promise<Metadata> {
+  const { id } = await params;
+  const productId = Number(id);
 
-  const handleAddToCart = async () => {
-    if (isAdding) return;
-    setIsAdding(true);
-    try {
-      // Simulate adding to cart or hook into cart action
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      setQuantity(1);
-    } finally {
-      setIsAdding(false);
-    }
+  if (!productId || isNaN(productId) || productId <= 0) {
+    return {
+      title: 'Product Not Found | Trendify',
+    };
+  }
+
+  const { product } = await getProductByIdServer(productId);
+  if (!product) {
+    return {
+      title: 'Product Not Found | Trendify',
+    };
+  }
+
+  return {
+    title: `${product.name} | Trendify`,
+    description:
+      product.description ||
+      `Buy ${product.name} at Trendify for ${formatINR(product.price)}. Fast delivery and guaranteed authenticity.`,
   };
+}
+
+export default async function ProductDetailPage({
+  params,
+}: ProductDetailPageProps) {
+  const { id } = await params;
+  const productId = Number(id);
+
+  // 1. Validation: IDs must be positive integers
+  if (!productId || isNaN(productId) || productId <= 0) {
+    notFound();
+  }
+
+  // 2. Fetch product data on the server
+  const { product, status, error } = await getProductByIdServer(productId);
+
+  // 3. 404 Guard: Product does not exist
+  if (status === 404 || (!product && !error)) {
+    notFound();
+  }
+
+  // 4. 500 / Network Error Guard: Upstream service failure
+  if (error && !product) {
+    return (
+      <div className="mx-auto min-h-[50vh] w-full max-w-7xl px-4 py-12 sm:px-6 md:px-10">
+        <StateMessage
+          title="Unable to load product"
+          message={error}
+          variant="error"
+        >
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+            <Link href={`/products/${productId}`}>
+              <Button variant="outline">Try Again</Button>
+            </Link>
+            <Link href="/products">
+              <Button variant="primary">Return to Products</Button>
+            </Link>
+          </div>
+        </StateMessage>
+      </div>
+    );
+  }
+
+  // Guard TypeScript type check
+  if (!product) {
+    notFound();
+  }
+
+  const imageSrc = product.imageUrl || '/placeholder.jpg';
+  const isExternalImage = Boolean(
+    product.imageUrl &&
+      product.imageUrl.startsWith('http') &&
+      !product.imageUrl.includes('images.unsplash.com')
+  );
 
   return (
     <div className="mx-auto min-h-[50vh] w-full max-w-7xl px-4 py-6 sm:px-6 md:px-10">
@@ -47,19 +107,20 @@ function ProductDetailContent({ product }: ProductDetailContentProps) {
 
       <Card variant="elevated" className="mt-6 p-6 sm:p-8">
         <div className="flex flex-col gap-8 md:flex-row md:gap-12 lg:gap-16">
-          {/* Image Box */}
+          {/* Image Display */}
           <div className="relative flex flex-1 items-center justify-center rounded border border-gray-100 bg-surface-muted p-8 md:p-12 min-h-80 md:min-h-100">
             <Image
-              src={product.imageUrl || '/placeholder.jpg'}
+              src={imageSrc}
               alt={product.name}
               width={400}
               height={400}
               className="max-h-100 w-full object-contain mix-blend-multiply"
               priority
+              unoptimized={isExternalImage}
             />
           </div>
 
-          {/* Details */}
+          {/* Product Details */}
           <div className="flex flex-1 flex-col justify-center">
             <span className="mb-2 text-sm font-bold tracking-wider text-brand-orange uppercase">
               {product.category}
@@ -93,91 +154,11 @@ function ProductDetailContent({ product }: ProductDetailContentProps) {
               {product.description || 'No description available for this product.'}
             </p>
 
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-              <QuantitySelector
-                quantity={quantity}
-                onQuantityChange={setQuantity}
-                disabled={isAdding}
-                className="mx-0!"
-              />
-
-              <Button
-                variant="primary"
-                className="w-full px-10 py-3 text-base sm:w-auto"
-                onClick={handleAddToCart}
-                disabled={isAdding}
-              >
-                {isAdding ? 'ADDING TO CART...' : 'Add to Cart'}
-              </Button>
-            </div>
+            {/* Interactive Client Island */}
+            <ProductAddToCart product={product} />
           </div>
         </div>
       </Card>
     </div>
   );
-}
-
-export default function ProductDetailPage() {
-  const params = useParams();
-  const router = useRouter();
-
-  const id = params?.id;
-  const productId = typeof id === 'string' ? Number(id) : NaN;
-  const isValidId = !Number.isNaN(productId) && productId > 0;
-
-  const {
-    data: product,
-    isLoading,
-    error,
-    refetch,
-  } = useFetch<Product | null>(
-    async (signal) => {
-      if (!isValidId) return null;
-      const data = await getProductById(productId, signal);
-      return data ?? null;
-    },
-    [productId, isValidId],
-    { skip: !isValidId }
-  );
-
-  if (isLoading) {
-    return <ProductDetailSkeleton />;
-  }
-
-  if (error) {
-    return (
-      <div className="mx-auto min-h-[50vh] w-full max-w-7xl px-3 py-12 sm:px-5 md:px-8">
-        <StateMessage
-          title="Unable to load product"
-          message={error}
-          variant="error"
-        >
-          <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
-            <Button variant="outline" onClick={refetch}>
-              Try Again
-            </Button>
-            <Button variant="primary" onClick={() => router.push('/products')}>
-              Return to Products
-            </Button>
-          </div>
-        </StateMessage>
-      </div>
-    );
-  }
-
-  if (!isValidId || !product) {
-    return (
-      <div className="mx-auto min-h-[50vh] w-full max-w-7xl px-3 py-12 sm:px-5 md:px-8">
-        <StateMessage
-          title="Product Not Found"
-          message="Oops! The product you are looking for doesn't exist or is temporarily unavailable."
-          buttonText="Back to Products"
-          onAction={() => router.push('/products')}
-          variant="empty"
-        />
-      </div>
-    );
-  }
-
-  return <ProductDetailContent key={product.id} product={product} />;
 }

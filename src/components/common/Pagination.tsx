@@ -1,12 +1,13 @@
 'use client';
 
-import { memo } from 'react';
+import { memo, useCallback } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
-  onPageChange: (page: number) => void;
+  onPageChange?: (page: number) => void;
 }
 
 function Pagination({
@@ -14,6 +15,23 @@ function Pagination({
   totalPages,
   onPageChange,
 }: PaginationProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const rawSearchParams = useSearchParams();
+
+  const handlePageChange = useCallback(
+    (pageNumber: number) => {
+      if (onPageChange) {
+        onPageChange(pageNumber);
+        return;
+      }
+      const params = new URLSearchParams(rawSearchParams?.toString() || '');
+      params.set('page', String(pageNumber));
+      router.push(`${pathname}?${params.toString()}`);
+    },
+    [onPageChange, pathname, rawSearchParams, router]
+  );
+
   if (totalPages <= 1) {
     return null;
   }
@@ -25,7 +43,7 @@ function Pagination({
           <button
             type="button"
             disabled={currentPage <= 1}
-            onClick={() => onPageChange(currentPage - 1)}
+            onClick={() => handlePageChange(currentPage - 1)}
             className="inline-flex h-8 items-center justify-center gap-1 rounded-sm px-2.5 text-xs font-medium text-brand-orange transition-colors hover:bg-brand-orange-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:bg-transparent"
           >
             <ChevronLeft size={14} />
@@ -37,7 +55,7 @@ function Pagination({
             <li key={pageNumber}>
               <button
                 type="button"
-                onClick={() => onPageChange(pageNumber)}
+                onClick={() => handlePageChange(pageNumber)}
                 aria-current={currentPage === pageNumber ? 'page' : undefined}
                 aria-label={
                   currentPage === pageNumber
@@ -59,7 +77,7 @@ function Pagination({
           <button
             type="button"
             disabled={currentPage >= totalPages}
-            onClick={() => onPageChange(currentPage + 1)}
+            onClick={() => handlePageChange(currentPage + 1)}
             className="inline-flex h-8 items-center justify-center gap-1 rounded-sm px-2.5 text-xs font-medium text-brand-orange transition-colors hover:bg-brand-orange-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:bg-transparent"
           >
             <span>Next</span>

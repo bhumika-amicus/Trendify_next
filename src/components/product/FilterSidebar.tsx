@@ -169,22 +169,39 @@ function FilterSkeleton() {
   );
 }
 
-function FilterSidebar() {
+export interface FilterSidebarProps {
+  initialCategories?: Category[];
+  initialBrands?: Brand[];
+}
+
+function FilterSidebar({
+  initialCategories,
+  initialBrands,
+}: FilterSidebarProps = {}) {
+  const hasInitialCategories = Boolean(
+    initialCategories && initialCategories.length > 0
+  );
+  const hasInitialBrands = Boolean(initialBrands && initialBrands.length > 0);
+
   const {
     data: categoriesData,
     isLoading: isCategoriesLoading,
     error: categoriesError,
-  } = useFetch(getCategories);
+  } = useFetch(getCategories, [], { skip: hasInitialCategories });
 
-  const categories = categoriesData || EMPTY_CATEGORIES;
+  const categories = hasInitialCategories
+    ? (initialCategories as Category[])
+    : categoriesData || EMPTY_CATEGORIES;
 
   const {
     data: brandsData,
     isLoading: isBrandsLoading,
     error: brandsError,
-  } = useFetch(getBrands);
+  } = useFetch(getBrands, [], { skip: hasInitialBrands });
 
-  const brands = brandsData || EMPTY_BRANDS;
+  const brands = hasInitialBrands
+    ? (initialBrands as Brand[])
+    : brandsData || EMPTY_BRANDS;
   const {
     categoryId: selectedCategoryId,
     brandId,

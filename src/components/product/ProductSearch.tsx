@@ -40,7 +40,7 @@ function ProductSearchContent({
   const debouncedSearchTerm = useDebounce(draftInput, 300);
 
   const performSearch = useCallback(
-    (query: string) => {
+    (query: string, replace = false) => {
       const isListingPage = pathname === '/products';
       const nextParams = new URLSearchParams(
         isListingPage ? searchParams?.toString() : undefined
@@ -56,7 +56,11 @@ function ProductSearchContent({
 
       const queryString = nextParams.toString();
       const targetUrl = queryString ? `/products?${queryString}` : '/products';
-      router.push(targetUrl);
+      if (replace) {
+        router.replace(targetUrl);
+      } else {
+        router.push(targetUrl);
+      }
     },
     [pathname, router, searchParams]
   );
@@ -70,7 +74,7 @@ function ProductSearchContent({
     const currentSearch = searchParams?.get('search') ?? '';
 
     if (trimmed !== currentSearch) {
-      performSearch(trimmed);
+      performSearch(trimmed, true);
     }
   }, [debouncedSearchTerm, pathname, searchParams, performSearch]);
 
@@ -78,7 +82,7 @@ function ProductSearchContent({
     event.preventDefault();
     const query = (draftInput !== null ? draftInput : committedSearch).trim();
     setDraftInput(null);
-    performSearch(query);
+    performSearch(query, false);
   }
 
   return (

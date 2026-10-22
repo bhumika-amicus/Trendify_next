@@ -1,74 +1,97 @@
-'use client';
-
-import { type ReactNode, Suspense } from 'react';
-import { useFetch } from '@/hooks/useFetch';
-import { useProductFilters } from '@/hooks/useProductFilters';
-
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { getProductsServer } from '@/services/serverProductService';
 import ProductGrid from '@/components/product/ProductGrid';
-import ProductCardSkeleton from '@/components/product/ProductCardSkeleton';
 import Breadcrumbs from '@/components/common/Breadcrumbs';
 import StateMessage from '@/components/common/StateMessage';
 import Pagination from '@/components/common/Pagination';
 import Button from '@/components/common/Button';
-import { searchProducts } from '@/services/productApi';
-import type { Product } from '@/types/Products';
+import { ProductSortBy, SortOrder } from '@/types/ProductSorting';
+import type { ProductSearchParams } from '@/types/ProductSearchParams';
+import { getValidInt, getValidFloat } from '@/utils/urlHelpers';
+
+export const metadata: Metadata = {
+  title: 'Products | Trendify',
+  description:
+    'Browse our complete catalog of electronics, lifestyle, and fashion products with instant filtering and search.',
+};
 
 const PAGE_SIZE = 12;
-const EMPTY_PRODUCTS: Product[] = [];
 
-function ProductListingContent() {
-  const {
-    searchTerm,
-    page,
-    hasActiveFilters,
-    updatePage,
-    apiParams,
-    filterKey,
-    resetAllFilters,
-  } = useProductFilters();
+interface ProductListingPageProps {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
 
-  const {
-    data: productsData,
-    isLoading,
-    error,
-    refetch: refetchProducts,
-  } = useFetch(
-    (signal) => searchProducts({ ...apiParams, pageSize: PAGE_SIZE }, signal),
-    [filterKey]
+export default async function ProductListingPage({
+  searchParams,
+}: ProductListingPageProps) {
+  const rawParams = await searchParams;
+
+  // Convert raw searchParams promise result into URLSearchParams for parsing
+  const urlParams = new URLSearchParams();
+  for (const [key, value] of Object.entries(rawParams || {})) {
+    if (typeof value === 'string') {
+      urlParams.set(key, value);
+    } else if (Array.isArray(value) && value.length > 0) {
+      urlParams.set(key, value[0]);
+    }
+  }
+
+  // 1. Parse and validate URL query parameters on the server
+  const searchTerm = urlParams.get('search')?.trim() || '';
+  const categoryId = getValidInt(urlParams, 'categoryId', 1);
+  const brandId = getValidInt(urlParams, 'brandId', 1);
+  const minRating = getValidFloat(urlParams, 'minRating', 1, 5);
+  const page = getValidInt(urlParams, 'page', 1) ?? 1;
+
+  let minPrice = getValidFloat(urlParams, 'minPrice', 0);
+  let maxPrice = getValidFloat(urlParams, 'maxPrice', 0);
+  if (minPrice !== undefined && maxPrice !== undefined && minPrice > maxPrice) {
+    minPrice = undefined;
+    maxPrice = undefined;
+  }
+
+  const rawSortBy = urlParams.get('sortBy');
+  const isValidSortBy = (val: string | null): val is ProductSortBy =>
+    Object.values(ProductSortBy).some((v) => v === val);
+  const sortBy = isValidSortBy(rawSortBy) ? rawSortBy : undefined;
+
+  const rawSortOrder = urlParams.get('sortOrder');
+  const isValidSortOrder = (val: string | null): val is SortOrder =>
+    Object.values(SortOrder).some((v) => v === val);
+  const sortOrder = isValidSortOrder(rawSortOrder) ? rawSortOrder : undefined;
+
+  // 2. Determine active filter status
+  const hasFacetFilters = Boolean(
+    categoryId !== undefined ||
+      brandId !== undefined ||
+      minPrice !== undefined ||
+      maxPrice !== undefined ||
+      minRating !== undefined ||
+      sortBy !== undefined
   );
+  const hasActiveFilters = Boolean(searchTerm !== '' || hasFacetFilters);
 
-  const products = productsData?.products || EMPTY_PRODUCTS;
-  const totalRecords = productsData?.totalRecords || 0;
-  const totalPages = productsData?.totalPages || 0;
+  // 3. Assemble query payload for server service
+  const apiParams: ProductSearchParams = {
+    search: searchTerm || undefined,
+    categoryId,
+    brandId,
+    minPrice,
+    maxPrice,
+    minRating,
+    sortBy,
+    sortOrder,
+    page,
+    pageSize: PAGE_SIZE,
+  };
 
-  let content: ReactNode;
+  // 4. Fetch data directly on the server (Server Component)
+  const { products, totalRecords, totalPages } = await getProductsServer(apiParams);
 
-  if (isLoading) {
-    content = (
-      <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4">
-        {Array.from({ length: PAGE_SIZE }).map((_, index) => (
-          <ProductCardSkeleton key={index} />
-        ))}
-      </div>
-    );
-  } else if (error) {
-    content = (
-      <StateMessage
-        title="Oops! Something went wrong."
-        message="We are having trouble connecting to our servers right now."
-        buttonText="Try Again"
-        onAction={refetchProducts}
-      >
-        <div className="inline-block text-left">
-          <p className="mb-2 font-medium">Troubleshooting Tips:</p>
-          <ul className="ml-5 list-disc text-gray-600">
-            <li className="mb-1.5 text-base">Check your internet connection</li>
-            <li className="mb-1.5 text-base">Wait a moment and try again</li>
-          </ul>
-        </div>
-      </StateMessage>
-    );
-  } else if (products.length === 0) {
+  let content: React.ReactNode;
+
+  if (products.length === 0) {
     content = hasActiveFilters ? (
       <StateMessage
         title="No products match your criteria"
@@ -78,7 +101,7 @@ function ProductListingContent() {
             : 'No products match the selected filters. Try broadening your criteria.'
         }
         buttonText="Clear All Filters"
-        onAction={resetAllFilters}
+        actionHref="/products"
         variant="empty"
       />
     ) : (
@@ -86,7 +109,7 @@ function ProductListingContent() {
         title="No products available."
         message="The store is currently empty. We might be restocking!"
         buttonText="Refresh"
-        onAction={refetchProducts}
+        actionHref="/products"
         variant="empty"
       />
     );
@@ -103,14 +126,13 @@ function ProductListingContent() {
 
         <ProductGrid products={products} />
 
-        <Pagination
-          currentPage={page}
-          totalPages={totalPages}
-          onPageChange={updatePage}
-        />
+        <Pagination currentPage={page} totalPages={totalPages} />
       </>
     );
   }
+
+  const currentQueryString = urlParams.toString();
+  const refreshUrl = currentQueryString ? `/products?${currentQueryString}` : '/products';
 
   return (
     <div className="w-full">
@@ -120,38 +142,14 @@ function ProductListingContent() {
         <h1 className="text-lg md:text-xl lg:text-2xl font-bold m-0 text-text-main">
           Product Listing
         </h1>
-        {isLoading ? (
-          <Button variant="outline" disabled className="text-xs px-3 py-1.5">
+        <Link href={refreshUrl}>
+          <Button variant="outline" className="text-xs px-3 py-1.5">
             Refresh
           </Button>
-        ) : !error && products.length > 0 ? (
-          <Button
-            variant="outline"
-            onClick={refetchProducts}
-            className="text-xs px-3 py-1.5"
-          >
-            Refresh
-          </Button>
-        ) : null}
+        </Link>
       </div>
 
       {content}
     </div>
-  );
-}
-
-export default function ProductListingPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-3">
-          {Array.from({ length: 9 }).map((_, i) => (
-            <ProductCardSkeleton key={i} />
-          ))}
-        </div>
-      }
-    >
-      <ProductListingContent />
-    </Suspense>
   );
 }
