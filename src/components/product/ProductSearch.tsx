@@ -1,7 +1,7 @@
 'use client';
 
 import { Search } from 'lucide-react';
-import { useState, useCallback, useEffect, Suspense } from 'react';
+import { useState, useCallback, useEffect, useRef, Suspense } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useDebounce } from '@/hooks/useDebounce';
 
@@ -32,12 +32,17 @@ function ProductSearchContent({
   const searchParams = useSearchParams();
 
   const committedSearch = searchParams?.get('search') ?? '';
-  // Only stores intermediate text while the user is actively typing in this specific box.
-  // When null, the input cleanly displays the `committedSearch` from the URL directly.
-  const [draftInput, setDraftInput] = useState<string | null>(null);
-  const displayValue = draftInput !== null ? draftInput : committedSearch;
+  const [inputValue, setInputValue] = useState(committedSearch);
+  const isTypingRef = useRef(false);
 
-  const debouncedSearchTerm = useDebounce(draftInput, 300);
+  // Sync controlled input value with URL parameter only when the user is NOT actively typing
+  useEffect(() => {
+    if (!isTypingRef.current) {
+      setInputValue(committedSearch);
+    }
+  }, [committedSearch]);
+
+  const debouncedSearchTerm = useDebounce(inputValue, 300);
 
   const performSearch = useCallback(
     (query: string, replace = false) => {
@@ -66,12 +71,16 @@ function ProductSearchContent({
   );
 
   useEffect(() => {
-    // Only search on type if the user actively typed in THIS input and we are on /products
-    if (debouncedSearchTerm === null) return;
+    // Only search on type if:
+    // 1. The user actively typed into THIS specific input instance
+    // 2. We are on the /products listing page
+    if (!isTypingRef.current) return;
     if (pathname !== '/products') return;
 
     const trimmed = debouncedSearchTerm.trim();
     const currentSearch = searchParams?.get('search') ?? '';
+
+    isTypingRef.current = false;
 
     if (trimmed !== currentSearch) {
       performSearch(trimmed, true);
@@ -80,8 +89,8 @@ function ProductSearchContent({
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const query = (draftInput !== null ? draftInput : committedSearch).trim();
-    setDraftInput(null);
+    isTypingRef.current = false;
+    const query = inputValue.trim();
     performSearch(query, false);
   }
 
@@ -90,9 +99,11 @@ function ProductSearchContent({
       <input
         type="search"
         placeholder={placeholder}
-        value={displayValue}
-        onChange={(event) => setDraftInput(event.target.value)}
-        onBlur={() => setDraftInput(null)}
+        value={inputValue}
+        onChange={(event) => {
+          isTypingRef.current = true;
+          setInputValue(event.target.value);
+        }}
         aria-label="Search products"
         className={styles[variant].input}
       />

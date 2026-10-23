@@ -10,7 +10,7 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 
-import type { Product } from '@/types/product';
+import type { Product } from '@/types/Products';
 import ProductCard from './ProductCard';
 import ProductCardSkeleton from './ProductCardSkeleton';
 import StateMessage from '../common/StateMessage';

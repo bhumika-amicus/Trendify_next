@@ -5,7 +5,7 @@ import {
   getBrandsServer,
 } from '@/services/serverProductService';
 
-export default async function StoreLayout({
+export default async function CatalogLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -30,7 +30,7 @@ export default async function StoreLayout({
           />
         </Suspense>
 
-        {/* Store Content (Product Listing) */}
+        {/* Catalog Content (Product Listing) */}
         <section className="min-w-0">{children}</section>
       </div>
     </div>

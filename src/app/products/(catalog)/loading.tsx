@@ -1,7 +1,7 @@
 import Breadcrumbs from '@/components/common/Breadcrumbs';
 import ProductCardSkeleton from '@/components/product/ProductCardSkeleton';
 
-export default function ProductsLoading() {
+export default function CatalogLoading() {
   return (
     <div className="w-full">
       <Breadcrumbs className="mb-4" />

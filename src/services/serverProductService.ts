@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import { DOTNET_API_BASE_URL } from '@/config';
 import { toClientSearchResult, toClientProduct } from '@/lib/productAdapter';
 import type { ProductSearchParams } from '@/types/ProductSearchParams';
@@ -92,13 +93,13 @@ export interface ServerProductDetailResult {
  * Fetches a single product by ID from the upstream .NET API for Server Components.
  * Returns { product, status, error } to distinguish between a genuine 404 Not Found
  * and a 500/network error.
+ * Memoized per request lifecycle using React.cache() so generateMetadata and the page share one fetch.
  */
-export async function getProductByIdServer(
-  id: number
-): Promise<ServerProductDetailResult> {
-  if (!id || isNaN(id) || id <= 0) {
-    return { product: null, status: 400, error: 'Invalid product ID' };
-  }
+export const getProductByIdServer = cache(
+  async (id: number): Promise<ServerProductDetailResult> => {
+    if (!id || isNaN(id) || id <= 0) {
+      return { product: null, status: 400, error: 'Invalid product ID' };
+    }
 
   try {
     const upstreamUrl = `${DOTNET_API_BASE_URL}/api/v1/Products/${id}`;
@@ -137,7 +138,7 @@ export async function getProductByIdServer(
       error: 'The product service is currently unavailable. Please try again.',
     };
   }
-}
+});
 
 /**
  * Server-side helper to fetch categories for Server Layouts or Server Components.

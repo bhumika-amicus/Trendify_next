@@ -115,3 +115,76 @@ node scripts/test-crud.mjs
 - **`404 Not Found`**: Verified when querying or deleting a non-existent or previously deleted product ID.
 - **`502 Bad Gateway`**: Handled when upstream .NET server is unreachable or fails to create price.
 
+---
+
+## Assignment 5: Product Listing, Search and Product Page
+
+This assignment implements the complete catalog browsing experience: search, filtering, sorting, pagination, and a detailed product view.
+
+### 1. Key Features
+
+- **Server-Rendered Catalog (`/products`)**: Product data, categories, and brands are fetched directly on the server for fast initial loading and strong SEO.
+- **Debounced Live Search**: The search input waits 300ms after you stop typing before updating results, preventing jitter and wasted requests.
+- **URL as the Single Source of Truth**: All active filters, search keywords, sorting choices, and page numbers are stored in the URL query string (e.g., `/products?categoryId=1&minPrice=10000&sortBy=price&page=2`). If you refresh the page or share the link with someone else, the exact same filtered view opens.
+- **Server-Side Filtering & Sorting**: Filtering and sorting are handled by the backend API, not by filtering arrays in the browser.
+- **Pagination**: Includes Previous, Next, and direct page numbers, automatically resetting to page 1 whenever search or filters change.
+- **Product Details (`/products/[id]`)**: Shows complete product details (category, brand, rating, price, description) and generates dynamic SEO metadata.
+- **Interactive Islands**: Quantity selector and Add-to-Cart controls provide immediate feedback without needing the whole page to be client-side.
+
+---
+
+### 2. Server Components vs. Client Components (In Simple Terms)
+
+Next.js App Router lets us divide our code into two main types of components: **Server Components** and **Client Components**. Here is which parts we used for each, and why:
+
+#### A. Server Components (Run on the Server)
+Think of Server Components as code that runs **behind the scenes on the server** before sending the finished HTML to the user's browser.
+
+**Why we use Server Components:**
+1. **Speed & First Load**: The browser receives ready-to-view HTML with the data already inside it. Users don't see blank screens or multiple loading spinners.
+2. **Security**: We can talk directly to private backend APIs and databases without exposing internal API URLs or tokens to the browser.
+3. **Smaller Download**: Server Component code stays on the server, so the user downloads much less JavaScript on their phone or laptop.
+4. **Great for Search Engines (SEO)**: Google and other crawlers see the full page content immediately.
+
+**Which parts are Server Components in our app:**
+- **Product Listing Page (`src/app/products/page.tsx`)**: Reads URL search parameters, queries the backend API for products, categories, and brands, and renders the layout.
+- **Product Details Page (`src/app/products/[id]/page.tsx`)**: Fetches the single product by ID, handles 404 Not Found if the product does not exist, and creates the SEO page title and description.
+- **Product Grid (`src/components/product/ProductGrid.tsx`)**: Organizes products into a responsive 4-column layout on the server.
+
+---
+
+#### B. Client Components (Run in the Browser)
+Think of Client Components as parts of the page that need to **listen and respond to the user** (clicks, typing, animations) using `'use client'`.
+
+**Why we use Client Components:**
+1. **Interactivity**: Browsers need JavaScript running on the user's device to listen to keyboard typing (`onChange`) or button clicks (`onClick`).
+2. **React Hooks**: Features like `useState`, `useEffect`, and `useRef` only work inside the browser.
+
+**Which parts are Client Components in our app:**
+- **Search Bar (`ProductSearch.tsx`)**: Listens to keystrokes, manages the 300ms debounce timer, and smoothly updates the URL.
+- **Filter Sidebar (`FilterSidebar.tsx` & `useProductFilters.ts`)**: Handles clicking filter checkboxes (categories, brands, price ranges, star ratings) and radio buttons for sorting.
+- **Pagination (`Pagination.tsx`)**: Listens to clicks on page numbers and Prev/Next buttons to change the active page.
+- **Add to Cart & Quantity Selector (`ProductAddToCart.tsx`, `QuantitySelector.tsx`, `ProductCard.tsx`)**: Manages the `+` and `-` quantity buttons, and shows the "Added to Cart!" confirmation message.
+
+---
+
+### 3. Architecture: Internal Route Grouping (Recommended Next.js Pattern)
+
+All product-related routes live cohesively inside `src/app/products/`:
+
+```text
+src/app/
+└── products/
+    ├── (catalog)/             <-- Route group for catalog listing (ignored in URL)
+    │   ├── layout.tsx         <-- Injects FilterSidebar + 2-column layout ONLY for /products
+    │   ├── page.tsx           <-- Serves URL: /products
+    │   └── loading.tsx        <-- Catalog loading skeleton
+    └── [id]/                  <-- Sibling to (catalog)
+        ├── page.tsx           <-- Serves URL: /products/[id] (Full-width clean detail view)
+        └── loading.tsx        <-- Detail page loading skeleton
+```
+
+- **How it works**: By wrapping the catalog listing in an internal route group `(catalog)`, the sidebar layout applies strictly to `/products`.
+- **Clean Detail Pages**: Because `[id]` is a sibling to `(catalog)` and not a child of it, the product details page (`/products/[id]`) does not inherit the catalog sidebar and displays as a clean, full-width product view.
+- **Zero URL Impact**: Route groups with parentheses `(catalog)` do not affect the public URLs (`/products` and `/products/123`).
+

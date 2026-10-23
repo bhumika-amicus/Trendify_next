@@ -3,7 +3,7 @@
 import { useState, memo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import type { Product } from '@/types/product';
+import type { Product } from '@/types/Products';
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
 import RatingStars from '@/components/common/RatingStars';
