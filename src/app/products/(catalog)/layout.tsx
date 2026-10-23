@@ -25,8 +25,8 @@ export default async function CatalogLayout({
           }
         >
           <FilterSidebar
-            initialCategories={categories}
-            initialBrands={brands}
+            categories={categories}
+            brands={brands}
           />
         </Suspense>
 

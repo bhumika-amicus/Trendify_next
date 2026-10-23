@@ -162,7 +162,7 @@ Think of Client Components as parts of the page that need to **listen and respon
 
 **Which parts are Client Components in our app:**
 - **Search Bar (`ProductSearch.tsx`)**: Listens to keystrokes, manages the 300ms debounce timer, and smoothly updates the URL.
-- **Filter Sidebar (`FilterSidebar.tsx` & `useProductFilters.ts`)**: Handles clicking filter checkboxes (categories, brands, price ranges, star ratings) and radio buttons for sorting.
+- **Filter Sidebar (`FilterSidebar.tsx` & `useProductFilters.ts`)**: Handles clicking filter checkboxes (categories, brands, price ranges, star ratings) and radio buttons for sorting. Receives pre-fetched categories and brands directly as props from the Server Layout (`layout.tsx`), completely eliminating client-side `useFetch` waterfalls and loading skeletons.
 - **Pagination (`Pagination.tsx`)**: Listens to clicks on page numbers and Prev/Next buttons to change the active page.
 - **Add to Cart & Quantity Selector (`ProductAddToCart.tsx`, `QuantitySelector.tsx`, `ProductCard.tsx`)**: Manages the `+` and `-` quantity buttons, and shows the "Added to Cart!" confirmation message.
 

@@ -1,25 +1,7 @@
 import type { Product } from '../types/Products';
-import type { Category } from '../types/Categories';
-import type { Brand } from '../types/Brands';
 import type { CreateProductDto, UpdateProductDto } from '../types/ProductDto';
 
 import { apiFetch } from './api';
-
-export async function getCategories(
-  signal?: AbortSignal
-): Promise<Category[]> {
-  const data = await apiFetch<Category[]>('/api/categories', {
-    signal,
-  });
-  return data || [];
-}
-
-export async function getBrands(signal?: AbortSignal): Promise<Brand[]> {
-  const data = await apiFetch<Brand[]>('/api/brands', {
-    signal,
-  });
-  return data || [];
-}
 
 export async function createProduct(
   product: CreateProductDto,

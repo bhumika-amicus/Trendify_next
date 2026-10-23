@@ -2,15 +2,10 @@
 
 import { useState, memo, type ReactNode } from 'react';
 import { Star, ChevronUp, ChevronDown, X, ArrowRight } from 'lucide-react';
-import { useFetch } from '../../hooks/useFetch';
-import { getBrands, getCategories } from '../../services/productApi';
-import type { Category } from '../../types/Categories';
-import type { Brand } from '../../types/Brands';
-import { ProductSortBy, SortOrder } from '../../types/ProductSorting';
-import { useProductFilters } from '../../hooks/useProductFilters';
-
-const EMPTY_CATEGORIES: Category[] = [];
-const EMPTY_BRANDS: Brand[] = [];
+import type { Category } from '@/types/Categories';
+import type { Brand } from '@/types/Brands';
+import { ProductSortBy, SortOrder } from '@/types/ProductSorting';
+import { useProductFilters } from '@/hooks/useProductFilters';
 
 const PRICE_RANGES = [
   { label: 'Below ₹10,000', min: undefined, max: 10000 },
@@ -156,52 +151,15 @@ function FilterSectionHeader({
   );
 }
 
-function FilterSkeleton() {
-  return (
-    <>
-      {Array.from({ length: 4 }).map((_, index) => (
-        <div key={index} className="mb-2 flex items-center gap-1.5 px-1 py-0.5">
-          <div className="h-3 w-3 rounded-sm bg-gray-200 animate-pulse" />
-          <div className="h-4 w-24 rounded bg-gray-200 animate-pulse" />
-        </div>
-      ))}
-    </>
-  );
-}
-
 export interface FilterSidebarProps {
-  initialCategories?: Category[];
-  initialBrands?: Brand[];
+  categories?: Category[];
+  brands?: Brand[];
 }
 
 function FilterSidebar({
-  initialCategories,
-  initialBrands,
-}: FilterSidebarProps = {}) {
-  const hasInitialCategories = Boolean(
-    initialCategories && initialCategories.length > 0
-  );
-  const hasInitialBrands = Boolean(initialBrands && initialBrands.length > 0);
-
-  const {
-    data: categoriesData,
-    isLoading: isCategoriesLoading,
-    error: categoriesError,
-  } = useFetch(getCategories, [], { skip: hasInitialCategories });
-
-  const categories = hasInitialCategories
-    ? (initialCategories as Category[])
-    : categoriesData || EMPTY_CATEGORIES;
-
-  const {
-    data: brandsData,
-    isLoading: isBrandsLoading,
-    error: brandsError,
-  } = useFetch(getBrands, [], { skip: hasInitialBrands });
-
-  const brands = hasInitialBrands
-    ? (initialBrands as Brand[])
-    : brandsData || EMPTY_BRANDS;
+  categories = [],
+  brands = [],
+}: FilterSidebarProps) {
   const {
     categoryId: selectedCategoryId,
     brandId,
@@ -302,11 +260,7 @@ function FilterSidebar({
         <section
           className={`${openSections.category ? 'block' : 'hidden'} lg:block`}
         >
-          {isCategoriesLoading ? (
-            <FilterSkeleton />
-          ) : categoriesError ? (
-            <p className="text-sm text-red-500 py-1 italic">{categoriesError}</p>
-          ) : categories.length === 0 ? (
+          {categories.length === 0 ? (
             <p className="text-sm text-gray-500 py-1 italic">
               No categories found.
             </p>
@@ -338,11 +292,7 @@ function FilterSidebar({
         <section
           className={`${openSections.brand ? 'block' : 'hidden'} lg:block`}
         >
-          {isBrandsLoading ? (
-            <FilterSkeleton />
-          ) : brandsError ? (
-            <p className="text-sm text-red-500 py-1 italic">{brandsError}</p>
-          ) : brands.length === 0 ? (
+          {brands.length === 0 ? (
             <p className="text-sm text-gray-500 py-1 italic">No brands found.</p>
           ) : (
             brands.map((brand) => (
