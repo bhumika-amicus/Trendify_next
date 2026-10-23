@@ -82,6 +82,7 @@ export default function AboutPage() {
             ]}
             className="mb-3"
             separator="|"
+            variant="on-dark"
           />
 
           <h1 className="m-0 text-3xl sm:text-5xl md:text-6xl font-black uppercase tracking-tight text-white">

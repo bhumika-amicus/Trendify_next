@@ -1,11 +1,8 @@
-import Breadcrumbs from '@/components/common/Breadcrumbs';
 import ProductCardSkeleton from '@/components/product/ProductCardSkeleton';
 
 export default function CatalogLoading() {
   return (
     <div className="w-full">
-      <Breadcrumbs className="mb-4" />
-
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-lg md:text-xl lg:text-2xl font-bold m-0 text-text-main">
           Product Listing

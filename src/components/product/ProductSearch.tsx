@@ -35,6 +35,11 @@ function ProductSearchContent({
   const [inputValue, setInputValue] = useState(committedSearch);
   const isTypingRef = useRef(false);
 
+  const searchParamsRef = useRef(searchParams);
+  useEffect(() => {
+    searchParamsRef.current = searchParams;
+  }, [searchParams]);
+
   // Sync controlled input value with URL parameter only when the user is NOT actively typing
   useEffect(() => {
     if (!isTypingRef.current) {
@@ -47,8 +52,9 @@ function ProductSearchContent({
   const performSearch = useCallback(
     (query: string, replace = false) => {
       const isListingPage = pathname === '/products';
+      const currentParams = searchParamsRef.current;
       const nextParams = new URLSearchParams(
-        isListingPage ? searchParams?.toString() : undefined
+        isListingPage ? currentParams?.toString() : undefined
       );
 
       if (query) {
@@ -67,32 +73,28 @@ function ProductSearchContent({
         router.push(targetUrl);
       }
     },
-    [pathname, router, searchParams]
+    [pathname, router]
   );
 
   useEffect(() => {
-    // Only search on type if:
-    // 1. The user actively typed into THIS specific input instance
-    // 2. We are on the /products listing page
     if (!isTypingRef.current) return;
     if (pathname !== '/products') return;
 
     const trimmed = debouncedSearchTerm.trim();
-    const currentSearch = searchParams?.get('search') ?? '';
-
-    isTypingRef.current = false;
+    const currentSearch = searchParamsRef.current?.get('search') ?? '';
 
     if (trimmed !== currentSearch) {
+      isTypingRef.current = false;
       performSearch(trimmed, true);
     }
-  }, [debouncedSearchTerm, pathname, searchParams, performSearch]);
+  }, [debouncedSearchTerm, pathname, performSearch]);
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  const handleSubmit: React.FormEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault();
     isTypingRef.current = false;
     const query = inputValue.trim();
     performSearch(query, false);
-  }
+  };
 
   return (
     <form className={styles[variant].form} onSubmit={handleSubmit} role="search">

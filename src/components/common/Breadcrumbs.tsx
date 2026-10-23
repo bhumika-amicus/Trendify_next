@@ -14,12 +14,13 @@ export interface BreadcrumbsProps {
   items?: BreadcrumbItem[];
   className?: string;
   separator?: React.ReactNode;
+  variant?: 'default' | 'on-dark' | 'dark';
 }
 
 const routeMapping: Record<string, BreadcrumbItem[]> = {
   '/': [{ label: 'Home' }],
   '/products': [{ label: 'Home', path: '/' }, { label: 'Products' }],
-  '/about': [{ label: 'Home', path: '/' }, { label: 'About Us' }],
+  '/about': [{ label: 'Home', path: '/' }, { label: 'About Trendify' }],
   '/cart': [{ label: 'Home', path: '/' }, { label: 'Shopping Cart' }],
   '/checkout': [
     { label: 'Home', path: '/' },
@@ -34,7 +35,9 @@ export default function Breadcrumbs({
   items: customItems,
   className = '',
   separator,
+  variant = 'default',
 }: BreadcrumbsProps = {}) {
+  const isDark = variant === 'on-dark' || variant === 'dark';
   const currentPathname = usePathname();
   const pathname =
     currentPathname?.endsWith('/') && currentPathname !== '/'
@@ -80,7 +83,9 @@ export default function Breadcrumbs({
               ) : (
                 <span
                   aria-current={isLast ? 'page' : undefined}
-                  className={`text-gray-600 ${isLast ? 'truncate max-w-50 sm:max-w-md' : ''}`}
+                  className={`${
+                    isDark ? 'text-white font-medium drop-shadow-sm' : 'text-gray-600'
+                  } ${isLast ? 'truncate max-w-50 sm:max-w-md' : ''}`}
                   title={isLast ? item.label : undefined}
                 >
                   {item.label}
@@ -88,9 +93,12 @@ export default function Breadcrumbs({
               )}
 
               {!isLast && (
-                <span aria-hidden="true" className="text-gray-400 shrink-0">
+                <span
+                  aria-hidden="true"
+                  className={`${isDark ? 'text-white/70' : 'text-gray-400'} shrink-0`}
+                >
                   {separator ? (
-                    <span className="px-0.5 text-xs text-white/60">{separator}</span>
+                    <span className="px-0.5 text-xs font-light">{separator}</span>
                   ) : (
                     <ChevronRight size={16} />
                   )}

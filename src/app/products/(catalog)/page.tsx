@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getProductsServer } from '@/services/serverProductService';
 import ProductGrid from '@/components/product/ProductGrid';
-import Breadcrumbs from '@/components/common/Breadcrumbs';
 import StateMessage from '@/components/common/StateMessage';
 import Pagination from '@/components/common/Pagination';
 import Button from '@/components/common/Button';
@@ -18,7 +17,6 @@ export const metadata: Metadata = {
     'Browse our complete catalog of electronics, lifestyle, and fashion products with instant filtering and search.',
 };
 
-export const dynamic = 'force-static';
 export const revalidate = 60;
 
 const PAGE_SIZE = 12;
@@ -151,8 +149,6 @@ async function ProductListingContent({
 
   return (
     <div className="w-full">
-      <Breadcrumbs className="mb-4" />
-
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-lg md:text-xl lg:text-2xl font-bold m-0 text-text-main">
           Product Listing

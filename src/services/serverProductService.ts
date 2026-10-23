@@ -1,3 +1,4 @@
+
 import { cache } from 'react';
 import { DOTNET_API_BASE_URL } from '@/config';
 import { toClientSearchResult, toClientProduct } from '@/lib/productAdapter';
@@ -104,44 +105,44 @@ export const getProductByIdServer = cache(
       return { product: null, status: 400, error: 'Invalid product ID' };
     }
 
-  try {
-    const upstreamUrl = `${DOTNET_API_BASE_URL}/api/v1/Products/${id}`;
+    try {
+      const upstreamUrl = `${DOTNET_API_BASE_URL}/api/v1/Products/${id}`;
 
-    const response = await fetch(upstreamUrl, {
-      method: 'GET',
-      headers: {
-        Accept: 'application/json',
-      },
-      next: { revalidate: 60 },
-    });
+      const response = await fetch(upstreamUrl, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+        },
+        next: { revalidate: 60 },
+      });
 
-    if (response.status === 404) {
-      return { product: null, status: 404 };
-    }
+      if (response.status === 404) {
+        return { product: null, status: 404 };
+      }
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(
-        `Upstream error in getProductByIdServer for ID ${id} [${response.status}]: ${errorText}`
-      );
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(
+          `Upstream error in getProductByIdServer for ID ${id} [${response.status}]: ${errorText}`
+        );
+        return {
+          product: null,
+          status: response.status,
+          error: 'Failed to retrieve product details from upstream server.',
+        };
+      }
+
+      const data: ProductDto = await response.json();
+      return { product: toClientProduct(data), status: 200 };
+    } catch (error) {
+      console.error(`Error in getProductByIdServer for ID ${id}:`, error);
       return {
         product: null,
-        status: response.status,
-        error: 'Failed to retrieve product details from upstream server.',
+        status: 502,
+        error: 'The product service is currently unavailable. Please try again.',
       };
     }
-
-    const data: ProductDto = await response.json();
-    return { product: toClientProduct(data), status: 200 };
-  } catch (error) {
-    console.error(`Error in getProductByIdServer for ID ${id}:`, error);
-    return {
-      product: null,
-      status: 502,
-      error: 'The product service is currently unavailable. Please try again.',
-    };
-  }
-});
+  });
 
 /**
  * Server-side helper to fetch categories for Server Layouts or Server Components.
