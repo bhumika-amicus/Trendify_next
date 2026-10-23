@@ -6,6 +6,8 @@ import Breadcrumbs from '@/components/common/Breadcrumbs';
 import StateMessage from '@/components/common/StateMessage';
 import Pagination from '@/components/common/Pagination';
 import Button from '@/components/common/Button';
+import { Suspense } from 'react';
+import CatalogLoading from './loading';
 import { ProductSortBy, SortOrder } from '@/types/ProductSorting';
 import type { ProductSearchParams } from '@/types/ProductSearchParams';
 import { getValidInt, getValidFloat } from '@/utils/urlHelpers';
@@ -16,13 +18,26 @@ export const metadata: Metadata = {
     'Browse our complete catalog of electronics, lifestyle, and fashion products with instant filtering and search.',
 };
 
+export const dynamic = 'force-static';
+export const revalidate = 60;
+
 const PAGE_SIZE = 12;
 
 interface ProductListingPageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-export default async function ProductListingPage({
+export default function ProductListingPage({
+  searchParams,
+}: ProductListingPageProps) {
+  return (
+    <Suspense fallback={<CatalogLoading />}>
+      <ProductListingContent searchParams={searchParams} />
+    </Suspense>
+  );
+}
+
+async function ProductListingContent({
   searchParams,
 }: ProductListingPageProps) {
   const rawParams = await searchParams;

@@ -188,3 +188,103 @@ src/app/
 - **Clean Detail Pages**: Because `[id]` is a sibling to `(catalog)` and not a child of it, the product details page (`/products/[id]`) does not inherit the catalog sidebar and displays as a clean, full-width product view.
 - **Zero URL Impact**: Route groups with parentheses `(catalog)` do not affect the public URLs (`/products` and `/products/123`).
 
+---
+
+## Assignment 6: Product Catalog with SSG and ISR
+
+This assignment implements Static Site Generation (SSG) and Incremental Static Regeneration (ISR) across the product catalog, eliminates client-side data fetching waterfalls, and demonstrates how Next.js pre-renders pages at build time with time-based revalidation.
+
+---
+
+### 1. Architectural Highlights & Implementation
+
+#### A. Server-Side Data Fetching for Featured Products on Home Page (`/`)
+- Converted `src/app/page.tsx` into an `async` Server Component.
+- Eliminated client-side `useFetch` state and spinners on the landing page.
+- Fetches featured products (`getProductsServer({ pageSize: 8 })`) and categories (`getCategoriesServer()`) simultaneously on the server using `Promise.all`.
+- Configured with `export const revalidate = 60` for 60-second ISR caching.
+
+#### B. Static Site Generation (SSG) for Product Listing (`/products`)
+- Configured `src/app/products/(catalog)/page.tsx` with `export const dynamic = 'force-static'` and `export const revalidate = 60`.
+- Wrapped dynamic content in React `<Suspense fallback={<CatalogLoading />}>` so the page shell and initial catalog are pre-rendered into static HTML at build time (`○ /products 1m`).
+- Served directly from cache on first request with instant Time to First Byte (TTFB).
+
+#### C. Incremental Static Regeneration (ISR) with 60s Revalidation on Product Details (`/products/[id]`)
+- Implemented `generateStaticParams()` in `src/app/products/[id]/page.tsx` to pre-render the top 30 products into static HTML at build time (`● /products/[id]`).
+- Configured `export const revalidate = 60` on the route segment and `next: { revalidate: 60 }` on the upstream fetch call.
+- Memoized product fetches with `React.cache()` to share upstream responses between `generateMetadata()` and the page component, preventing duplicate HTTP requests during page generation.
+
+---
+
+### 2. Production Build Output
+
+Running `npm run build` generates the following route rendering table:
+
+```text
+▲ Next.js 16.4.2 (Turbopack)
+
+Route (app)             Revalidate  Expire
+┌ ○ /                           1m      1y
+├ ○ /_not-found
+├ ○ /about
+├ ƒ /api/auth/login
+├ ƒ /api/auth/refresh
+├ ƒ /api/brands
+├ ƒ /api/categories
+├ ƒ /api/products
+├ ƒ /api/products/[id]
+├ ○ /login
+├ ○ /products                   1m      1y
+└   /products/[id]
+  ├ ● /products/1               1m      1y
+  ├ ● /products/2               1m      1y
+  ├ ● /products/3               1m      1y
+  └ ● [+27 more paths]
+
+○  (Static)   prerendered as static content
+●  (SSG)      prerendered as static HTML (uses generateStaticParams)
+ƒ  (Dynamic)  server-rendered on demand
+```
+
+#### Route Legend:
+- **`○ / (Static, Revalidate 1m)`**: Pre-rendered at build time with server-fetched products and revalidated every 60 seconds.
+- **`○ /products (Static, Revalidate 1m)`**: The catalog listing shell is pre-rendered at build time with SSG.
+- **`● /products/[id] (SSG, Revalidate 1m)`**: Statically generated for 30 product pages ahead of time, with stale-while-revalidate background refresh every 60 seconds.
+- **`ƒ /api/* (Dynamic)`**: Route handlers executing live on demand.
+
+---
+
+### 3. Demonstrating Revalidation by Changing Data
+
+ISR utilizes the **Stale-While-Revalidate** caching pattern:
+
+| Time | Action | Next.js Response | Header (`x-nextjs-cache`) | Upstream Backend Activity |
+| :--- | :--- | :--- | :--- | :--- |
+| **T = 0s** | First visitor requests `/products/1` | Returns pre-built static HTML (e.g. Price: ₹999) | `HIT` | None (served directly from cache) |
+| **T = 15s** | Admin updates product price to ₹1,199 via PUT `/api/products/1` | Product updated in database | N/A | Database modified |
+| **T = 30s** | Visitor refreshes `/products/1` (within 60s window) | Returns cached HTML showing ₹999 | `HIT` | None (cache is fresh) |
+| **T = 65s** | Visitor refreshes `/products/1` (window expired) | **Instantly returns stale HTML** showing ₹999 | `STALE` | **Triggers background regeneration** |
+| **T = 66s** | Subsequent visitors request `/products/1` | Returns updated HTML showing ₹1,199 | `HIT` | Served from newly generated cache |
+
+#### Steps to Verify Live:
+1. Start production server: `npm run build && npm start`
+2. Run curl or test script:
+   ```bash
+   node -e "fetch('http://localhost:3000/products/1').then(r => console.log('Cache:', r.headers.get('x-nextjs-cache')))"
+   ```
+3. Observe header progression: `STALE` -> `HIT`.
+
+---
+
+### 4. Comparison: React SPA (`frontend_ecommerce`) vs. Next.js (`Trendify_next`)
+
+| Metric / Dimension | React SPA (`frontend_ecommerce`) | Next.js SSG + ISR (`Trendify_next`) |
+| :--- | :--- | :--- |
+| **Initial HTML Response** | **Empty HTML shell**: `<div id="root"></div>`. No product text, headings, or images exist in the document source. | **Rich, complete HTML**: Pre-rendered product titles, prices, descriptions, images, and breadcrumbs are in the initial payload. |
+| **Loading Experience** | **Double Waterfall**: Browser downloads JS bundle -> executes React -> triggers `useEffect` -> shows spinner -> renders data. | **Instant Visuals**: Users see finished HTML immediately upon connection. No blank screen, no flashing content. |
+| **SEO & Social Indexing** | **Poor**: Web crawlers that do not execute complex JS see an empty page without meta tags or structured data. | **Optimal**: Crawlers inspect pre-rendered semantic HTML, dynamic OpenGraph metadata, and canonical links. |
+| **Performance (TTFB / LCP)** | High Largest Contentful Paint (LCP) because images/text cannot load until client-side JS executes. | Very low Time to First Byte (TTFB) and fast LCP because static HTML is served directly from edge/CDN cache. |
+| **Upstream Server Load** | **High**: Every page view and filter click triggers an upstream API call directly from every client. | **Minimal**: Requests are absorbed by the Next.js static cache; upstream API is contacted only once every 60 seconds. |
+| **Data Freshness** | Always live (at the cost of latency and spinners). | Near real-time via 60-second ISR background revalidation. |
+
+

@@ -55,8 +55,8 @@ export async function getProductsServer(
       headers: {
         Accept: 'application/json',
       },
-      // Ensure dynamic searches and filters are never cached as stale results
-      cache: 'no-store',
+      // Revalidate product search/listings every 60 seconds (ISR)
+      next: { revalidate: 60 },
     });
 
     if (!response.ok) {
@@ -74,6 +74,9 @@ export async function getProductsServer(
     const data: ProductSearchResultDto = await response.json();
     return toClientSearchResult(data);
   } catch (error) {
+    if ((error as { digest?: string })?.digest === 'DYNAMIC_SERVER_USAGE') {
+      throw error;
+    }
     console.error('Error in getProductsServer:', error);
     return {
       ...EMPTY_SEARCH_RESULT,
@@ -109,7 +112,7 @@ export const getProductByIdServer = cache(
       headers: {
         Accept: 'application/json',
       },
-      cache: 'no-store',
+      next: { revalidate: 60 },
     });
 
     if (response.status === 404) {
@@ -149,7 +152,7 @@ export async function getCategoriesServer(): Promise<Category[]> {
     const response = await fetch(upstreamUrl, {
       method: 'GET',
       headers: { Accept: 'application/json' },
-      cache: 'no-store',
+      next: { revalidate: 300 },
     });
 
     if (!response.ok) return [];
@@ -176,7 +179,7 @@ export async function getBrandsServer(): Promise<Brand[]> {
     const response = await fetch(upstreamUrl, {
       method: 'GET',
       headers: { Accept: 'application/json' },
-      cache: 'no-store',
+      next: { revalidate: 300 },
     });
 
     if (!response.ok) return [];

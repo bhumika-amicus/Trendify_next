@@ -2,7 +2,10 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { getProductByIdServer } from '@/services/serverProductService';
+import {
+  getProductByIdServer,
+  getProductsServer,
+} from '@/services/serverProductService';
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
 import Breadcrumbs from '@/components/common/Breadcrumbs';
@@ -10,6 +13,25 @@ import StateMessage from '@/components/common/StateMessage';
 import RatingStars from '@/components/common/RatingStars';
 import ProductAddToCart from '@/components/product/ProductAddToCart';
 import { formatINR } from '@/utils/formatters';
+
+// Enable Incremental Static Regeneration (ISR) with a 60-second window
+export const revalidate = 60;
+
+/**
+ * Pre-generate static pages for products at build time (SSG).
+ * Products not returned here will be generated on demand via dynamicParams (ISR).
+ */
+export async function generateStaticParams() {
+  try {
+    const { products } = await getProductsServer({ pageSize: 50 });
+    return (products || []).map((product) => ({
+      id: String(product.id),
+    }));
+  } catch (error) {
+    console.error('Error pre-generating static params for products:', error);
+    return [];
+  }
+}
 
 interface ProductDetailPageProps {
   params: Promise<{ id: string }>;
