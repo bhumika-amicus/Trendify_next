@@ -3,40 +3,47 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ShoppingCart, LogIn, LogOut, Menu, X, Store, Info } from 'lucide-react';
+import { ShoppingCart, LogIn, LogOut, Menu, X, Store, Package, User } from 'lucide-react';
 import ProductSearch from '@/components/product/ProductSearch';
-import { logout } from '@/services/api';
+import { logoutAction } from '@/app/actions/auth';
 
-export default function NavBar() {
+interface NavBarProps {
+  initialUser?: {
+    isLoggedIn: boolean;
+    userName: string;
+  };
+}
+
+function getCookie(name: string): string | null {
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return match ? decodeURIComponent(match[2]) : null;
+}
+
+export default function NavBar({ initialUser }: NavBarProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [cartCount] = useState(0);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userName, setUserName] = useState('');
+  const [isLoggedIn, setIsLoggedIn] = useState(initialUser?.isLoggedIn ?? false);
+  const [userName, setUserName] = useState(initialUser?.userName ?? '');
   const pathname = usePathname();
 
   useEffect(() => {
-    const checkAuth = () => {
-      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-      const name = typeof window !== 'undefined' ? localStorage.getItem('userName') : null;
-      setIsLoggedIn(Boolean(token));
-      setUserName(name || '');
-    };
+    // Sync with cookies or initial user on route transitions
+    if (initialUser !== undefined) {
+      setIsLoggedIn(initialUser.isLoggedIn);
+      setUserName(initialUser.userName);
+    } else {
+      const cookieUser = getCookie('userName');
+      const hasSession = Boolean(getCookie('session') || cookieUser);
+      setIsLoggedIn(hasSession);
+      setUserName(cookieUser || '');
+    }
+  }, [initialUser, pathname]);
 
-    checkAuth();
-    window.addEventListener('auth:login', checkAuth);
-    window.addEventListener('auth:logout', checkAuth);
-    window.addEventListener('storage', checkAuth);
-    return () => {
-      window.removeEventListener('auth:login', checkAuth);
-      window.removeEventListener('auth:logout', checkAuth);
-      window.removeEventListener('storage', checkAuth);
-    };
-  }, [pathname]);
-
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
     setIsLoggedIn(false);
     setUserName('');
+    await logoutAction();
   };
 
   const closeMenu = () => setIsMobileMenuOpen(false);
@@ -48,7 +55,7 @@ export default function NavBar() {
   const getMobileLinkClass = (path: string) =>
     `flex items-center gap-3 py-3 border-b border-gray-100 text-base font-medium transition-colors hover:text-brand-orange ${
       isLinkActive(path)
-        ? 'text-brand-orange underline underline-offset-4 decoration-2 font-bold'
+        ? 'text-brand-orange font-bold'
         : 'text-gray-700'
     }`;
 
@@ -60,18 +67,19 @@ export default function NavBar() {
         {/* Mobile Menu Toggle (Left) */}
         <button
           type="button"
-          className="flex items-center justify-center border-0 bg-transparent p-0 text-brand-orange transition-colors hover:text-brand-orange-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange md:hidden"
+          className="flex items-center justify-center border-0 bg-transparent p-0 text-brand-orange transition-colors hover:text-brand-orange-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange md:hidden cursor-pointer"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           aria-label="Menu"
         >
           {isMobileMenuOpen ? <X size={25} /> : <Menu size={25} />}
         </button>
 
-        {/* Logo */}
+        {/* Logo (Acts as Home Navigation) */}
         <Link
           href="/"
           className="absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0 flex shrink-0 items-center no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange"
           onClick={closeMenu}
+          title="Trendify Home"
         >
           <span className="text-2xl font-black italic tracking-tight text-brand-orange">
             Trendify
@@ -87,68 +95,76 @@ export default function NavBar() {
         </div>
 
         {/* Desktop Navigation */}
-        <nav className="ml-auto hidden items-center gap-7 md:flex">
-          <Link
-            href="/"
-            className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-brand-orange ${isLinkActive('/')
-                ? 'text-brand-orange underline underline-offset-4 decoration-2'
-                : 'text-gray-600'
-              }`}
-          >
-            Home
-          </Link>
-
+        <nav className="ml-auto hidden items-center gap-6 md:flex">
           <Link
             href="/products"
-            className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-brand-orange ${isLinkActive('/products')
-                ? 'text-brand-orange underline underline-offset-4 decoration-2'
-                : 'text-gray-600'
-              }`}
+            className={`flex items-center gap-1.5 text-sm font-medium transition-colors hover:text-brand-orange ${
+              isLinkActive('/products')
+                ? 'text-brand-orange underline underline-offset-4 decoration-2 font-semibold'
+                : 'text-gray-700'
+            }`}
           >
-            Products
+            <Store size={17} />
+            <span>Products</span>
           </Link>
 
           <Link
-            href="/about"
-            className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-brand-orange ${isLinkActive('/about')
-                ? 'text-brand-orange underline underline-offset-4 decoration-2'
-                : 'text-gray-600'
-              }`}
+            href="/orders"
+            className={`flex items-center gap-1.5 text-sm font-medium transition-colors hover:text-brand-orange ${
+              isLinkActive('/orders')
+                ? 'text-brand-orange underline underline-offset-4 decoration-2 font-semibold'
+                : 'text-gray-700'
+            }`}
           >
-            About
+            <Package size={17} />
+            <span>Orders</span>
           </Link>
 
           {isLoggedIn ? (
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="flex cursor-pointer items-center gap-1.75 border-0 bg-transparent text-sm font-medium text-gray-600 transition-colors hover:text-brand-orange focus-visible:outline-none"
-              title={userName ? `Logged in as ${userName}` : 'Sign Out'}
-            >
-              <span>Sign Out</span>
-              <LogOut size={18} />
-            </button>
+            <div className="flex items-center gap-2 pl-2 border-l border-gray-200">
+              {/* User Account Pill */}
+              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 rounded-full text-xs font-semibold text-gray-800">
+                <User size={14} className="text-brand-orange" />
+                <span className="capitalize max-w-28 truncate">{userName || 'User'}</span>
+              </div>
+
+              {/* Sign Out Button */}
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-gray-500 hover:text-brand-orange hover:bg-orange-50 rounded-md transition-colors border-0 bg-transparent cursor-pointer focus-visible:outline-none"
+                title="Sign Out"
+              >
+                <span>Sign Out</span>
+                <LogOut size={14} />
+              </button>
+            </div>
           ) : (
             <Link
               href="/login"
-              className={`flex cursor-pointer items-center gap-1.75 border-0 bg-transparent text-sm font-medium transition-colors hover:text-brand-orange focus-visible:outline-none ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold transition-colors hover:text-brand-orange ${
                 isLinkActive('/login')
-                  ? 'text-brand-orange underline underline-offset-4 decoration-2'
-                  : 'text-gray-600'
+                  ? 'text-brand-orange font-bold'
+                  : 'text-gray-700'
               }`}
             >
-              <span>Sign In</span>
               <LogIn size={18} />
+              <span>Sign In</span>
             </Link>
           )}
 
+          {/* Cart Icon with Floating Notification Pill */}
           <Link
             href="/cart"
-            className="flex cursor-pointer items-center gap-2 text-sm font-medium no-underline transition-colors hover:text-brand-orange text-gray-600"
+            className="relative flex items-center justify-center p-1.5 text-gray-700 hover:text-brand-orange transition-colors"
             aria-label="Shopping cart"
           >
-            <ShoppingCart size={22} />
-            <span>{cartCount}</span>
+            <ShoppingCart size={23} />
+            {cartCount > 0 ? (
+              <span className="absolute -top-1 -right-1 w-4.5 h-4.5 bg-brand-orange text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm">
+                {cartCount}
+              </span>
+            ) : null}
           </Link>
         </nav>
 
@@ -160,8 +176,9 @@ export default function NavBar() {
               onClick={handleLogout}
               className="flex items-center text-gray-700 hover:text-brand-orange transition-colors focus-visible:outline-none border-0 bg-transparent p-0 cursor-pointer"
               aria-label="Sign Out"
+              title={`Logged in as ${userName || 'User'}`}
             >
-              <LogOut size={24} />
+              <LogOut size={22} />
             </button>
           ) : (
             <Link
@@ -169,18 +186,22 @@ export default function NavBar() {
               className="flex items-center text-gray-700 hover:text-brand-orange transition-colors focus-visible:outline-none"
               aria-label="Sign In"
             >
-              <LogIn size={24} />
+              <LogIn size={22} />
             </Link>
           )}
 
           <Link
             href="/cart"
-            className="flex items-center gap-1.5 no-underline transition-colors hover:text-brand-orange text-gray-700"
+            className="relative flex items-center p-1 text-gray-700 hover:text-brand-orange transition-colors"
             aria-label="Shopping cart"
             onClick={closeMenu}
           >
-            <ShoppingCart size={27} />
-            <span className="text-xl font-semibold">{cartCount}</span>
+            <ShoppingCart size={24} />
+            {cartCount > 0 ? (
+              <span className="absolute -top-1 -right-1 w-4.5 h-4.5 bg-brand-orange text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm">
+                {cartCount}
+              </span>
+            ) : null}
           </Link>
         </div>
       </div>
@@ -198,14 +219,6 @@ export default function NavBar() {
         <div className="absolute left-0 top-full z-50 w-full border-b border-border-subtle bg-white shadow-md md:hidden">
           <nav className="flex flex-col px-4.5 py-2 sm:px-6">
             <Link
-              href="/"
-              onClick={closeMenu}
-              className={getMobileLinkClass('/')}
-            >
-              Home
-            </Link>
-
-            <Link
               href="/products"
               onClick={closeMenu}
               className={getMobileLinkClass('/products')}
@@ -215,12 +228,12 @@ export default function NavBar() {
             </Link>
 
             <Link
-              href="/about"
+              href="/orders"
               onClick={closeMenu}
-              className={getMobileLinkClass('/about')}
+              className={getMobileLinkClass('/orders')}
             >
-              <Info size={20} />
-              About
+              <Package size={20} />
+              Orders
             </Link>
 
             {isLoggedIn ? (
