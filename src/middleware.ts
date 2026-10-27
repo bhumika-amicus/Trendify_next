@@ -6,7 +6,7 @@ import { DOTNET_API_BASE_URL } from '@/config';
  * Protected routes requiring an active session cookie.
  * Matches root routes and any sub-routes (e.g. /dashboard/profile, /orders/123).
  */
-const PROTECTED_ROUTES = ['/dashboard', '/checkout', '/orders'];
+const PROTECTED_ROUTES = ['/checkout', '/orders'];
 
 export async function middleware(request: NextRequest) {
   const startTime = Date.now();
