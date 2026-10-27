@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ShoppingCart, LogIn, LogOut, Menu, X, Store, Package, User } from 'lucide-react';
 import ProductSearch from '@/components/product/ProductSearch';
-import { logoutAction } from '@/app/actions/auth';
+import { logoutAction } from '@/actions/auth';
 
 interface NavBarProps {
   initialUser?: {

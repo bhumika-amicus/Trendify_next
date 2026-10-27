@@ -4,7 +4,7 @@ import { useActionState, useState } from 'react';
 import Link from 'next/link';
 import { Eye, EyeOff } from 'lucide-react';
 import Button from '@/components/common/Button';
-import { loginAction } from '@/app/actions/auth';
+import { loginAction } from '@/actions/auth';
 
 interface LoginFormProps {
   callbackUrl: string;

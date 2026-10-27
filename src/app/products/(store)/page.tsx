@@ -6,7 +6,7 @@ import StateMessage from '@/components/common/StateMessage';
 import Pagination from '@/components/common/Pagination';
 import Button from '@/components/common/Button';
 import { Suspense } from 'react';
-import CatalogLoading from './loading';
+import StoreLoading from './loading';
 import { ProductSortBy, SortOrder } from '@/types/ProductSorting';
 import type { ProductSearchParams } from '@/types/ProductSearchParams';
 import { getValidInt, getValidFloat } from '@/utils/urlHelpers';
@@ -29,7 +29,7 @@ export default function ProductListingPage({
   searchParams,
 }: ProductListingPageProps) {
   return (
-    <Suspense fallback={<CatalogLoading />}>
+    <Suspense fallback={<StoreLoading />}>
       <ProductListingContent searchParams={searchParams} />
     </Suspense>
   );

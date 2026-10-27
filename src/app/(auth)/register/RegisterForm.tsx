@@ -4,7 +4,7 @@ import { useActionState, useState } from 'react';
 import Link from 'next/link';
 import { Eye, EyeOff } from 'lucide-react';
 import Button from '@/components/common/Button';
-import { registerAction } from '@/app/actions/auth';
+import { registerAction } from '@/actions/auth';
 
 export default function RegisterForm() {
   const [state, formAction, isPending] = useActionState(registerAction, null);

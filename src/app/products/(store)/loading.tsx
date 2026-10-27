@@ -1,6 +1,6 @@
 import ProductCardSkeleton from '@/components/product/ProductCardSkeleton';
 
-export default function CatalogLoading() {
+export default function StoreLoading() {
   return (
     <div className="w-full">
       <div className="flex items-center justify-between mb-4">

@@ -5,7 +5,7 @@ import {
   getBrandsServer,
 } from '@/services/serverProductService';
 
-export default async function CatalogLayout({
+export default async function StoreLayout({
   children,
 }: {
   children: React.ReactNode;
