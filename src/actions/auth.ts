@@ -141,6 +141,15 @@ export async function loginAction(
       maxAge: 60 * 60 * 24 * 7,
     });
 
+    // 4. User email (readable by server & client components for profile display)
+    cookieStore.set('userEmail', email, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7,
+    });
+
     if (data.customerId) {
       cookieStore.set('customerId', String(data.customerId), {
         httpOnly: false,
@@ -291,6 +300,7 @@ export async function logoutAction(): Promise<void> {
   cookieStore.delete('session');
   cookieStore.delete('refreshToken');
   cookieStore.delete('userName');
+  cookieStore.delete('userEmail');
   cookieStore.delete('customerId');
   cookieStore.delete('role');
   redirect('/login');

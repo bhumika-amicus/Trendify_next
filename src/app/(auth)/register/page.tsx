@@ -1,5 +1,5 @@
-import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { getCurrentUser } from '@/lib/session';
 import RegisterForm from './RegisterForm';
 
 export const metadata = {
@@ -9,8 +9,8 @@ export const metadata = {
 
 export default async function RegisterPage() {
   // If already logged in, redirect away
-  const cookieStore = await cookies();
-  if (cookieStore.get('session')?.value) {
+  const user = await getCurrentUser();
+  if (user) {
     redirect('/');
   }
 

@@ -1,5 +1,5 @@
-import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { getCurrentUser } from '@/lib/session';
 import LoginForm from './LoginForm';
 
 interface LoginPageProps {
@@ -15,9 +15,8 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const isRegistered = resolvedParams.registered === 'true';
 
   // Server-side check: If already logged in, redirect directly without rendering login form
-  const cookieStore = await cookies();
-  const sessionToken = cookieStore.get('session')?.value;
-  if (sessionToken) {
+  const user = await getCurrentUser();
+  if (user) {
     redirect(callbackUrl);
   }
 

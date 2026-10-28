@@ -5,7 +5,7 @@ import { DOTNET_API_BASE_URL } from '@/config';
 /**
  * Protected routes requiring an active session cookie.
  */
-const PROTECTED_ROUTES = ['/checkout', '/orders'];
+const PROTECTED_ROUTES = ['/checkout', '/orders', '/dashboard'];
 
 export async function middleware(request: NextRequest) {
   const startTime = Date.now();

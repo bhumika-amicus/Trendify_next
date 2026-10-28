@@ -59,22 +59,22 @@ function FilterSidebar({
   };
 
   return (
-    <aside className="sticky top-0 z-10 border border-gray-300 bg-white p-3 lg:top-6 overflow-y-auto max-h-screen lg:max-h-[calc(100vh-3rem)]">
-      {/* Mobile: FILTERS toggle + inline "Clear all" */}
+    <aside className="sticky top-4 z-10 rounded-lg border border-gray-200 bg-white p-3.5 lg:top-6 overflow-y-auto max-h-[calc(100vh-2.5rem)] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+      {/* Mobile: FILTERS toggle accordion button + inline Clear all */}
       <div className="flex items-center justify-between border-b-2 border-brand-orange-500 pb-2 mb-2 lg:hidden">
         <button
           type="button"
-          className="flex flex-1 cursor-pointer items-center gap-2 bg-transparent border-0 p-0 text-left text-lg md:text-xl font-bold uppercase tracking-wide text-gray-800 transition-colors hover:text-brand-orange focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2"
+          className="flex flex-1 cursor-pointer items-center gap-2 bg-transparent border-0 p-0 text-left text-base font-bold uppercase tracking-wide text-gray-800 transition-colors hover:text-brand-orange focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2"
           aria-expanded={isMobileFiltersOpen}
           aria-controls="listing-filter-content"
           onClick={() => setIsMobileFiltersOpen(!isMobileFiltersOpen)}
         >
-          FILTERS
+          <span>FILTERS</span>
           <span aria-hidden="true">
             {isMobileFiltersOpen ? (
-              <ChevronUp size={20} />
+              <ChevronUp size={18} />
             ) : (
-              <ChevronDown size={20} />
+              <ChevronDown size={18} />
             )}
           </span>
         </button>
@@ -107,9 +107,10 @@ function FilterSidebar({
         )}
       </div>
 
+      {/* Filter Sections (Expanded on Desktop, Toggled on Mobile) */}
       <div
         id="listing-filter-content"
-        className={`lg:block ${isMobileFiltersOpen ? 'block mt-5' : 'hidden'}`}
+        className={`lg:block ${isMobileFiltersOpen ? 'block mt-4' : 'hidden'}`}
       >
         {/* 1. Category */}
         <CategoryFilter

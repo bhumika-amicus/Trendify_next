@@ -51,15 +51,6 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
           autoComplete="current-password"
           placeholder="••••••••"
           error={state?.fieldErrors?.password}
-          headerAction={
-            <button
-              type="button"
-              className="text-xs font-semibold text-brand-orange hover:text-brand-orange/80 transition-colors cursor-pointer bg-transparent border-0 p-0"
-              onClick={() => alert('Please contact administrator or reset password.')}
-            >
-              Forgot Password?
-            </button>
-          }
         />
 
         {/* Submit Button */}

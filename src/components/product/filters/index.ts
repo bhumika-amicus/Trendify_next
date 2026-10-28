@@ -5,3 +5,4 @@ export * from './BrandFilter';
 export * from './PriceFilter';
 export * from './RatingFilter';
 export * from './SortFilter';
+export * from './CheckboxFilterGroup';

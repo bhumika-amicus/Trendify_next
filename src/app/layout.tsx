@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { cookies } from 'next/headers';
+import { getCurrentUser } from '@/lib/session';
 import './globals.css';
 import NavBar from '@/components/layout/NavBar';
 import Footer from '@/components/layout/Footer';
@@ -18,13 +18,12 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const cookieStore = await cookies();
-  const sessionToken = cookieStore.get('session')?.value;
-  const userName = cookieStore.get('userName')?.value;
+  const user = await getCurrentUser();
 
   const initialUser = {
-    isLoggedIn: Boolean(sessionToken),
-    userName: userName || '',
+    isLoggedIn: Boolean(user),
+    userName: user?.name || '',
+    userEmail: user?.email || '',
   };
 
   return (

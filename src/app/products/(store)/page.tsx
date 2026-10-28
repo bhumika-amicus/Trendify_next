@@ -5,10 +5,7 @@ import ProductGrid from '@/components/product/ProductGrid';
 import StateMessage from '@/components/common/StateMessage';
 import Pagination from '@/components/common/Pagination';
 import Button from '@/components/common/Button';
-import { Suspense } from 'react';
-import StoreLoading from './loading';
-import { ProductSortBy, SortOrder, type ProductSearchParams } from '@/types';
-import { getValidInt, getValidFloat } from '@/utils/urlHelpers';
+import { parseProductSearchParams } from '@/utils/productParams';
 
 export const metadata: Metadata = {
   title: 'Products | Trendify',
@@ -24,81 +21,19 @@ interface ProductListingPageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-export default function ProductListingPage({
-  searchParams,
-}: ProductListingPageProps) {
-  return (
-    <Suspense fallback={<StoreLoading />}>
-      <ProductListingContent searchParams={searchParams} />
-    </Suspense>
-  );
-}
-
-async function ProductListingContent({
+export default async function ProductListingPage({
   searchParams,
 }: ProductListingPageProps) {
   const rawParams = await searchParams;
-
-  // Convert raw searchParams promise result into URLSearchParams for parsing
-  const urlParams = new URLSearchParams();
-  for (const [key, value] of Object.entries(rawParams || {})) {
-    if (typeof value === 'string') {
-      urlParams.set(key, value);
-    } else if (Array.isArray(value) && value.length > 0) {
-      urlParams.set(key, value[0]);
-    }
-  }
-
-  // 1. Parse and validate URL query parameters on the server
-  const searchTerm = urlParams.get('search')?.trim() || '';
-  const categoryId = getValidInt(urlParams, 'categoryId', 1);
-  const brandId = getValidInt(urlParams, 'brandId', 1);
-  const minRating = getValidFloat(urlParams, 'minRating', 1, 5);
-  const page = getValidInt(urlParams, 'page', 1) ?? 1;
-
-  let minPrice = getValidFloat(urlParams, 'minPrice', 0);
-  let maxPrice = getValidFloat(urlParams, 'maxPrice', 0);
-  if (minPrice !== undefined && maxPrice !== undefined && minPrice > maxPrice) {
-    minPrice = undefined;
-    maxPrice = undefined;
-  }
-
-  const rawSortBy = urlParams.get('sortBy');
-  const isValidSortBy = (val: string | null): val is ProductSortBy =>
-    Object.values(ProductSortBy).some((v) => v === val);
-  const sortBy = isValidSortBy(rawSortBy) ? rawSortBy : undefined;
-
-  const rawSortOrder = urlParams.get('sortOrder');
-  const isValidSortOrder = (val: string | null): val is SortOrder =>
-    Object.values(SortOrder).some((v) => v === val);
-  const sortOrder = isValidSortOrder(rawSortOrder) ? rawSortOrder : undefined;
-
-  // 2. Determine active filter status
-  const hasFacetFilters = Boolean(
-    categoryId !== undefined ||
-      brandId !== undefined ||
-      minPrice !== undefined ||
-      maxPrice !== undefined ||
-      minRating !== undefined ||
-      sortBy !== undefined
-  );
-  const hasActiveFilters = Boolean(searchTerm !== '' || hasFacetFilters);
-
-  // 3. Assemble query payload for server service
-  const apiParams: ProductSearchParams = {
-    search: searchTerm || undefined,
-    categoryId,
-    brandId,
-    minPrice,
-    maxPrice,
-    minRating,
-    sortBy,
-    sortOrder,
+  const {
+    urlParams,
+    searchTerm,
+    hasActiveFilters,
+    apiParams,
     page,
-    pageSize: PAGE_SIZE,
-  };
+  } = parseProductSearchParams(rawParams, PAGE_SIZE);
 
-  // 4. Fetch data directly on the server (Server Component)
+  // Fetch data directly on the server (Server Component)
   const { products, totalRecords, totalPages } = await getProductsServer(apiParams);
 
   let content: React.ReactNode;

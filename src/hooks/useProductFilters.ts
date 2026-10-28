@@ -1,8 +1,8 @@
 'use client';
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { ProductSortBy, SortOrder, type ProductSearchParams } from '@/types';
-import { getValidInt, getValidFloat } from '../utils/urlHelpers';
+import { ProductSortBy, SortOrder } from '@/types';
+import { parseProductSearchParams } from '@/utils/productParams';
 
 export function useProductFilters() {
   const router = useRouter();
@@ -21,45 +21,9 @@ export function useProductFilters() {
     router.push(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
   };
 
-  // 1. Parse and validate URL query parameters
-  const searchTerm = searchParams.get('search') || '';
-  const categoryId = getValidInt(searchParams, 'categoryId', 1);
-  const brandId = getValidInt(searchParams, 'brandId', 1);
-  const minRating = getValidFloat(searchParams, 'minRating', 1, 5);
-  const page = getValidInt(searchParams, 'page', 1) ?? 1;
-
-  let minPrice = getValidFloat(searchParams, 'minPrice', 0);
-  let maxPrice = getValidFloat(searchParams, 'maxPrice', 0);
-  if (minPrice !== undefined && maxPrice !== undefined && minPrice > maxPrice) {
-    minPrice = undefined;
-    maxPrice = undefined;
-  }
-
-  const rawSortBy = searchParams.get('sortBy');
-  const isValidSortBy = (val: string | null): val is ProductSortBy =>
-    Object.values(ProductSortBy).some((v) => v === val);
-  const sortBy = isValidSortBy(rawSortBy) ? rawSortBy : undefined;
-
-  const rawSortOrder = searchParams.get('sortOrder');
-  const isValidSortOrder = (val: string | null): val is SortOrder =>
-    Object.values(SortOrder).some((v) => v === val);
-  const sortOrder = isValidSortOrder(rawSortOrder) ? rawSortOrder : undefined;
-
-  // 2. Filter status
-  const hasFacetFilters = Boolean(
-    categoryId !== undefined ||
-      brandId !== undefined ||
-      minPrice !== undefined ||
-      maxPrice !== undefined ||
-      minRating !== undefined ||
-      sortBy !== undefined
-  );
-
-  const hasActiveFilters = Boolean(searchTerm !== '' || hasFacetFilters);
-
-  // 3. API payload object matching ProductSearchParams
-  const apiParams: ProductSearchParams = {
-    search: searchTerm || undefined,
+  // Parse and validate URL query parameters via shared utility
+  const {
+    searchTerm,
     categoryId,
     brandId,
     minPrice,
@@ -68,7 +32,10 @@ export function useProductFilters() {
     sortBy,
     sortOrder,
     page,
-  };
+    hasFacetFilters,
+    hasActiveFilters,
+    apiParams,
+  } = parseProductSearchParams(searchParams);
 
   // 4. Stable URL update operations
   const updatePage = (nextPage: number) => {

@@ -1,33 +1,18 @@
 import { Suspense } from 'react';
-import FilterSidebar from '@/components/product/FilterSidebar';
-import {
-  getCategoriesServer,
-  getBrandsServer,
-} from '@/services/serverProductService';
+import FilterSidebarSection from '@/components/product/FilterSidebarSection';
+import FilterSidebarSkeleton from '@/components/product/FilterSidebarSkeleton';
 
-export default async function StoreLayout({
+export default function StoreLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [categories, brands] = await Promise.all([
-    getCategoriesServer(),
-    getBrandsServer(),
-  ]);
-
   return (
-    <div className="mx-auto w-full max-w-360 px-4.5 py-6 sm:px-6 md:px-10">
-      <div className="grid grid-cols-1 gap-6 items-start lg:grid-cols-[180px_1fr]">
-        {/* Category & Facet Sidebar wrapped in Suspense */}
-        <Suspense
-          fallback={
-            <aside className="border border-gray-300 bg-white p-3 h-96 animate-pulse" />
-          }
-        >
-          <FilterSidebar
-            categories={categories}
-            brands={brands}
-          />
+    <div className="mx-auto w-full max-w-360 px-3 sm:px-5 md:px-6 py-5 sm:py-6">
+      <div className="grid grid-cols-1 gap-5 items-start lg:grid-cols-[225px_1fr] lg:gap-6">
+        {/* Category & Facet Sidebar streams independently in parallel */}
+        <Suspense fallback={<FilterSidebarSkeleton />}>
+          <FilterSidebarSection />
         </Suspense>
 
         {/* Catalog Content (Product Listing) */}
@@ -36,3 +21,4 @@ export default async function StoreLayout({
     </div>
   );
 }
+
