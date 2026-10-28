@@ -12,13 +12,6 @@ import type { CategoryDto } from '@/types/CategoryDto';
 import type { Brand } from '@/types/Brands';
 import type { BrandDto } from '@/types/BrandDto';
 
-const EMPTY_SEARCH_RESULT: ProductSearchResult = {
-  products: [],
-  page: 1,
-  pageSize: 12,
-  totalRecords: 0,
-  totalPages: 0,
-};
 
 /**
  * Fetches products from the upstream .NET API for Server Components.
@@ -65,11 +58,7 @@ export async function getProductsServer(
       console.error(
         `Upstream error in getProductsServer [${response.status}]: ${errorText}`
       );
-      return {
-        ...EMPTY_SEARCH_RESULT,
-        page: parsedPage,
-        pageSize: parsedPageSize,
-      };
+      throw new Error('Failed to load products from upstream service.');
     }
 
     const data: ProductSearchResultDto = await response.json();
@@ -79,30 +68,19 @@ export async function getProductsServer(
       throw error;
     }
     console.error('Error in getProductsServer:', error);
-    return {
-      ...EMPTY_SEARCH_RESULT,
-      page: params.page || 1,
-      pageSize: params.pageSize || 12,
-    };
+    throw new Error('The product service is currently unavailable. Please try again.');
   }
-}
-
-export interface ServerProductDetailResult {
-  product: Product | null;
-  status: number;
-  error?: string;
 }
 
 /**
  * Fetches a single product by ID from the upstream .NET API for Server Components.
- * Returns { product, status, error } to distinguish between a genuine 404 Not Found
- * and a 500/network error.
+ * Returns Product if found, null if 404, or throws if upstream crashes so error.tsx catches it.
  * Memoized per request lifecycle using React.cache() so generateMetadata and the page share one fetch.
  */
 export const getProductByIdServer = cache(
-  async (id: number): Promise<ServerProductDetailResult> => {
+  async (id: number): Promise<Product | null> => {
     if (!id || isNaN(id) || id <= 0) {
-      return { product: null, status: 400, error: 'Invalid product ID' };
+      return null;
     }
 
     try {
@@ -117,7 +95,7 @@ export const getProductByIdServer = cache(
       });
 
       if (response.status === 404) {
-        return { product: null, status: 404 };
+        return null;
       }
 
       if (!response.ok) {
@@ -125,24 +103,20 @@ export const getProductByIdServer = cache(
         console.error(
           `Upstream error in getProductByIdServer for ID ${id} [${response.status}]: ${errorText}`
         );
-        return {
-          product: null,
-          status: response.status,
-          error: 'Failed to retrieve product details from upstream server.',
-        };
+        throw new Error('Failed to retrieve product details from upstream server.');
       }
 
       const data: ProductDto = await response.json();
-      return { product: toClientProduct(data), status: 200 };
+      return toClientProduct(data);
     } catch (error) {
+      if ((error as { digest?: string })?.digest === 'DYNAMIC_SERVER_USAGE') {
+        throw error;
+      }
       console.error(`Error in getProductByIdServer for ID ${id}:`, error);
-      return {
-        product: null,
-        status: 502,
-        error: 'The product service is currently unavailable. Please try again.',
-      };
+      throw new Error('The product service is currently unavailable. Please try again.');
     }
-  });
+  }
+);
 
 /**
  * Server-side helper to fetch categories for Server Layouts or Server Components.

@@ -6,10 +6,8 @@ import {
   getProductByIdServer,
   getProductsServer,
 } from '@/services/serverProductService';
-import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
 import Breadcrumbs from '@/components/common/Breadcrumbs';
-import StateMessage from '@/components/common/StateMessage';
 import RatingStars from '@/components/common/RatingStars';
 import ProductAddToCart from '@/components/product/ProductAddToCart';
 import { formatINR } from '@/utils/formatters';
@@ -49,7 +47,7 @@ export async function generateMetadata({
     };
   }
 
-  const { product } = await getProductByIdServer(productId);
+  const product = await getProductByIdServer(productId);
   if (!product) {
     return {
       title: 'Product Not Found | Trendify',
@@ -76,36 +74,9 @@ export default async function ProductDetailPage({
   }
 
   // 2. Fetch product data on the server
-  const { product, status, error } = await getProductByIdServer(productId);
+  const product = await getProductByIdServer(productId);
 
   // 3. 404 Guard: Product does not exist
-  if (status === 404 || (!product && !error)) {
-    notFound();
-  }
-
-  // 4. 500 / Network Error Guard: Upstream service failure
-  if (error && !product) {
-    return (
-      <div className="mx-auto min-h-[50vh] w-full max-w-7xl px-4 py-12 sm:px-6 md:px-10">
-        <StateMessage
-          title="Unable to load product"
-          message={error}
-          variant="error"
-        >
-          <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
-            <Link href={`/products/${productId}`}>
-              <Button variant="outline">Try Again</Button>
-            </Link>
-            <Link href="/products">
-              <Button variant="primary">Return to Products</Button>
-            </Link>
-          </div>
-        </StateMessage>
-      </div>
-    );
-  }
-
-  // Guard TypeScript type check
   if (!product) {
     notFound();
   }

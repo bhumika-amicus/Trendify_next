@@ -44,18 +44,33 @@ export async function loginAction(
 
     const data = await response.json().catch(() => null);
 
-    if (!response.ok || !data) {
+    if (!response.ok) {
+      console.error(
+        `[AUTH] Login failed with upstream status [${response.status}]:`,
+        data?.message || data?.error || 'No error body'
+      );
+
+      if (response.status >= 500) {
+        return {
+          error:
+            'Our authentication service is temporarily unavailable. Please try again later.',
+        };
+      }
+
+      if (response.status === 401 || response.status === 403) {
+        return { error: 'Invalid email or password.' };
+      }
+
       return {
         error:
           data?.error ||
           data?.message ||
-          (response.status === 401
-            ? 'Invalid email or password.'
-            : 'Authentication failed. Please check credentials.'),
+          'Authentication failed. Please check credentials.',
       };
     }
 
-    if (!data.token) {
+    if (!data || !data.token) {
+      console.error('[AUTH] Login response missing token:', data);
       return { error: 'Invalid response from authentication server.' };
     }
 
@@ -113,9 +128,9 @@ export async function loginAction(
 
     redirectTo = callbackUrl;
   } catch (error) {
-    console.error('Error in loginAction:', error);
+    console.error('[AUTH] Network error in loginAction:', error);
     return {
-      error: 'Authentication service is unavailable. Please try again later.',
+      error: 'Authentication service is unreachable. Please check your connection and try again.',
     };
   }
 
@@ -170,23 +185,42 @@ export async function registerAction(
 
     const data = await response.json().catch(() => null);
 
-    if (!response.ok || !data) {
+    if (!response.ok) {
+      console.error(
+        `[AUTH] Registration failed with upstream status [${response.status}]:`,
+        data?.message || data?.error || 'No error body'
+      );
+
+      if (response.status >= 500) {
+        return {
+          error:
+            'Our registration service is temporarily unavailable. Please try again later.',
+        };
+      }
+
+      if (response.status === 400) {
+        return {
+          error:
+            data?.message ||
+            data?.error ||
+            'Registration failed. Email might already be registered.',
+        };
+      }
+
       return {
         error:
           data?.message ||
           data?.error ||
-          (response.status === 400
-            ? 'Registration failed. Email might already be registered.'
-            : 'Registration failed. Please check your details and try again.'),
+          'Registration failed. Please check your details and try again.',
       };
     }
 
     // Success response from Azure: { customerId: 20, message: "Registration successful." }
     redirectTo = '/login?registered=true';
   } catch (error) {
-    console.error('Error in registerAction:', error);
+    console.error('[AUTH] Network error in registerAction:', error);
     return {
-      error: 'Registration service is unavailable. Please try again later.',
+      error: 'Registration service is unreachable. Please check your connection and try again.',
     };
   }
 
