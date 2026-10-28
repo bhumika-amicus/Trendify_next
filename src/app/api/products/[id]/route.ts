@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DOTNET_API_BASE_URL } from '@/config';
 import { toClientProduct, toDotnetUpdatePayload } from '@/lib/productAdapter';
-import type { ProductDto, UpdateProductDto } from '@/types/ProductDto';
+import type { ProductDto, UpdateProductDto } from '@/types';
 
 interface RouteContext {
   params: Promise<{ id: string }>;

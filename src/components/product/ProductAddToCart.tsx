@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Check, ShoppingCart } from 'lucide-react';
-import type { Product } from '@/types/Products';
+import type { Product } from '@/types';
 import Button from '@/components/common/Button';
 import QuantitySelector from '@/components/cart/QuantitySelector';
 

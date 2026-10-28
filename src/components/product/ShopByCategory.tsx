@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import Card from '@/components/common/Card';
 import StateMessage from '@/components/common/StateMessage';
-import type { Category } from '@/types/Categories';
+import type { Category } from '@/types';
 
 interface ShopByCategoryProps {
   categories: Category[];

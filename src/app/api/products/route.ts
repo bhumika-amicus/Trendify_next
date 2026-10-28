@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DOTNET_API_BASE_URL } from '@/config';
 import { toClientSearchResult, toDotnetCreatePayload } from '@/lib/productAdapter';
-import type { ProductSearchResultDto } from '@/types/ProductSearchResultDto';
-import type { CreateProductDto } from '@/types/ProductDto';
+import type { ProductSearchResultDto, CreateProductDto } from '@/types';
 
 /**
  * GET /api/products

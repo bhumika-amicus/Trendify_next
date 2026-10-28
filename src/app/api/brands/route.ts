@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { DOTNET_API_BASE_URL } from '@/config';
-import type { BrandDto } from '@/types/BrandDto';
-import type { Brand } from '@/types/Brands';
+import type { BrandDto, Brand } from '@/types';
 
 export async function GET() {
   try {

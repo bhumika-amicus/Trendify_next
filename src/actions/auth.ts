@@ -9,6 +9,11 @@ export interface AuthActionState {
   success?: boolean;
 }
 
+function getFormString(formData: FormData, key: string): string {
+  const value = formData.get(key);
+  return typeof value === 'string' ? value.trim() : '';
+}
+
 /**
  * Server Action for User Login.
  * Handles credential validation, calls the Azure upstream API,
@@ -19,9 +24,9 @@ export async function loginAction(
   prevState: AuthActionState | null,
   formData: FormData
 ): Promise<AuthActionState> {
-  const email = (formData.get('email') as string)?.trim();
-  const password = (formData.get('password') as string)?.trim();
-  const callbackUrl = (formData.get('callbackUrl') as string)?.trim() || '/';
+  const email = getFormString(formData, 'email');
+  const password = getFormString(formData, 'password');
+  const callbackUrl = getFormString(formData, 'callbackUrl') || '/';
 
   if (!email || !password) {
     return { error: 'Please provide both email and password.' };
@@ -151,10 +156,10 @@ export async function registerAction(
   prevState: AuthActionState | null,
   formData: FormData
 ): Promise<AuthActionState> {
-  const name = (formData.get('name') as string)?.trim();
-  const email = (formData.get('email') as string)?.trim();
-  const password = (formData.get('password') as string)?.trim();
-  const confirmPassword = (formData.get('confirmPassword') as string)?.trim();
+  const name = getFormString(formData, 'name');
+  const email = getFormString(formData, 'email');
+  const password = getFormString(formData, 'password');
+  const confirmPassword = getFormString(formData, 'confirmPassword');
 
   if (!name || !email || !password) {
     return { error: 'Name, email, and password are required.' };

@@ -1,9 +1,7 @@
 'use client';
 
-import { useCallback } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { ProductSortBy, SortOrder } from '../types/ProductSorting';
-import type { ProductSearchParams } from '../types/ProductSearchParams';
+import { ProductSortBy, SortOrder, type ProductSearchParams } from '@/types';
 import { getValidInt, getValidFloat } from '../utils/urlHelpers';
 
 export function useProductFilters() {
@@ -14,15 +12,14 @@ export function useProductFilters() {
   // Create a mutable searchParams instance
   const searchParams = new URLSearchParams(rawSearchParams?.toString() || '');
 
-  const setSearchParams = useCallback(
-    (updateFn: (params: URLSearchParams) => URLSearchParams) => {
-      const current = new URLSearchParams(rawSearchParams?.toString() || '');
-      const next = updateFn(current);
-      const qs = next.toString();
-      router.push(qs ? `${pathname}?${qs}` : pathname);
-    },
-    [pathname, rawSearchParams, router]
-  );
+  const setSearchParams = (
+    updateFn: (params: URLSearchParams) => URLSearchParams
+  ) => {
+    const current = new URLSearchParams(rawSearchParams?.toString() || '');
+    const next = updateFn(current);
+    const qs = next.toString();
+    router.push(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  };
 
   // 1. Parse and validate URL query parameters
   const searchTerm = searchParams.get('search') || '';
@@ -74,19 +71,16 @@ export function useProductFilters() {
   };
 
   // 4. Stable URL update operations
-  const updatePage = useCallback(
-    (nextPage: number) => {
-      if (nextPage < 1) return;
-      setSearchParams((currentParams) => {
-        const nextParams = new URLSearchParams(currentParams);
-        nextParams.set('page', String(nextPage));
-        return nextParams;
-      });
-    },
-    [setSearchParams]
-  );
+  const updatePage = (nextPage: number) => {
+    if (nextPage < 1) return;
+    setSearchParams((currentParams) => {
+      const nextParams = new URLSearchParams(currentParams);
+      nextParams.set('page', String(nextPage));
+      return nextParams;
+    });
+  };
 
-  const clearAllFilters = useCallback(() => {
+  const clearAllFilters = () => {
     setSearchParams((currentParams) => {
       const nextParams = new URLSearchParams(currentParams);
       nextParams.delete('categoryId');
@@ -99,84 +93,64 @@ export function useProductFilters() {
       nextParams.delete('page');
       return nextParams;
     });
-  }, [setSearchParams]);
+  };
 
-  const resetAllFilters = useCallback(() => {
+  const resetAllFilters = () => {
     setSearchParams(() => new URLSearchParams());
-  }, [setSearchParams]);
+  };
 
-  const toggleParam = useCallback(
-    (key: string, value: string | number) => {
-      setSearchParams((currentParams) => {
-        const nextParams = new URLSearchParams(currentParams);
-        const strVal = String(value);
-        if (nextParams.get(key) === strVal) {
-          nextParams.delete(key);
-        } else {
-          nextParams.set(key, strVal);
-        }
-        nextParams.set('page', '1');
-        return nextParams;
-      });
-    },
-    [setSearchParams]
-  );
+  const toggleParam = (key: string, value: string | number) => {
+    setSearchParams((currentParams) => {
+      const nextParams = new URLSearchParams(currentParams);
+      const strVal = String(value);
+      if (nextParams.get(key) === strVal) {
+        nextParams.delete(key);
+      } else {
+        nextParams.set(key, strVal);
+      }
+      nextParams.set('page', '1');
+      return nextParams;
+    });
+  };
 
-  const toggleCategory = useCallback(
-    (id: number) => toggleParam('categoryId', id),
-    [toggleParam]
-  );
+  const toggleCategory = (id: number) => toggleParam('categoryId', id);
+  const toggleBrand = (id: number) => toggleParam('brandId', id);
+  const toggleMinRating = (rating: number) => toggleParam('minRating', rating);
 
-  const toggleBrand = useCallback(
-    (id: number) => toggleParam('brandId', id),
-    [toggleParam]
-  );
+  const togglePriceRange = (min?: number, max?: number) => {
+    setSearchParams((currentParams) => {
+      const nextParams = new URLSearchParams(currentParams);
+      const currentMin = nextParams.get('minPrice');
+      const currentMax = nextParams.get('maxPrice');
+      const targetMin = min !== undefined ? String(min) : null;
+      const targetMax = max !== undefined ? String(max) : null;
 
-  const toggleMinRating = useCallback(
-    (rating: number) => toggleParam('minRating', rating),
-    [toggleParam]
-  );
+      if (currentMin === targetMin && currentMax === targetMax) {
+        nextParams.delete('minPrice');
+        nextParams.delete('maxPrice');
+      } else {
+        if (targetMin !== null) nextParams.set('minPrice', targetMin);
+        else nextParams.delete('minPrice');
 
-  const togglePriceRange = useCallback(
-    (min?: number, max?: number) => {
-      setSearchParams((currentParams) => {
-        const nextParams = new URLSearchParams(currentParams);
-        const currentMin = nextParams.get('minPrice');
-        const currentMax = nextParams.get('maxPrice');
-        const targetMin = min !== undefined ? String(min) : null;
-        const targetMax = max !== undefined ? String(max) : null;
+        if (targetMax !== null) nextParams.set('maxPrice', targetMax);
+        else nextParams.delete('maxPrice');
+      }
+      nextParams.set('page', '1');
+      return nextParams;
+    });
+  };
 
-        if (currentMin === targetMin && currentMax === targetMax) {
-          nextParams.delete('minPrice');
-          nextParams.delete('maxPrice');
-        } else {
-          if (targetMin !== null) nextParams.set('minPrice', targetMin);
-          else nextParams.delete('minPrice');
+  const setSort = (newSortBy: ProductSortBy, newSortOrder: SortOrder) => {
+    setSearchParams((currentParams) => {
+      const nextParams = new URLSearchParams(currentParams);
+      nextParams.set('sortBy', newSortBy);
+      nextParams.set('sortOrder', newSortOrder);
+      nextParams.set('page', '1');
+      return nextParams;
+    });
+  };
 
-          if (targetMax !== null) nextParams.set('maxPrice', targetMax);
-          else nextParams.delete('maxPrice');
-        }
-        nextParams.set('page', '1');
-        return nextParams;
-      });
-    },
-    [setSearchParams]
-  );
-
-  const setSort = useCallback(
-    (newSortBy: ProductSortBy, newSortOrder: SortOrder) => {
-      setSearchParams((currentParams) => {
-        const nextParams = new URLSearchParams(currentParams);
-        nextParams.set('sortBy', newSortBy);
-        nextParams.set('sortOrder', newSortOrder);
-        nextParams.set('page', '1');
-        return nextParams;
-      });
-    },
-    [setSearchParams]
-  );
-
-  const clearSort = useCallback(() => {
+  const clearSort = () => {
     setSearchParams((currentParams) => {
       const nextParams = new URLSearchParams(currentParams);
       nextParams.delete('sortBy');
@@ -184,7 +158,7 @@ export function useProductFilters() {
       nextParams.set('page', '1');
       return nextParams;
     });
-  }, [setSearchParams]);
+  };
 
   return {
     searchTerm,

@@ -7,8 +7,7 @@ import Pagination from '@/components/common/Pagination';
 import Button from '@/components/common/Button';
 import { Suspense } from 'react';
 import StoreLoading from './loading';
-import { ProductSortBy, SortOrder } from '@/types/ProductSorting';
-import type { ProductSearchParams } from '@/types/ProductSearchParams';
+import { ProductSortBy, SortOrder, type ProductSearchParams } from '@/types';
 import { getValidInt, getValidFloat } from '@/utils/urlHelpers';
 
 export const metadata: Metadata = {

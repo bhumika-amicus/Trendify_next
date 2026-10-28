@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ShoppingCart, LogIn, LogOut, Menu, X, Store, Package, User } from 'lucide-react';
@@ -14,12 +14,6 @@ interface NavBarProps {
   };
 }
 
-function getCookie(name: string): string | null {
-  if (typeof document === 'undefined') return null;
-  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-  return match ? decodeURIComponent(match[2]) : null;
-}
-
 export default function NavBar({ initialUser }: NavBarProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [cartCount] = useState(0);
@@ -27,18 +21,12 @@ export default function NavBar({ initialUser }: NavBarProps) {
   const [userName, setUserName] = useState(initialUser?.userName ?? '');
   const pathname = usePathname();
 
-  useEffect(() => {
-    // Sync with cookies or initial user on route transitions
-    if (initialUser !== undefined) {
-      setIsLoggedIn(initialUser.isLoggedIn);
-      setUserName(initialUser.userName);
-    } else {
-      const cookieUser = getCookie('userName');
-      const hasSession = Boolean(getCookie('session') || cookieUser);
-      setIsLoggedIn(hasSession);
-      setUserName(cookieUser || '');
-    }
-  }, [initialUser, pathname]);
+  const [prevUser, setPrevUser] = useState(initialUser);
+  if (initialUser !== prevUser) {
+    setPrevUser(initialUser);
+    setIsLoggedIn(initialUser?.isLoggedIn ?? false);
+    setUserName(initialUser?.userName ?? '');
+  }
 
   const handleLogout = async () => {
     setIsLoggedIn(false);

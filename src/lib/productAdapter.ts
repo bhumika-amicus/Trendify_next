@@ -4,10 +4,10 @@ import type {
   UpdateProductDto,
   DotnetCreateProductPayload,
   DotnetUpdateProductPayload,
-} from '@/types/ProductDto';
-import type { Product } from '@/types/Products';
-import type { ProductSearchResultDto } from '@/types/ProductSearchResultDto';
-import type { ProductSearchResult } from '@/types/ProductSearchResult';
+  Product,
+  ProductSearchResultDto,
+  ProductSearchResult,
+} from '@/types';
 
 /**
  * Transforms a .NET ProductDto into the Product shape used across the React app.

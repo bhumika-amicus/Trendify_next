@@ -2,16 +2,26 @@
 import { cache } from 'react';
 import { DOTNET_API_BASE_URL } from '@/config';
 import { toClientSearchResult, toClientProduct } from '@/lib/productAdapter';
-import type { ProductSearchParams } from '@/types/ProductSearchParams';
-import type { ProductSearchResult } from '@/types/ProductSearchResult';
-import type { ProductSearchResultDto } from '@/types/ProductSearchResultDto';
-import type { ProductDto } from '@/types/ProductDto';
-import type { Product } from '@/types/Products';
-import type { Category } from '@/types/Categories';
-import type { CategoryDto } from '@/types/CategoryDto';
-import type { Brand } from '@/types/Brands';
-import type { BrandDto } from '@/types/BrandDto';
+import type {
+  ProductSearchParams,
+  ProductSearchResult,
+  ProductSearchResultDto,
+  ProductDto,
+  Product,
+  Category,
+  CategoryDto,
+  Brand,
+  BrandDto,
+} from '@/types';
 
+function isDynamicServerError(error: unknown): boolean {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'digest' in error &&
+    error.digest === 'DYNAMIC_SERVER_USAGE'
+  );
+}
 
 /**
  * Fetches products from the upstream .NET API for Server Components.
@@ -64,7 +74,7 @@ export async function getProductsServer(
     const data: ProductSearchResultDto = await response.json();
     return toClientSearchResult(data);
   } catch (error) {
-    if ((error as { digest?: string })?.digest === 'DYNAMIC_SERVER_USAGE') {
+    if (isDynamicServerError(error)) {
       throw error;
     }
     console.error('Error in getProductsServer:', error);
@@ -109,7 +119,7 @@ export const getProductByIdServer = cache(
       const data: ProductDto = await response.json();
       return toClientProduct(data);
     } catch (error) {
-      if ((error as { digest?: string })?.digest === 'DYNAMIC_SERVER_USAGE') {
+      if (isDynamicServerError(error)) {
         throw error;
       }
       console.error(`Error in getProductByIdServer for ID ${id}:`, error);
@@ -130,14 +140,17 @@ export async function getCategoriesServer(): Promise<Category[]> {
       next: { revalidate: 300 },
     });
 
-    if (!response.ok) return [];
+    if (!response.ok) {
+      console.error(`[CATEGORIES] Upstream failure [${response.status}]`);
+      return [];
+    }
     const data: CategoryDto[] = await response.json();
     return (data || []).map((c) => ({
       id: c.categoryId,
       name: c.name,
     }));
   } catch (error) {
-    if ((error as { digest?: string })?.digest === 'DYNAMIC_SERVER_USAGE') {
+    if (isDynamicServerError(error)) {
       throw error;
     }
     console.error('Error in getCategoriesServer:', error);
@@ -157,14 +170,17 @@ export async function getBrandsServer(): Promise<Brand[]> {
       next: { revalidate: 300 },
     });
 
-    if (!response.ok) return [];
+    if (!response.ok) {
+      console.error(`[BRANDS] Upstream failure [${response.status}]`);
+      return [];
+    }
     const data: BrandDto[] = await response.json();
     return (data || []).map((b) => ({
       id: b.brandId,
       name: b.name,
     }));
   } catch (error) {
-    if ((error as { digest?: string })?.digest === 'DYNAMIC_SERVER_USAGE') {
+    if (isDynamicServerError(error)) {
       throw error;
     }
     console.error('Error in getBrandsServer:', error);
