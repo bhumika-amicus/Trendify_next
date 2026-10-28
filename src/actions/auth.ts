@@ -4,8 +4,27 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { DOTNET_API_BASE_URL } from '@/config';
 
+import {
+  validateEmail,
+  validatePassword,
+  validateName,
+  validatePasswordMatch,
+} from '@/utils/validation';
+
+export interface AuthFieldErrors {
+  name?: string;
+  email?: string;
+  password?: string;
+  confirmPassword?: string;
+}
+
 export interface AuthActionState {
   error?: string;
+  fieldErrors?: AuthFieldErrors;
+  values?: {
+    name?: string;
+    email?: string;
+  };
   success?: boolean;
 }
 
@@ -28,8 +47,19 @@ export async function loginAction(
   const password = getFormString(formData, 'password');
   const callbackUrl = getFormString(formData, 'callbackUrl') || '/';
 
-  if (!email || !password) {
-    return { error: 'Please provide both email and password.' };
+  const emailError = validateEmail(email);
+  const passwordError = !password ? 'Password is required.' : undefined;
+
+  if (emailError || passwordError) {
+    return {
+      fieldErrors: {
+        email: emailError,
+        password: passwordError,
+      },
+      values: {
+        email,
+      },
+    };
   }
 
   let redirectTo: string | null = null;
@@ -63,7 +93,7 @@ export async function loginAction(
       }
 
       if (response.status === 401 || response.status === 403) {
-        return { error: 'Invalid email or password.' };
+        return { error: 'Invalid email or password.', values: { email } };
       }
 
       return {
@@ -161,16 +191,24 @@ export async function registerAction(
   const password = getFormString(formData, 'password');
   const confirmPassword = getFormString(formData, 'confirmPassword');
 
-  if (!name || !email || !password) {
-    return { error: 'Name, email, and password are required.' };
-  }
+  const nameError = validateName(name);
+  const emailError = validateEmail(email);
+  const passwordError = validatePassword(password);
+  const confirmPasswordError = validatePasswordMatch(password, confirmPassword);
 
-  if (password !== confirmPassword) {
-    return { error: 'Passwords do not match.' };
-  }
-
-  if (password.length < 6) {
-    return { error: 'Password must be at least 6 characters long.' };
+  if (nameError || emailError || passwordError || confirmPasswordError) {
+    return {
+      fieldErrors: {
+        name: nameError,
+        email: emailError,
+        password: passwordError,
+        confirmPassword: confirmPasswordError,
+      },
+      values: {
+        name,
+        email,
+      },
+    };
   }
 
   let redirectTo: string | null = null;
@@ -204,11 +242,18 @@ export async function registerAction(
       }
 
       if (response.status === 400) {
+        const errorMsg =
+          data?.message ||
+          data?.error ||
+          'Registration failed. Email might already be registered.';
+        const isEmailConflict = errorMsg.toLowerCase().includes('email');
         return {
-          error:
-            data?.message ||
-            data?.error ||
-            'Registration failed. Email might already be registered.',
+          error: errorMsg,
+          fieldErrors: isEmailConflict ? { email: errorMsg } : undefined,
+          values: {
+            name,
+            email,
+          },
         };
       }
 

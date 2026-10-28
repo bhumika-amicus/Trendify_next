@@ -2,18 +2,33 @@
 
 import { useActionState, useState } from 'react';
 import Link from 'next/link';
-import { Eye, EyeOff } from 'lucide-react';
 import Button from '@/components/common/Button';
+import Input from '@/components/common/Input';
 import { registerAction } from '@/actions/auth';
 
 export default function RegisterForm() {
   const [state, formAction, isPending] = useActionState(registerAction, null);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [clientConfirmError, setClientConfirmError] = useState<string | undefined>(undefined);
+
+  const handleClientSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const form = e.currentTarget;
+    const password = (form.elements.namedItem('password') as HTMLInputElement)?.value;
+    const confirmPassword = (form.elements.namedItem('confirmPassword') as HTMLInputElement)?.value;
+
+    // Only intercept on client if both passwords have been typed and they mismatch
+    if (password && confirmPassword && password !== confirmPassword) {
+      e.preventDefault(); // Prevents Server Action from firing!
+      setClientConfirmError('Passwords do not match.');
+      return;
+    }
+    setClientConfirmError(undefined);
+  };
+
+  const confirmPasswordError = clientConfirmError || state?.fieldErrors?.confirmPassword;
 
   return (
     <div className="space-y-6">
-      <form className="space-y-4" action={formAction}>
+      <form className="space-y-4" action={formAction} onSubmit={handleClientSubmit} noValidate>
         {/* Error Banner */}
         {state?.error && (
           <div className="rounded-md bg-red-50 p-4 border border-red-200 text-sm text-red-700">
@@ -22,113 +37,60 @@ export default function RegisterForm() {
         )}
 
         {/* Full Name Field */}
-        <div>
-          <label
-            htmlFor="name"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Full Name<span className="text-brand-orange">*</span>
-          </label>
-          <div className="mt-1.5">
-            <input
-              id="name"
-              name="name"
-              type="text"
-              required
-              placeholder="e.g. Bhumika Deshmukh"
-              className="appearance-none block w-full px-4 py-3 border border-transparent bg-blue-50/50 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-brand-orange focus:border-brand-orange sm:text-sm text-gray-900 transition-colors"
-            />
-          </div>
-        </div>
+        <Input
+          key={`name-${state?.values?.name ?? 'empty'}`}
+          id="name"
+          name="name"
+          type="text"
+          label="Full Name"
+          required
+          defaultValue={state?.values?.name}
+          placeholder="e.g. Bhumika Deshmukh"
+          error={state?.fieldErrors?.name}
+        />
 
         {/* Email Field */}
-        <div>
-          <label
-            htmlFor="email"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Email Address<span className="text-brand-orange">*</span>
-          </label>
-          <div className="mt-1.5">
-            <input
-              id="email"
-              name="email"
-              type="email"
-              required
-              autoComplete="email"
-              placeholder="you@example.com"
-              className="appearance-none block w-full px-4 py-3 border border-transparent bg-blue-50/50 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-brand-orange focus:border-brand-orange sm:text-sm text-gray-900 transition-colors"
-            />
-          </div>
-        </div>
+        <Input
+          key={`email-${state?.values?.email ?? 'empty'}`}
+          id="email"
+          name="email"
+          type="email"
+          label="Email Address"
+          required
+          autoComplete="email"
+          defaultValue={state?.values?.email}
+          placeholder="you@example.com"
+          error={state?.fieldErrors?.email}
+        />
 
         {/* Password Field */}
-        <div>
-          <label
-            htmlFor="password"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Password<span className="text-brand-orange">*</span>
-          </label>
-          <div className="mt-1.5 relative">
-            <input
-              id="password"
-              name="password"
-              type={showPassword ? 'text' : 'password'}
-              required
-              minLength={6}
-              autoComplete="new-password"
-              placeholder="Minimum 6 characters"
-              className="appearance-none block w-full px-4 py-3 border border-transparent bg-blue-50/50 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-brand-orange focus:border-brand-orange sm:text-sm text-gray-900 pr-10 transition-colors"
-            />
-            <button
-              type="button"
-              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none cursor-pointer"
-              onClick={() => setShowPassword(!showPassword)}
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
-            >
-              {showPassword ? (
-                <EyeOff className="h-5 w-5" aria-hidden="true" />
-              ) : (
-                <Eye className="h-5 w-5" aria-hidden="true" />
-              )}
-            </button>
-          </div>
-        </div>
+        <Input
+          id="password"
+          name="password"
+          type="password"
+          label="Password"
+          required
+          minLength={6}
+          autoComplete="new-password"
+          placeholder="Minimum 6 characters"
+          error={state?.fieldErrors?.password}
+        />
 
         {/* Confirm Password Field */}
-        <div>
-          <label
-            htmlFor="confirmPassword"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Confirm Password<span className="text-brand-orange">*</span>
-          </label>
-          <div className="mt-1.5 relative">
-            <input
-              id="confirmPassword"
-              name="confirmPassword"
-              type={showConfirmPassword ? 'text' : 'password'}
-              required
-              minLength={6}
-              autoComplete="new-password"
-              placeholder="Re-enter password"
-              className="appearance-none block w-full px-4 py-3 border border-transparent bg-blue-50/50 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-brand-orange focus:border-brand-orange sm:text-sm text-gray-900 pr-10 transition-colors"
-            />
-            <button
-              type="button"
-              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none cursor-pointer"
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
-            >
-              {showConfirmPassword ? (
-                <EyeOff className="h-5 w-5" aria-hidden="true" />
-              ) : (
-                <Eye className="h-5 w-5" aria-hidden="true" />
-              )}
-            </button>
-          </div>
-        </div>
+        <Input
+          id="confirmPassword"
+          name="confirmPassword"
+          type="password"
+          label="Confirm Password"
+          required
+          minLength={6}
+          autoComplete="new-password"
+          placeholder="Re-enter password"
+          error={confirmPasswordError}
+          onChange={() => {
+            if (clientConfirmError) setClientConfirmError(undefined);
+          }}
+        />
 
         {/* Submit Button */}
         <div className="pt-2">
