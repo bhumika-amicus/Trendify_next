@@ -4,9 +4,8 @@ import { DOTNET_API_BASE_URL } from '@/config';
 
 /**
  * Protected routes requiring an active session cookie.
- * Matches root routes and any sub-routes (e.g. /dashboard/profile, /orders/123).
  */
-const PROTECTED_ROUTES = ['/dashboard', '/checkout', '/orders'];
+const PROTECTED_ROUTES = ['/checkout', '/orders'];
 
 export async function middleware(request: NextRequest) {
   const startTime = Date.now();
@@ -49,7 +48,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // 3. Route Protection Check
+  //  Route Protection Check
   const isProtected = PROTECTED_ROUTES.some(
     (route) => pathname === route || pathname.startsWith(`${route}/`)
   );
@@ -66,17 +65,16 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // 4. Process the request normally
   const response = NextResponse.next();
 
-  // 5. If a new session token was issued, set updated cookies on the outgoing response
+  // If a new session token was issued, set updated cookies on the outgoing response
   if (newSessionToken) {
     response.cookies.set('session', newSessionToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
-      maxAge: 60 * 60 * 2, // 2 hours
+      maxAge: 60 * 60 * 2, 
     });
 
     if (newRefreshToken) {
@@ -85,12 +83,12 @@ export async function middleware(request: NextRequest) {
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
         path: '/',
-        maxAge: 60 * 60 * 24 * 7, // 7 days
+        maxAge: 60 * 60 * 24 * 7, 
       });
     }
   }
 
-  // 6. Log HTTP method, path, and duration
+  // Log HTTP method, path, and duration
   const duration = Date.now() - startTime;
   console.log(`[HTTP] ${method} ${pathname} - Completed in ${duration}ms`);
 
