@@ -23,11 +23,6 @@ function isDynamicServerError(error: unknown): boolean {
   );
 }
 
-/**
- * Fetches products from the upstream .NET API for Server Components.
- * Runs strictly on the server in Node.js (SSR / Server Component rendering).
- * Supports search, filtering, sorting, and pagination without any client-side waterfalls.
- */
 export async function getProductsServer(
   params: ProductSearchParams = {}
 ): Promise<ProductSearchResult> {
@@ -59,8 +54,8 @@ export async function getProductsServer(
       headers: {
         Accept: 'application/json',
       },
-      // Revalidate product search/listings every 60 seconds (ISR)
-      next: { revalidate: 60 },
+      // Revalidate product search/listings every 60 seconds (ISR) with semantic tag invalidation
+      next: { revalidate: 60, tags: ['products'] },
     });
 
     if (!response.ok) {
@@ -101,7 +96,7 @@ export const getProductByIdServer = cache(
         headers: {
           Accept: 'application/json',
         },
-        next: { revalidate: 60 },
+        next: { revalidate: 60, tags: ['products', `product-${id}`] },
       });
 
       if (response.status === 404) {
@@ -137,7 +132,7 @@ export async function getCategoriesServer(): Promise<Category[]> {
     const response = await fetch(upstreamUrl, {
       method: 'GET',
       headers: { Accept: 'application/json' },
-      next: { revalidate: 300 },
+      next: { revalidate: 300, tags: ['categories'] },
     });
 
     if (!response.ok) {
@@ -167,7 +162,7 @@ export async function getBrandsServer(): Promise<Brand[]> {
     const response = await fetch(upstreamUrl, {
       method: 'GET',
       headers: { Accept: 'application/json' },
-      next: { revalidate: 300 },
+      next: { revalidate: 300, tags: ['brands'] },
     });
 
     if (!response.ok) {

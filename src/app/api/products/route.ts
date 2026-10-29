@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import { DOTNET_API_BASE_URL } from '@/config';
 import { toClientSearchResult, toDotnetCreatePayload } from '@/lib/productAdapter';
 import type { ProductSearchResultDto, CreateProductDto } from '@/types';
@@ -245,6 +246,9 @@ export async function POST(request: NextRequest) {
       brand: '',
       rating: productPayload.rating,
     };
+
+    // Invalidate product catalog cache across the application
+    revalidateTag('products', 'max');
 
     return NextResponse.json(newProduct, { status: 201 });
   } catch (error) {

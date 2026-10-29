@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import { DOTNET_API_BASE_URL } from '@/config';
 import { toClientProduct, toDotnetUpdatePayload } from '@/lib/productAdapter';
 import type { ProductDto, UpdateProductDto } from '@/types';
@@ -170,6 +171,10 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       );
     }
 
+    // Invalidate product cache tags across the application
+    revalidateTag('products', 'max');
+    revalidateTag(`product-${id}`, 'max');
+
     return new NextResponse(null, { status: 204 });
   } catch (error) {
     console.error('Error in PUT /api/products/[id] handler:', error);
@@ -239,6 +244,10 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
         { status: response.status }
       );
     }
+
+    // Invalidate product cache tags across the application
+    revalidateTag('products', 'max');
+    revalidateTag(`product-${id}`, 'max');
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
