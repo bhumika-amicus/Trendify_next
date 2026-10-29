@@ -5,14 +5,11 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ShoppingCart, LogIn, Menu, X, Store, User } from 'lucide-react';
 import ProductSearch from '@/components/product/ProductSearch';
+import { useUserSession, type UserSessionData } from '@/hooks/useUserSession';
 import UserDropdown from './UserDropdown';
 import MobileNavDrawer from './MobileNavDrawer';
 
-export interface NavUser {
-  isLoggedIn: boolean;
-  userName: string;
-  userEmail?: string;
-}
+export type NavUser = UserSessionData;
 
 interface NavBarProps {
   initialUser?: NavUser;
@@ -23,7 +20,7 @@ interface NavBarProps {
  * Orchestrates top branding, responsive search, desktop navigation,
  * user account dropdown, and mobile navigation drawer.
  */
-export default function NavBar({ initialUser }: NavBarProps) {
+export default function NavBar({ initialUser }: NavBarProps = {}) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
 
@@ -34,11 +31,7 @@ export default function NavBar({ initialUser }: NavBarProps) {
     setIsMobileMenuOpen(false);
   }
 
-  const user = initialUser ?? {
-    isLoggedIn: false,
-    userName: '',
-    userEmail: '',
-  };
+  const user = useUserSession(initialUser);
 
   const isLinkActive = (path: string) => pathname.startsWith(path);
   const cartCount = 0;

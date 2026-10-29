@@ -59,9 +59,10 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
             type="submit"
             variant="primary"
             isLoading={isPending}
+            disabled={isPending}
             className="w-full uppercase tracking-widest font-bold text-sm py-3 shadow-sm"
           >
-            SIGN IN
+            {isPending ? 'SIGNING IN...' : 'SIGN IN'}
           </Button>
         </div>
       </form>

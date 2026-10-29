@@ -2,14 +2,10 @@
 
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { revalidatePath } from 'next/cache';
+import { z } from 'zod';
 import { DOTNET_API_BASE_URL } from '@/config';
-
-import {
-  validateEmail,
-  validatePassword,
-  validateName,
-  validatePasswordMatch,
-} from '@/utils/validation';
+import { LoginSchema, RegisterSchema } from '@/schemas/auth';
 
 export interface AuthFieldErrors {
   name?: string;
@@ -28,40 +24,38 @@ export interface AuthActionState {
   success?: boolean;
 }
 
-function getFormString(formData: FormData, key: string): string {
-  const value = formData.get(key);
-  return typeof value === 'string' ? value.trim() : '';
-}
-
 /**
  * Server Action for User Login.
- * Handles credential validation, calls the Azure upstream API,
- * establishes a session via httpOnly cookies, and redirects the user
- * to the originally requested page (callbackUrl) or the homepage.
+ * Validates inputs using Zod, calls the Azure upstream API,
+ * establishes a session via httpOnly cookies, revalidates layout caches,
+ * and redirects the user to callbackUrl or the homepage.
  */
 export async function loginAction(
   prevState: AuthActionState | null,
   formData: FormData
 ): Promise<AuthActionState> {
-  const email = getFormString(formData, 'email');
-  const password = getFormString(formData, 'password');
-  const callbackUrl = getFormString(formData, 'callbackUrl') || '/';
+  const rawData = {
+    email: formData.get('email'),
+    password: formData.get('password'),
+    callbackUrl: formData.get('callbackUrl') || '/',
+  };
 
-  const emailError = validateEmail(email);
-  const passwordError = !password ? 'Password is required.' : undefined;
+  const parsed = LoginSchema.safeParse(rawData);
 
-  if (emailError || passwordError) {
+  if (!parsed.success) {
+    const errors = z.flattenError(parsed.error).fieldErrors;
     return {
       fieldErrors: {
-        email: emailError,
-        password: passwordError,
+        email: errors.email?.[0],
+        password: errors.password?.[0],
       },
       values: {
-        email,
+        email: typeof rawData.email === 'string' ? rawData.email : '',
       },
     };
   }
 
+  const { email, password, callbackUrl } = parsed.data;
   let redirectTo: string | null = null;
 
   try {
@@ -166,6 +160,8 @@ export async function loginAction(
       });
     }
 
+    // Revalidate the entire layout tree to reflect the new user session instantly
+    revalidatePath('/', 'layout');
     redirectTo = callbackUrl;
   } catch (error) {
     console.error('[AUTH] Network error in loginAction:', error);
@@ -184,37 +180,39 @@ export async function loginAction(
 
 /**
  * Server Action for User Registration.
- * Validates inputs, calls Azure /api/auth/register with { name, email, password } and on success redirects to /login?registered=true.
+ * Validates inputs with Zod, calls Azure /api/auth/register with { name, email, password }
+ * and on success redirects to /login?registered=true.
  */
 export async function registerAction(
   prevState: AuthActionState | null,
   formData: FormData
 ): Promise<AuthActionState> {
-  const name = getFormString(formData, 'name');
-  const email = getFormString(formData, 'email');
-  const password = getFormString(formData, 'password');
-  const confirmPassword = getFormString(formData, 'confirmPassword');
+  const rawData = {
+    name: formData.get('name'),
+    email: formData.get('email'),
+    password: formData.get('password'),
+    confirmPassword: formData.get('confirmPassword'),
+  };
 
-  const nameError = validateName(name);
-  const emailError = validateEmail(email);
-  const passwordError = validatePassword(password);
-  const confirmPasswordError = validatePasswordMatch(password, confirmPassword);
+  const parsed = RegisterSchema.safeParse(rawData);
 
-  if (nameError || emailError || passwordError || confirmPasswordError) {
+  if (!parsed.success) {
+    const errors = z.flattenError(parsed.error).fieldErrors;
     return {
       fieldErrors: {
-        name: nameError,
-        email: emailError,
-        password: passwordError,
-        confirmPassword: confirmPasswordError,
+        name: errors.name?.[0],
+        email: errors.email?.[0],
+        password: errors.password?.[0],
+        confirmPassword: errors.confirmPassword?.[0],
       },
       values: {
-        name,
-        email,
+        name: typeof rawData.name === 'string' ? rawData.name : '',
+        email: typeof rawData.email === 'string' ? rawData.email : '',
       },
     };
   }
 
+  const { name, email, password } = parsed.data;
   let redirectTo: string | null = null;
 
   try {
@@ -286,7 +284,7 @@ export async function registerAction(
 
 /**
  * Server Action for User Logout.
- * Clears the session cookies and redirects to the login page.
+ * Clears the session cookies, invalidates layout caches, and redirects to the login page.
  */
 export async function logoutAction(): Promise<void> {
   const cookieStore = await cookies();
@@ -296,5 +294,8 @@ export async function logoutAction(): Promise<void> {
   cookieStore.delete('userEmail');
   cookieStore.delete('customerId');
   cookieStore.delete('role');
+
+  // Purge cached layout states (e.g. UserDropdown)
+  revalidatePath('/', 'layout');
   redirect('/login');
 }

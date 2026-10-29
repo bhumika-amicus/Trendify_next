@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState } from 'react';
 import Link from 'next/link';
 import Button from '@/components/common/Button';
 import Input from '@/components/common/Input';
@@ -8,33 +8,10 @@ import { registerAction } from '@/actions/auth';
 
 export default function RegisterForm() {
   const [state, formAction, isPending] = useActionState(registerAction, null);
-  const [clientConfirmError, setClientConfirmError] = useState<string>();
-
-  const handleClientSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    const formData = new FormData(e.currentTarget);
-    const password = formData.get('password');
-    const confirmPassword = formData.get('confirmPassword');
-
-    // Only intercept on client if both passwords have been typed and they mismatch
-    if (
-      typeof password === 'string' &&
-      typeof confirmPassword === 'string' &&
-      password &&
-      confirmPassword &&
-      password !== confirmPassword
-    ) {
-      e.preventDefault(); // Prevents Server Action from firing!
-      setClientConfirmError('Passwords do not match.');
-      return;
-    }
-    setClientConfirmError(undefined);
-  };
-
-  const confirmPasswordError = clientConfirmError || state?.fieldErrors?.confirmPassword;
 
   return (
     <div className="space-y-6">
-      <form className="space-y-4" action={formAction} onSubmit={handleClientSubmit} noValidate>
+      <form className="space-y-4" action={formAction} noValidate>
         {/* Error Banner */}
         {state?.error && (
           <div className="rounded-md bg-red-50 p-4 border border-red-200 text-sm text-red-700">
@@ -92,10 +69,7 @@ export default function RegisterForm() {
           minLength={6}
           autoComplete="new-password"
           placeholder="Re-enter password"
-          error={confirmPasswordError}
-          onChange={() => {
-            if (clientConfirmError) setClientConfirmError(undefined);
-          }}
+          error={state?.fieldErrors?.confirmPassword}
         />
 
         {/* Submit Button */}
@@ -104,9 +78,10 @@ export default function RegisterForm() {
             type="submit"
             variant="primary"
             isLoading={isPending}
+            disabled={isPending}
             className="w-full uppercase tracking-widest font-bold text-sm py-3 shadow-sm"
           >
-            CREATE ACCOUNT
+            {isPending ? 'CREATING ACCOUNT...' : 'CREATE ACCOUNT'}
           </Button>
         </div>
       </form>

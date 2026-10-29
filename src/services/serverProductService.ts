@@ -113,7 +113,7 @@ export const getProductByIdServer = cache(
         console.error(
           `Upstream error in getProductByIdServer for ID ${id} [${response.status}]: ${errorText}`
         );
-        throw new Error('Failed to retrieve product details from upstream server.');
+        return null;
       }
 
       const data: ProductDto = await response.json();
@@ -123,7 +123,7 @@ export const getProductByIdServer = cache(
         throw error;
       }
       console.error(`Error in getProductByIdServer for ID ${id}:`, error);
-      throw new Error('The product service is currently unavailable. Please try again.');
+      return null;
     }
   }
 );
