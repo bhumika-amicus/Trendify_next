@@ -24,7 +24,7 @@ export function FilterSectionHeader({
         type="button"
         onClick={() => onToggle(section)}
         aria-expanded={isOpen}
-        className={`flex w-full items-center justify-between lg:hidden m-0 mb-2 ${
+        className={`flex w-full items-center justify-between lg:hidden m-0 mb-2 cursor-pointer ${
           hasTopMargin ? 'mt-5' : ''
         } text-base font-bold text-gray-800`.trim()}
       >

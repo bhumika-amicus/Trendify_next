@@ -38,8 +38,9 @@ function ProductCard({ product, onAddToCart }: ProductCardProps) {
 
   return (
     <Card
+      as="article"
       variant="elevated"
-      className="transition-transform duration-200 ease-out hover:z-10 hover:scale-[1.02] motion-reduce:transition-none"
+      hoverable
     >
       <Link
         href={`/products/${product.id}`}
@@ -78,11 +79,12 @@ function ProductCard({ product, onAddToCart }: ProductCardProps) {
 
         <Button
           variant="primary"
-          className="mt-auto w-full px-3! py-2! text-sm!"
+          size="sm"
+          className="mt-auto w-full"
           onClick={handleAddToCart}
-          disabled={isAdding}
+          isLoading={isAdding}
         >
-          {isAdding ? 'ADDING...' : 'ADD TO CART'}
+          ADD TO CART
         </Button>
       </div>
     </Card>

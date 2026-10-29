@@ -11,6 +11,7 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 
 import type { Product } from '@/types';
+import Button from '../common/Button';
 import ProductCard from './ProductCard';
 import StateMessage from '../common/StateMessage';
 
@@ -54,14 +55,15 @@ export default function FeaturedProductCarousel({
       </div>
 
       <div className="relative">
-        <button
-          type="button"
-          className="absolute top-1/2 -left-9 z-2 grid h-8 w-8 -translate-y-1/2 place-items-center border-0 bg-transparent p-0 text-brand-orange transition-colors hover:text-brand-orange-hover max-[650px]:-left-1 cursor-pointer"
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute top-1/2 -left-9 z-2 -translate-y-1/2 rounded-full text-brand-orange hover:text-brand-orange-hover hover:bg-orange-50 max-[650px]:-left-1"
           aria-label="Previous featured product"
           onClick={() => swiperRef.current?.slidePrev()}
         >
           <ChevronLeft aria-hidden="true" className="h-7.5 w-7.5" />
-        </button>
+        </Button>
 
         <Swiper
           className="overflow-hidden! pb-10!"
@@ -84,14 +86,15 @@ export default function FeaturedProductCarousel({
           ))}
         </Swiper>
 
-        <button
-          type="button"
-          className="absolute top-1/2 -right-9 z-2 grid h-8 w-8 -translate-y-1/2 place-items-center border-0 bg-transparent p-0 text-brand-orange transition-colors hover:text-brand-orange-hover max-[650px]:-right-1 cursor-pointer"
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute top-1/2 -right-9 z-2 -translate-y-1/2 rounded-full text-brand-orange hover:text-brand-orange-hover hover:bg-orange-50 max-[650px]:-right-1"
           aria-label="Next featured product"
           onClick={() => swiperRef.current?.slideNext()}
         >
           <ChevronRight aria-hidden="true" className="h-7.5 w-7.5" />
-        </button>
+        </Button>
       </div>
     </section>
   );

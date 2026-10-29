@@ -37,7 +37,8 @@ export default function ShopByCategory({ categories }: ShopByCategoryProps) {
             >
               <Card
                 variant="bordered"
-                className="cursor-pointer items-center justify-center px-5 py-4 text-center transition duration-200 ease-in-out hover:-translate-y-1 hover:shadow-[0_8px_16px_rgba(0,0,0,0.05)]"
+                hoverable
+                className="items-center justify-center px-5 py-4 text-center"
               >
                 <h3 className="m-0 text-sm font-semibold tracking-normal text-brand-orange">
                   {category.name}

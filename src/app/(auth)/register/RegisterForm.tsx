@@ -103,10 +103,10 @@ export default function RegisterForm() {
           <Button
             type="submit"
             variant="primary"
-            disabled={isPending}
+            isLoading={isPending}
             className="w-full uppercase tracking-widest font-bold text-sm py-3 shadow-sm"
           >
-            {isPending ? 'CREATING ACCOUNT...' : 'CREATE ACCOUNT'}
+            CREATE ACCOUNT
           </Button>
         </div>
       </form>

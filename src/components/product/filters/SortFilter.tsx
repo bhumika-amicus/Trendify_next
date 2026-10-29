@@ -1,6 +1,7 @@
 'use client';
 
 import { X } from 'lucide-react';
+import Button from '@/components/common/Button';
 import { ProductSortBy, SortOrder } from '@/types';
 import { SORT_OPTIONS } from './filterConfig';
 import { FilterSectionHeader } from './FilterSectionHeader';
@@ -53,14 +54,15 @@ export function SortFilter({
                   {config.label}
                 </label>
                 {isSelected && (
-                  <button
-                    type="button"
-                    className="cursor-pointer rounded border-0 bg-transparent px-1 text-brand-orange-600 font-bold transition-colors hover:bg-brand-orange-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2"
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 text-brand-orange-600 hover:bg-brand-orange-100"
                     onClick={onClearSort}
                     aria-label="Clear sort"
                   >
                     <X size={16} />
-                  </button>
+                  </Button>
                 )}
               </div>
 

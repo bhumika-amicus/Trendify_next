@@ -2,6 +2,7 @@
 
 import { useState, memo } from 'react';
 import { ChevronUp, ChevronDown } from 'lucide-react';
+import Button from '@/components/common/Button';
 import type { Category, Brand } from '@/types';
 import { useProductFilters } from '@/hooks/useProductFilters';
 import {
@@ -79,14 +80,15 @@ function FilterSidebar({
           </span>
         </button>
         {hasFacetFilters && (
-          <button
-            type="button"
+          <Button
+            variant="link"
+            size="sm"
             onClick={clearAllFilters}
-            className="cursor-pointer border-0 bg-transparent p-0 text-xs font-medium leading-none text-brand-orange-600 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange"
             aria-label="Clear all filters"
+            className="text-xs font-medium text-brand-orange-600"
           >
             Clear all
-          </button>
+          </Button>
         )}
       </div>
 
@@ -96,14 +98,15 @@ function FilterSidebar({
           FILTERS
         </h2>
         {hasFacetFilters && (
-          <button
-            type="button"
+          <Button
+            variant="link"
+            size="sm"
             onClick={clearAllFilters}
-            className="cursor-pointer border-0 bg-transparent p-0 text-xs font-medium leading-none text-brand-orange-600 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange"
             aria-label="Clear all filters"
+            className="text-xs font-medium text-brand-orange-600"
           >
             Clear all
-          </button>
+          </Button>
         )}
       </div>
 

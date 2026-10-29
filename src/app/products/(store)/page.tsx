@@ -46,7 +46,7 @@ export default async function ProductListingPage({
           Product Listing
         </h1>
         <Link href={refreshUrl}>
-          <Button variant="outline" className="text-xs px-3 py-1.5">
+          <Button variant="outline" size="sm">
             Refresh
           </Button>
         </Link>

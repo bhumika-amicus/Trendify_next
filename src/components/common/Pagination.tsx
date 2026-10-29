@@ -62,7 +62,7 @@ function Pagination({
                     ? `Page ${pageNumber}, current page`
                     : `Page ${pageNumber}`
                 }
-                className={`inline-flex h-8 min-w-8 items-center justify-center rounded-sm px-2 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2 ${
+                className={`inline-flex h-8 min-w-8 items-center justify-center rounded-sm px-2 text-xs font-semibold transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2 ${
                   currentPage === pageNumber
                     ? 'bg-brand-orange text-white hover:bg-brand-orange-hover'
                     : 'text-gray-700 hover:bg-brand-orange-50 hover:text-brand-orange'
