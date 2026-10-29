@@ -36,48 +36,6 @@ export default async function ProductListingPage({
   // Fetch data directly on the server (Server Component)
   const { products, totalRecords, totalPages } = await getProductsServer(apiParams);
 
-  let content: React.ReactNode;
-
-  if (products.length === 0) {
-    content = hasActiveFilters ? (
-      <StateMessage
-        title="No products match your criteria"
-        message={
-          searchTerm
-            ? `We couldn't find any products matching "${searchTerm}". Try checking your spelling or clearing your filters.`
-            : 'No products match the selected filters. Try broadening your criteria.'
-        }
-        buttonText="Clear All Filters"
-        actionHref="/products"
-        variant="empty"
-      />
-    ) : (
-      <StateMessage
-        title="No products available."
-        message="The store is currently empty. We might be restocking!"
-        buttonText="Refresh"
-        actionHref="/products"
-        variant="empty"
-      />
-    );
-  } else {
-    const startRecord = (page - 1) * PAGE_SIZE + 1;
-    const endRecord = Math.min(page * PAGE_SIZE, totalRecords);
-
-    content = (
-      <>
-        <p className="mb-5 text-sm text-gray-600">
-          Showing {startRecord}–{endRecord} of {totalRecords} products
-          {searchTerm && ` for "${searchTerm}"`}
-        </p>
-
-        <ProductGrid products={products} />
-
-        <Pagination currentPage={page} totalPages={totalPages} />
-      </>
-    );
-  }
-
   const currentQueryString = urlParams.toString();
   const refreshUrl = currentQueryString ? `/products?${currentQueryString}` : '/products';
 
@@ -94,7 +52,40 @@ export default async function ProductListingPage({
         </Link>
       </div>
 
-      {content}
+      {products.length === 0 ? (
+        hasActiveFilters ? (
+          <StateMessage
+            title="No products match your criteria"
+            message={
+              searchTerm
+                ? `We couldn't find any products matching "${searchTerm}". Try checking your spelling or clearing your filters.`
+                : 'No products match the selected filters. Try broadening your criteria.'
+            }
+            buttonText="Clear All Filters"
+            actionHref="/products"
+            variant="empty"
+          />
+        ) : (
+          <StateMessage
+            title="No products available."
+            message="The store is currently empty. We might be restocking!"
+            buttonText="Refresh"
+            actionHref="/products"
+            variant="empty"
+          />
+        )
+      ) : (
+        <>
+          <p className="mb-5 text-sm text-gray-600">
+            Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, totalRecords)} of {totalRecords} products
+            {searchTerm && ` for "${searchTerm}"`}
+          </p>
+
+          <ProductGrid products={products} />
+
+          <Pagination currentPage={page} totalPages={totalPages} />
+        </>
+      )}
     </div>
   );
 }

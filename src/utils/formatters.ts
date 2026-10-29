@@ -8,7 +8,7 @@ const inrFormatter = new Intl.NumberFormat('en-IN', {
  * Formats a numeric amount to Indian Rupee (INR) currency format.
  * Example: 12999 -> "₹12,999"
  */
-export const formatINR = (amount: number): string => inrFormatter.format(amount);
+export const formatINR = (amount: number) => inrFormatter.format(amount);
 
 /**
  * Formats an ISO date string into a clean, localized format (e.g., "Oct 28, 2026").

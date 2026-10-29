@@ -7,16 +7,9 @@ import FeaturedProductsSkeleton from '@/components/home/FeaturedProductsSkeleton
 import ShopByCategorySection from '@/components/home/ShopByCategorySection';
 import ShopByCategorySkeleton from '@/components/home/ShopByCategorySkeleton';
 
-// Incremental Static Regeneration (ISR): Background cache revalidation window
+// Incremental Static Regeneration (ISR)
 export const revalidate = 60;
 
-/**
- * Optimized Home Page.
- * Uses granular Suspense streaming:
- * - <Hero />, <CategoryGrid />, and <ServiceHighlights /> render immediately at 0ms.
- * - <FeaturedProductsSection /> and <ShopByCategorySection /> stream in parallel
- *   with zero-bundle Server Component skeletons and graceful error handling.
- */
 export default function Home() {
   return (
     <>

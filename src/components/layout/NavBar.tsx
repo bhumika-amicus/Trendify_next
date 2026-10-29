@@ -34,7 +34,7 @@ export default function NavBar({ initialUser }: NavBarProps) {
     setIsMobileMenuOpen(false);
   }
 
-  const user: NavUser = initialUser ?? {
+  const user = initialUser ?? {
     isLoggedIn: false,
     userName: '',
     userEmail: '',

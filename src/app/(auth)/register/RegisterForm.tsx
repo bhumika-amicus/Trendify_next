@@ -8,15 +8,21 @@ import { registerAction } from '@/actions/auth';
 
 export default function RegisterForm() {
   const [state, formAction, isPending] = useActionState(registerAction, null);
-  const [clientConfirmError, setClientConfirmError] = useState<string | undefined>(undefined);
+  const [clientConfirmError, setClientConfirmError] = useState<string>();
 
   const handleClientSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    const form = e.currentTarget;
-    const password = (form.elements.namedItem('password') as HTMLInputElement)?.value;
-    const confirmPassword = (form.elements.namedItem('confirmPassword') as HTMLInputElement)?.value;
+    const formData = new FormData(e.currentTarget);
+    const password = formData.get('password');
+    const confirmPassword = formData.get('confirmPassword');
 
     // Only intercept on client if both passwords have been typed and they mismatch
-    if (password && confirmPassword && password !== confirmPassword) {
+    if (
+      typeof password === 'string' &&
+      typeof confirmPassword === 'string' &&
+      password &&
+      confirmPassword &&
+      password !== confirmPassword
+    ) {
       e.preventDefault(); // Prevents Server Action from firing!
       setClientConfirmError('Passwords do not match.');
       return;

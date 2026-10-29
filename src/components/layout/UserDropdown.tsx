@@ -25,7 +25,11 @@ export default function UserDropdown({ userName, userEmail }: UserDropdownProps)
     if (!isOpen) return;
 
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        event.target instanceof Node &&
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target)
+      ) {
         setIsOpen(false);
       }
     }

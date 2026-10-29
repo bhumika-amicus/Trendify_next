@@ -34,7 +34,7 @@ export function toClientProduct(product: ProductDto): Product {
  */
 export function toClientSearchResult(
   data: ProductSearchResultDto
-): ProductSearchResult & { totalCount: number } {
+): ProductSearchResult {
   return {
     products: Array.isArray(data.products)
       ? data.products.map(toClientProduct)
@@ -43,7 +43,6 @@ export function toClientSearchResult(
     pageSize: data.pageSize ?? 12,
     totalRecords: data.totalRecords ?? 0,
     totalPages: data.totalPages ?? 0,
-    totalCount: data.totalRecords ?? 0,
   };
 }
 
