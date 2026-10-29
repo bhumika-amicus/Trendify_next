@@ -29,12 +29,12 @@ export default function Card({
   ...props
 }: CardProps) {
   const hoverStyles = hoverable
-    ? 'cursor-pointer transition-all duration-200 ease-out hover:-translate-y-1 hover:shadow-lg'
+    ? 'transition-all duration-200 ease-out hover:-translate-y-1 hover:shadow-lg'
     : '';
 
   return (
     <Component
-      className={`rounded flex flex-col h-full overflow-hidden ${variantStyles[variant]} ${hoverStyles} ${className}`.trim()}
+      className={`rounded flex flex-col overflow-hidden ${variantStyles[variant]} ${hoverStyles} ${className}`.trim()}
       {...props}
     >
       {children}

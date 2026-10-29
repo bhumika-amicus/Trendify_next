@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import Link from 'next/link';
 import { AlertCircle, RefreshCw, PackageOpen, Info } from 'lucide-react';
 import Button, { type ButtonVariant } from './Button';
 
@@ -66,15 +65,14 @@ export default function StateMessage({
       {children}
 
       {buttonText && actionHref && (
-        <Link href={actionHref}>
-          <Button
-            variant={buttonVariant}
-            className="mt-2 inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-xs font-semibold uppercase tracking-wider transition-all hover:shadow-xs"
-          >
-            <RefreshCw size={14} className="shrink-0" />
-            {buttonText}
-          </Button>
-        </Link>
+        <Button
+          href={actionHref}
+          variant={buttonVariant}
+          className="mt-2 inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-xs font-semibold uppercase tracking-wider transition-all hover:shadow-xs"
+        >
+          <RefreshCw size={14} className="shrink-0" />
+          {buttonText}
+        </Button>
       )}
 
       {buttonText && onAction && !actionHref && (

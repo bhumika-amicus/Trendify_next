@@ -2,7 +2,7 @@ import Card from '@/components/common/Card';
 
 export default function ProductCardSkeleton() {
   return (
-    <Card variant="elevated">
+    <Card variant="elevated" className="h-full">
       <div className="h-47.5 w-full border-b border-gray-100 bg-gray-200 animate-pulse max-[650px]:h-65" />
     
       <div className="flex flex-1 flex-col px-4 py-3 text-center">

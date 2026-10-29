@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Button from '@/components/common/Button';
 import type { OrderSummaryItemDto } from '@/services/serverOrderService';
 import { formatINR, formatDate } from '@/utils/formatters';
 import OrderStatusBadge from './OrderStatusBadge';
@@ -36,12 +36,9 @@ export default function RecentOrderItem({ order }: RecentOrderItemProps) {
           </p>
         </div>
 
-        <Link
-          href="/orders"
-          className="text-xs font-medium px-3 py-1.5 rounded border border-gray-300 text-gray-700 bg-white hover:bg-gray-100 hover:text-gray-900 transition-colors"
-        >
+        <Button href="/orders" variant="secondary" size="sm">
           Details
-        </Link>
+        </Button>
       </div>
     </div>
   );

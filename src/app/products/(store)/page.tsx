@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { getProductsServer } from '@/services/serverProductService';
 import ProductGrid from '@/components/product/ProductGrid';
 import StateMessage from '@/components/common/StateMessage';
@@ -45,11 +44,9 @@ export default async function ProductListingPage({
         <h1 className="text-lg md:text-xl lg:text-2xl font-bold m-0 text-text-main">
           Product Listing
         </h1>
-        <Link href={refreshUrl}>
-          <Button variant="outline" size="sm">
-            Refresh
-          </Button>
-        </Link>
+        <Button href={refreshUrl} variant="outline" size="sm">
+          Refresh
+        </Button>
       </div>
 
       {products.length === 0 ? (

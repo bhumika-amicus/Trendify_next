@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { Home, ShoppingBag, AlertCircle } from 'lucide-react';
 import Button from '@/components/common/Button';
 
@@ -18,25 +17,23 @@ export default function NotFound() {
       </p>
 
       <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-sm sm:max-w-none mx-auto">
-        <Link href="/" className="w-full sm:w-auto">
-          <Button
-            variant="secondary"
-            className="flex items-center justify-center gap-2 w-full sm:w-auto"
-          >
-            <Home size={18} />
-            <span>Back to Home</span>
-          </Button>
-        </Link>
+        <Button
+          href="/"
+          variant="secondary"
+          className="flex items-center justify-center gap-2 w-full sm:w-auto"
+        >
+          <Home size={18} />
+          <span>Back to Home</span>
+        </Button>
 
-        <Link href="/products" className="w-full sm:w-auto">
-          <Button
-            variant="primary"
-            className="flex items-center justify-center gap-2 w-full sm:w-auto"
-          >
-            <ShoppingBag size={18} />
-            <span>Browse Products</span>
-          </Button>
-        </Link>
+        <Button
+          href="/products"
+          variant="primary"
+          className="flex items-center justify-center gap-2 w-full sm:w-auto"
+        >
+          <ShoppingBag size={18} />
+          <span>Browse Products</span>
+        </Button>
       </div>
     </div>
   );

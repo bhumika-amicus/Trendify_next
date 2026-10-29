@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect } from 'react';
-import Link from 'next/link';
 import Button from '@/components/common/Button';
 import StateMessage from '@/components/common/StateMessage';
 
@@ -30,9 +29,9 @@ export default function GlobalError({
           <Button variant="outline" onClick={() => reset()}>
             Try Again
           </Button>
-          <Link href="/">
-            <Button variant="primary">Back to Home</Button>
-          </Link>
+          <Button href="/" variant="primary">
+            Back to Home
+          </Button>
         </div>
       </StateMessage>
     </div>

@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
 
@@ -9,7 +8,7 @@ export default function CategoryGrid() {
         
         <Card
           variant="elevated"
-          className="p-6 min-[501px]:p-8 min-[1001px]:p-10"
+          className="h-full p-6 min-[501px]:p-8 min-[1001px]:p-10"
         >
           <div className="flex grow flex-col gap-6">
             <h3 className="m-0 text-2xl min-[501px]:text-3xl font-bold leading-tight">
@@ -21,16 +20,14 @@ export default function CategoryGrid() {
             </p>
           </div>
 
-          <Link href="/products" className="w-full">
-            <Button variant="primary" className="w-full">
-              SHOP NEW
-            </Button>
-          </Link>
+          <Button href="/products" variant="primary" className="w-full">
+            SHOP NEW
+          </Button>
         </Card>
 
         <Card
           variant="flat"
-          className="p-6 min-[501px]:p-8 min-[1001px]:p-10"
+          className="h-full p-6 min-[501px]:p-8 min-[1001px]:p-10"
         >
           <div className="flex grow flex-col gap-6">
             <h3 className="m-0 text-2xl min-[501px]:text-3xl font-bold leading-tight">
@@ -42,16 +39,14 @@ export default function CategoryGrid() {
             </p>
           </div>
 
-          <Link href="/products" className="w-full">
-            <Button variant="primary" className="w-full">
-              SHOP BEST SELLERS
-            </Button>
-          </Link>
+          <Button href="/products" variant="primary" className="w-full">
+            SHOP BEST SELLERS
+          </Button>
         </Card>
 
         <Card
           variant="elevated"
-          className="p-6 min-[501px]:p-8 min-[1001px]:p-10"
+          className="h-full p-6 min-[501px]:p-8 min-[1001px]:p-10"
         >
           <div className="flex grow flex-col gap-6">
             <h3 className="m-0 text-2xl min-[501px]:text-3xl font-bold leading-tight">
@@ -63,16 +58,14 @@ export default function CategoryGrid() {
             </p>
           </div>
 
-          <Link href="/products" className="w-full">
-            <Button variant="primary" className="w-full">
-              BUY GIFT CARDS
-            </Button>
-          </Link>
+          <Button href="/products" variant="primary" className="w-full">
+            BUY GIFT CARDS
+          </Button>
         </Card>
 
         <Card
           variant="flat"
-          className="p-6 min-[501px]:p-8 min-[1001px]:p-10"
+          className="h-full p-6 min-[501px]:p-8 min-[1001px]:p-10"
         >
           <div className="flex grow flex-col gap-6">
             <h3 className="m-0 text-2xl min-[501px]:text-3xl font-bold leading-tight">
@@ -84,11 +77,9 @@ export default function CategoryGrid() {
             </p>
           </div>
 
-          <Link href="/products" className="w-full">
-            <Button variant="primary" className="w-full">
-              SHOP SALE
-            </Button>
-          </Link>
+          <Button href="/products" variant="primary" className="w-full">
+            SHOP SALE
+          </Button>
         </Card>
 
       </div>

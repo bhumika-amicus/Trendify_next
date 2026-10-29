@@ -41,6 +41,7 @@ function ProductCard({ product, onAddToCart }: ProductCardProps) {
       as="article"
       variant="elevated"
       hoverable
+      className="h-full"
     >
       <Link
         href={`/products/${product.id}`}

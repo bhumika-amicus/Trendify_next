@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect } from 'react';
-import Link from 'next/link';
 import Button from '@/components/common/Button';
 import StateMessage from '@/components/common/StateMessage';
 
@@ -30,9 +29,9 @@ export default function StoreError({
           <Button variant="outline" onClick={() => reset()}>
             Try Again
           </Button>
-          <Link href="/products">
-            <Button variant="primary">Reset All Filters</Button>
-          </Link>
+          <Button href="/products" variant="primary">
+            Reset All Filters
+          </Button>
         </div>
       </StateMessage>
     </div>
