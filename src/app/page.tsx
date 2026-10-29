@@ -1,21 +1,23 @@
+import { Suspense } from 'react';
 import Hero from '@/components/layout/Hero';
 import CategoryGrid from '@/components/product/CategoryGrid';
-import FeaturedProductCarousel from '@/components/product/FeaturedProductCarousel';
-import ShopByCategory from '@/components/product/ShopByCategory';
 import ServiceHighlights from '@/components/layout/ServiceHighlights';
-import {
-  getProductsServer,
-  getCategoriesServer,
-} from '@/services/serverProductService';
+import FeaturedProductsSection from '@/components/home/FeaturedProductsSection';
+import FeaturedProductsSkeleton from '@/components/home/FeaturedProductsSkeleton';
+import ShopByCategorySection from '@/components/home/ShopByCategorySection';
+import ShopByCategorySkeleton from '@/components/home/ShopByCategorySkeleton';
 
+// Incremental Static Regeneration (ISR): Background cache revalidation window
 export const revalidate = 60;
 
-export default async function Home() {
-  const [{ products }, categories] = await Promise.all([
-    getProductsServer({ pageSize: 8 }),
-    getCategoriesServer(),
-  ]);
-
+/**
+ * Optimized Home Page.
+ * Uses granular Suspense streaming:
+ * - <Hero />, <CategoryGrid />, and <ServiceHighlights /> render immediately at 0ms.
+ * - <FeaturedProductsSection /> and <ShopByCategorySection /> stream in parallel
+ *   with zero-bundle Server Component skeletons and graceful error handling.
+ */
+export default function Home() {
   return (
     <>
       <Hero />
@@ -23,13 +25,16 @@ export default async function Home() {
       <div>
         <CategoryGrid />
 
-        <FeaturedProductCarousel products={products} />
+        <Suspense fallback={<FeaturedProductsSkeleton />}>
+          <FeaturedProductsSection />
+        </Suspense>
 
-        <ShopByCategory categories={categories} />
+        <Suspense fallback={<ShopByCategorySkeleton />}>
+          <ShopByCategorySection />
+        </Suspense>
 
         <ServiceHighlights />
       </div>
     </>
   );
 }
-

@@ -112,27 +112,24 @@ export async function loginAction(
     // Set secure session cookies
     const cookieStore = await cookies();
 
-    // 1. Session token (httpOnly: short-lived access token, e.g. 2 hours)
     cookieStore.set('session', data.token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
-      maxAge: 60 * 60 * 2, // 2 hours
+      maxAge: 60 * 60 * 2,
     });
 
-    // 2. Refresh token (httpOnly: long-lived token, e.g. 7 days)
     if (data.refreshToken) {
       cookieStore.set('refreshToken', data.refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
         path: '/',
-        maxAge: 60 * 60 * 24 * 7, // 7 days
+        maxAge: 60 * 60 * 24 * 7,
       });
     }
 
-    // 3. User display name (readable by client components like NavBar)
     cookieStore.set('userName', data.name || email.split('@')[0], {
       httpOnly: false,
       secure: process.env.NODE_ENV === 'production',
@@ -141,7 +138,6 @@ export async function loginAction(
       maxAge: 60 * 60 * 24 * 7,
     });
 
-    // 4. User email (readable by server & client components for profile display)
     cookieStore.set('userEmail', email, {
       httpOnly: false,
       secure: process.env.NODE_ENV === 'production',
@@ -188,8 +184,7 @@ export async function loginAction(
 
 /**
  * Server Action for User Registration.
- * Validates inputs, calls Azure /api/auth/register with { name, email, password },
- * and on success redirects to /login?registered=true.
+ * Validates inputs, calls Azure /api/auth/register with { name, email, password } and on success redirects to /login?registered=true.
  */
 export async function registerAction(
   prevState: AuthActionState | null,
@@ -274,7 +269,6 @@ export async function registerAction(
       };
     }
 
-    // Success response from Azure: { customerId: 20, message: "Registration successful." }
     redirectTo = '/login?registered=true';
   } catch (error) {
     console.error('[AUTH] Network error in registerAction:', error);
@@ -283,7 +277,6 @@ export async function registerAction(
     };
   }
 
-  // Next.js redirect outside try/catch
   if (redirectTo) {
     redirect(redirectTo);
   }
