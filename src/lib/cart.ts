@@ -1,9 +1,7 @@
 import { cookies } from 'next/headers';
 import { StoredCartSchema } from '@/schemas/cart';
 import type { CartItem } from '@/types';
-import { calculateCartSummary } from '@/utils/cartCalculations';
 
-export { calculateCartSummary };
 export const CART_COOKIE_NAME = 'trendify_cart';
 const CART_COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 

@@ -1,7 +1,7 @@
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
 
-export default function CategoryGrid() {
+export default function PromoBannerGrid() {
   return (
     <section className="mx-auto max-w-350 px-4 pt-15 pb-5 sm:px-6 md:px-10">
       <div className="mx-auto grid max-w-300 grid-cols-1 gap-4 min-[501px]:grid-cols-2 min-[1001px]:grid-cols-4">

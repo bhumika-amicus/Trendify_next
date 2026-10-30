@@ -16,10 +16,9 @@ import { emitCartUpdate } from '@/utils/cartEvents';
 
 interface ProductCardProps {
   product: Product;
-  onAddToCart?: (product: Product, quantity: number) => void;
 }
 
-function ProductCard({ product, onAddToCart }: ProductCardProps) {
+function ProductCard({ product }: ProductCardProps) {
   const router = useRouter();
   const [isAdding, setIsAdding] = useState(false);
   const [quantity, setQuantity] = useState(1);
@@ -41,26 +40,22 @@ function ProductCard({ product, onAddToCart }: ProductCardProps) {
 
     setIsAdding(true);
     try {
-      if (onAddToCart) {
-        onAddToCart(product, quantity);
-      } else {
-        const res = await addToCartAction({ productId: product.id, quantity });
-        if (!res.success) {
-          if (res.requireAuth) {
-            toast.error('Please log in to add items to your cart.');
-            const currentPath =
-              typeof window !== 'undefined'
-                ? `${window.location.pathname}${window.location.search}`
-                : '/products';
-            router.push(`/login?callbackUrl=${encodeURIComponent(currentPath)}`);
-            return;
-          }
-          toast.error(res.error || 'Failed to add item to cart.');
+      const res = await addToCartAction({ productId: product.id, quantity });
+      if (!res.success) {
+        if (res.requireAuth) {
+          toast.error('Please log in to add items to your cart.');
+          const currentPath =
+            typeof window !== 'undefined'
+              ? `${window.location.pathname}${window.location.search}`
+              : '/products';
+          router.push(`/login?callbackUrl=${encodeURIComponent(currentPath)}`);
           return;
         }
-        emitCartUpdate(res.count);
-        toast.success(`${product.name} added to cart!`);
+        toast.error(res.error || 'Failed to add item to cart.');
+        return;
       }
+      emitCartUpdate(res.count);
+      toast.success(`${product.name} added to cart!`);
       setQuantity(1);
     } finally {
       setIsAdding(false);

@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import Hero from '@/components/layout/Hero';
-import CategoryGrid from '@/components/product/CategoryGrid';
+import PromoBannerGrid from '@/components/product/PromoBannerGrid';
 import ServiceHighlights from '@/components/layout/ServiceHighlights';
 import FeaturedProductsSection from '@/components/home/FeaturedProductsSection';
 import FeaturedProductsSkeleton from '@/components/home/FeaturedProductsSkeleton';
@@ -16,7 +16,7 @@ export default function Home() {
       <Hero />
 
       <div>
-        <CategoryGrid />
+        <PromoBannerGrid />
 
         <Suspense fallback={<FeaturedProductsSkeleton />}>
           <FeaturedProductsSection />

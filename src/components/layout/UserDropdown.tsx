@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { User, ChevronDown, LayoutDashboard, Package, LogOut } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { logoutAction } from '@/actions/auth';
+import { emitAuthUpdate } from '@/utils/authEvents';
 
 interface UserDropdownProps {
   userName: string;
@@ -53,6 +54,7 @@ export default function UserDropdown({ userName, userEmail }: UserDropdownProps)
   const handleLogout = async () => {
     setIsOpen(false);
     toast.success('Logged out successfully');
+    emitAuthUpdate({ isLoggedIn: false });
     await logoutAction();
   };
 

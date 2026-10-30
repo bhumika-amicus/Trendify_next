@@ -6,7 +6,6 @@ import CartView from '@/components/cart/CartView';
 import {
   getCartFromCookies,
   saveCartToCookies,
-  calculateCartSummary,
   CART_COOKIE_NAME,
 } from '@/lib/cart';
 import { getBackendCart } from '@/services/serverCartService';
@@ -53,22 +52,10 @@ export default async function CartPage() {
     }
   }
 
-  const summary = calculateCartSummary(items);
-
-  const itemCountText =
-    items.length > 0
-      ? `(${summary.totalCount} ${summary.totalCount === 1 ? 'Item' : 'Items'})`
-      : '';
-
   return (
     <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto w-full min-h-[60vh]">
       <Breadcrumbs />
-
-      <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-8 mt-2">
-        Shopping Cart {itemCountText}
-      </h1>
-
-      <CartView items={items} summary={summary} />
+      <CartView items={items} />
     </div>
   );
 }

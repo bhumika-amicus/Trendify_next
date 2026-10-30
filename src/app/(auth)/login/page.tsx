@@ -9,6 +9,22 @@ interface LoginPageProps {
   }>;
 }
 
+function getAuthPromptMessage(url: string): string {
+  if (url.startsWith('/cart')) {
+    return 'Please sign in to view and manage your shopping cart.';
+  }
+  if (url.startsWith('/checkout')) {
+    return 'Please sign in to proceed to secure checkout.';
+  }
+  if (url.startsWith('/orders')) {
+    return 'Please sign in to view your order history and tracking.';
+  }
+  if (url.startsWith('/dashboard')) {
+    return 'Please sign in to access your customer dashboard.';
+  }
+  return 'Please sign in first.';
+}
+
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const resolvedParams = await searchParams;
   const callbackUrl = resolvedParams.callbackUrl || '/';
@@ -38,8 +54,8 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       )}
 
       {callbackUrl && callbackUrl !== '/' && (
-        <div className="rounded-md bg-amber-50 p-3 border border-amber-200 text-xs text-amber-800">
-          Please sign in first.
+        <div className="rounded-md bg-amber-50 p-3.5 border border-amber-200 text-xs font-medium text-amber-800">
+          {getAuthPromptMessage(callbackUrl)}
         </div>
       )}
 

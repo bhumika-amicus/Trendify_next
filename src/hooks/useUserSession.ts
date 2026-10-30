@@ -1,6 +1,7 @@
 'use client';
 
 import { useSyncExternalStore } from 'react';
+import { AUTH_UPDATED_EVENT } from '@/utils/authEvents';
 
 export interface UserSessionData {
   isLoggedIn: boolean;
@@ -17,16 +18,27 @@ function getClientCookie(name: string): string {
 const getUserNameSnapshot = () => getClientCookie('userName');
 const getUserEmailSnapshot = () => getClientCookie('userEmail');
 const getServerSnapshot = () => '';
-const noopSubscribe = () => () => {};
+
+function subscribeToAuth(callback: () => void): () => void {
+  if (typeof window === 'undefined') return () => {};
+
+  window.addEventListener(AUTH_UPDATED_EVENT, callback);
+  window.addEventListener('storage', callback);
+
+  return () => {
+    window.removeEventListener(AUTH_UPDATED_EVENT, callback);
+    window.removeEventListener('storage', callback);
+  };
+}
 
 /**
- * Lightweight, non-blocking user session hook.
- * Reads client-accessible auth cookies via useSyncExternalStore.
- * Avoids cascading re-renders and keeps RootLayout 100% static.
+ * Lightweight, reactive user session hook.
+ * Reads client-accessible auth cookies via useSyncExternalStore with real event & storage subscriptions.
+ * Avoids cascading re-renders, enables instant 0ms auth reactivity, and keeps RootLayout 100% static.
  */
 export function useUserSession(initialUser?: UserSessionData): UserSessionData {
-  const userName = useSyncExternalStore(noopSubscribe, getUserNameSnapshot, getServerSnapshot);
-  const userEmail = useSyncExternalStore(noopSubscribe, getUserEmailSnapshot, getServerSnapshot);
+  const userName = useSyncExternalStore(subscribeToAuth, getUserNameSnapshot, getServerSnapshot);
+  const userEmail = useSyncExternalStore(subscribeToAuth, getUserEmailSnapshot, getServerSnapshot);
 
   if (initialUser && initialUser.isLoggedIn) {
     return initialUser;

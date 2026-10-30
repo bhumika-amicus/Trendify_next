@@ -2,9 +2,9 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { DOTNET_API_BASE_URL } from '@/config';
 
-const PROTECTED_ROUTES = ['/checkout', '/orders', '/dashboard'];
+const PROTECTED_ROUTES = ['/cart', '/checkout', '/orders', '/dashboard'];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const startTime = Date.now();
   const { pathname, search } = request.nextUrl;
   const method = request.method;

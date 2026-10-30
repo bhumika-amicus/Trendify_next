@@ -42,7 +42,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             } ${
               error
                 ? 'border-red-400 bg-red-50/20 focus:border-red-500 focus:ring-1 focus:ring-red-500'
-                : 'border-transparent bg-blue-50/50 focus:border-brand-orange focus:ring-1 focus:ring-brand-orange'
+                : 'border-gray-300 bg-white hover:border-gray-400 focus:border-brand-orange focus:ring-1 focus:ring-brand-orange'
             } ${className}`}
             {...props}
           />

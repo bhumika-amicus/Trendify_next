@@ -93,12 +93,6 @@ export default function ProductAddToCart({ product }: ProductAddToCartProps) {
           )}
         </Button>
       </div>
-
-      {isSuccess && (
-        <p className="text-xs text-status-success font-medium animate-fade-in">
-          ✓ {product.name} has been added to your cart.
-        </p>
-      )}
     </div>
   );
 }
