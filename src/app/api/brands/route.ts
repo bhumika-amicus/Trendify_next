@@ -11,7 +11,7 @@ export async function GET() {
       headers: {
         Accept: 'application/json',
       },
-      cache: 'no-store',
+      next: { revalidate: 300, tags: ['brands'] },
     });
 
     if (!response.ok) {

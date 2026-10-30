@@ -28,6 +28,9 @@ function Pagination({
       const params = new URLSearchParams(rawSearchParams?.toString() || '');
       params.set('page', String(pageNumber));
       router.push(`${pathname}?${params.toString()}`);
+      if (typeof window !== 'undefined') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     },
     [onPageChange, pathname, rawSearchParams, router]
   );

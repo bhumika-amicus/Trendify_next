@@ -11,9 +11,6 @@ export const metadata: Metadata = {
   description:
     'Browse our complete catalog of electronics, lifestyle, and fashion products with instant filtering and search.',
 };
-
-export const revalidate = 60;
-
 const PAGE_SIZE = 12;
 
 interface ProductListingPageProps {

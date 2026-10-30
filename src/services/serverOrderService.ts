@@ -32,9 +32,6 @@ export async function getRecentOrdersServer(
 ): Promise<OrderSummaryItemDto[]> {
   if (!token) return [];
 
-  // ⏱️ SIMULATE SLOW DATA (2.5 seconds) to demonstrate Suspense streaming
-  await new Promise((resolve) => setTimeout(resolve, 2500));
-
   try {
     const response = await fetch(
       `${DOTNET_API_BASE_URL}/api/v1/orders/history?pageSize=${limit}&page=1`,

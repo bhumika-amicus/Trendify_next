@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { revalidateTag } from 'next/cache';
+import { revalidateTag, revalidatePath } from 'next/cache';
 import { DOTNET_API_BASE_URL } from '@/config';
 import { toClientSearchResult, toDotnetCreatePayload } from '@/lib/productAdapter';
 import type { ProductSearchResultDto, CreateProductDto } from '@/types';
@@ -247,8 +247,10 @@ export async function POST(request: NextRequest) {
       rating: productPayload.rating,
     };
 
-    // Invalidate product catalog cache across the application
+    // Invalidate product catalog cache and pages across the application
     revalidateTag('products', 'max');
+    revalidatePath('/products');
+    revalidatePath('/');
 
     return NextResponse.json(newProduct, { status: 201 });
   } catch (error) {

@@ -21,9 +21,6 @@ export async function getDefaultAddressServer(
 ): Promise<AddressDto | null> {
   if (!token) return null;
 
-  // ⏱️ SIMULATE SLOW DATA (1.5 seconds) to clearly demonstrate independent Suspense streaming
-  await new Promise((resolve) => setTimeout(resolve, 1500));
-
   try {
     const response = await fetch(`${DOTNET_API_BASE_URL}/api/v1/addresses`, {
       headers: {
