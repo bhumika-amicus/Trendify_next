@@ -2,6 +2,7 @@
 
 import { useOptimistic, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 import type { CartItem, CartSummary } from '@/types';
 import CartItemRow from './CartItemRow';
 import CartOrderSummary from './CartOrderSummary';
@@ -50,28 +51,52 @@ export default function CartView({ items }: CartViewProps) {
 
   const optimisticSummary = calculateCartSummary(optimisticItems);
 
-  const handleQuantityChange = (productId: number, quantity: number) => {
-    startTransition(async () => {
+  const handleQuantityChange = async (productId: number, quantity: number) => {
+    startTransition(() => {
       setOptimisticItems({ type: 'UPDATE_QTY', productId, quantity });
-      const res = await updateCartQuantityAction({ productId, quantity });
-      if (!res.success && res.requireAuth) {
+    });
+
+    const res = await updateCartQuantityAction({ productId, quantity });
+    if (!res.success) {
+      if (res.requireAuth) {
+        toast.error('Please log in to manage your cart.');
         router.push('/login?callbackUrl=/cart');
         return;
       }
-      emitCartUpdate(res.count);
-    });
+      toast.error(res.error || 'Failed to update quantity. Please try again.');
+      return;
+    }
+    emitCartUpdate(res.count);
   };
 
-  const handleRemove = (productId: number) => {
-    startTransition(async () => {
+  const handleRemove = async (productId: number, productName?: string) => {
+    startTransition(() => {
       setOptimisticItems({ type: 'REMOVE', productId });
+    });
+
+    const toastId = toast.loading(
+      productName ? `Removing ${productName}...` : 'Removing item...'
+    );
+
+    try {
       const res = await removeCartItemAction({ productId });
-      if (!res.success && res.requireAuth) {
-        router.push('/login?callbackUrl=/cart');
+      if (!res.success) {
+        if (res.requireAuth) {
+          toast.error('Please log in to manage your cart.', { id: toastId, duration: 3000 });
+          router.push('/login?callbackUrl=/cart');
+          return;
+        }
+        toast.error(res.error || 'Failed to remove item.', { id: toastId, duration: 3000 });
         return;
       }
       emitCartUpdate(res.count);
-    });
+      toast.success(
+        productName ? `${productName} removed from cart` : 'Item removed from cart',
+        { id: toastId, duration: 2500 }
+      );
+    } catch {
+      toast.error('Failed to remove item. Please try again.', { id: toastId, duration: 3000 });
+    }
   };
 
   if (optimisticItems.length === 0) {

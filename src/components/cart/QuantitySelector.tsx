@@ -22,26 +22,54 @@ function QuantitySelector({
 
   const handleInputChange = (value: string) => {
     if (disabled) return;
-    setDraftValue(value);
+
+    if (value === '') {
+      setDraftValue('');
+      return;
+    }
+
+    // Keep only numeric digits and limit to 3 characters max
+    const digitsOnly = value.replace(/[^0-9]/g, '').slice(0, 3);
+    if (digitsOnly === '') {
+      setDraftValue('');
+      return;
+    }
+
+    const parsed = parseInt(digitsOnly, 10);
+    if (isNaN(parsed)) return;
+
+    setDraftValue(digitsOnly);
+    // Keep parent state immediately updated with the typed number (e.g. 100)
+    onQuantityChange(parsed);
   };
 
   const handleInputBlur = () => {
-    if (disabled || draftValue === null) return;
-
-    if (draftValue.trim() === '') {
-      setDraftValue(null);
-      return;
-    }
-
-    const nextQuantity = Math.floor(Number(draftValue));
-    if (isNaN(nextQuantity) || nextQuantity < minQuantity) {
-      setDraftValue(null);
-      return;
-    }
-
+    if (disabled) return;
+    const currentDraft = draftValue;
     setDraftValue(null);
-    if (nextQuantity !== quantity) {
-      onQuantityChange(nextQuantity);
+
+    if (currentDraft === null) return;
+
+    if (currentDraft.trim() === '') {
+      const fallback = Math.max(1, minQuantity);
+      if (fallback !== quantity) {
+        onQuantityChange(fallback);
+      }
+      return;
+    }
+
+    const parsed = parseInt(currentDraft, 10);
+    if (isNaN(parsed) || parsed < minQuantity) {
+      const fallback = Math.max(1, minQuantity);
+      if (fallback !== quantity) {
+        onQuantityChange(fallback);
+      }
+      return;
+    }
+
+    // Preserve the typed value (even if > 99) so handleAddToCart can validate and show "Maximum quantity limit is 99 items." instead of silently mutating on blur
+    if (parsed !== quantity) {
+      onQuantityChange(parsed);
     }
   };
 
@@ -54,13 +82,17 @@ function QuantitySelector({
   const handleQuantityStep = (step: number) => {
     if (disabled) return;
 
-    const parsedDraft = draftValue !== null ? Math.floor(Number(draftValue)) : NaN;
-    const baseQuantity =
-      !isNaN(parsedDraft) && parsedDraft >= minQuantity ? parsedDraft : quantity;
+    let current = quantity;
+    if (draftValue !== null && draftValue.trim() !== '') {
+      const parsedDraft = parseInt(draftValue, 10);
+      if (!isNaN(parsedDraft)) {
+        current = parsedDraft;
+      }
+    }
 
-    const nextQuantity = Math.max(minQuantity, baseQuantity + step);
+    const nextQuantity = Math.min(99, Math.max(minQuantity, current + step));
+    setDraftValue(null);
     if (nextQuantity !== quantity) {
-      setDraftValue(null);
       onQuantityChange(nextQuantity);
     }
   };
@@ -87,6 +119,7 @@ function QuantitySelector({
         <input
           type="number"
           min={minQuantity}
+          max={99}
           step="1"
           value={displayValue}
           onChange={(event) => handleInputChange(event.target.value)}
@@ -99,7 +132,7 @@ function QuantitySelector({
 
         <button
           type="button"
-          disabled={disabled}
+          disabled={quantity >= 99 || disabled}
           onClick={() => handleQuantityStep(1)}
           aria-label="Increase quantity"
           className="flex h-7 w-7 items-center justify-center border-0 bg-brand-orange-50 p-0 text-brand-orange transition-colors duration-200 hover:bg-brand-orange hover:text-white focus-visible:outline-2 focus-visible:outline-brand-orange focus-visible:-outline-offset-2 disabled:cursor-not-allowed disabled:text-neutral-400 cursor-pointer"

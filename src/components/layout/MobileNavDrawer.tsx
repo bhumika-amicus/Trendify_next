@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { logoutAction } from '@/actions/auth';
 import { useCartCount } from '@/hooks/useCartCount';
+import toast from 'react-hot-toast';
 import type { NavUser } from './NavBar';
 
 interface MobileNavDrawerProps {
@@ -48,6 +49,7 @@ export default function MobileNavDrawer({
 
   const handleLogout = async () => {
     onClose();
+    toast.success('Logged out successfully');
     await logoutAction();
   };
 

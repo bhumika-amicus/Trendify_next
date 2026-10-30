@@ -11,7 +11,7 @@ import { formatINR } from '@/utils/formatters';
 interface CartItemRowProps {
   item: CartItem;
   onQuantityChange: (productId: number, quantity: number) => void;
-  onRemove: (productId: number) => void;
+  onRemove: (productId: number, productName?: string) => void;
   isPending?: boolean;
 }
 
@@ -24,7 +24,7 @@ function CartItemRow({
   const handleQuantityChange = (newQuantity: number) => {
     if (newQuantity === item.quantity || isPending) return;
     if (newQuantity <= 0) {
-      onRemove(item.productId);
+      onRemove(item.productId, item.productName);
     } else {
       onQuantityChange(item.productId, newQuantity);
     }
@@ -62,7 +62,7 @@ function CartItemRow({
           <button
             type="button"
             className="text-xs md:text-sm self-start text-red-500 hover:text-red-700 hover:underline inline-flex items-center gap-1.5 transition-colors cursor-pointer bg-transparent border-0 p-0 disabled:opacity-50"
-            onClick={() => onRemove(item.productId)}
+            onClick={() => onRemove(item.productId, item.productName)}
             disabled={isPending}
             aria-label={`Remove ${item.productName} from cart`}
           >

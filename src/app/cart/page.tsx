@@ -3,7 +3,12 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import Breadcrumbs from '@/components/common/Breadcrumbs';
 import CartView from '@/components/cart/CartView';
-import { getCartFromCookies, saveCartToCookies, calculateCartSummary } from '@/lib/cart';
+import {
+  getCartFromCookies,
+  saveCartToCookies,
+  calculateCartSummary,
+  CART_COOKIE_NAME,
+} from '@/lib/cart';
 import { getBackendCart } from '@/services/serverCartService';
 
 export const metadata: Metadata = {
@@ -27,8 +32,9 @@ export default async function CartPage() {
 
   let items = await getCartFromCookies();
 
-  // If local cookie is empty, hydrate from the Azure backend database
-  if (items.length === 0) {
+  // Only hydrate from the Azure backend database if the cart cookie has never been initialized
+  const hasCartCookie = cookieStore.has(CART_COOKIE_NAME);
+  if (!hasCartCookie) {
     try {
       const backendCart = await getBackendCart(sessionToken);
       if (backendCart.length > 0) {

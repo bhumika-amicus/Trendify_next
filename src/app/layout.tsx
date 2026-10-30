@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import NavBar from '@/components/layout/NavBar';
 import Footer from '@/components/layout/Footer';
+import CustomToaster from '@/components/common/CustomToaster';
 
 export const metadata: Metadata = {
   title: 'Trendify | Premium E-Commerce Store',
@@ -26,6 +27,7 @@ export default function RootLayout({
           {children}
         </main>
         <Footer />
+        <CustomToaster />
       </body>
     </html>
   );

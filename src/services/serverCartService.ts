@@ -55,9 +55,12 @@ export async function addBackendCartItem(
     });
 
     if (!res.ok) {
-      const errorText = await res.text().catch(() => '');
-      console.warn(`[CART_API] addBackendCartItem failed (${res.status}):`, errorText);
-      return { success: false, error: 'Failed to add item to backend cart.' };
+      const err = await res.json().catch(() => null);
+      const error =
+        (typeof err?.detail === 'string' && err.detail) ||
+        (typeof err?.message === 'string' && err.message) ||
+        'Failed to add item to cart. Please check stock availability.';
+      return { success: false, error };
     }
 
     return { success: true };
@@ -84,9 +87,12 @@ export async function updateBackendCartItem(
     });
 
     if (!res.ok) {
-      const errorText = await res.text().catch(() => '');
-      console.warn(`[CART_API] updateBackendCartItem failed (${res.status}):`, errorText);
-      return { success: false, error: 'Failed to update item quantity.' };
+      const err = await res.json().catch(() => null);
+      const error =
+        (typeof err?.detail === 'string' && err.detail) ||
+        (typeof err?.message === 'string' && err.message) ||
+        'Failed to update item quantity.';
+      return { success: false, error };
     }
 
     return { success: true };
@@ -110,9 +116,12 @@ export async function removeBackendCartItem(
     });
 
     if (!res.ok) {
-      const errorText = await res.text().catch(() => '');
-      console.warn(`[CART_API] removeBackendCartItem failed (${res.status}):`, errorText);
-      return { success: false, error: 'Failed to remove item.' };
+      const err = await res.json().catch(() => null);
+      const error =
+        (typeof err?.detail === 'string' && err.detail) ||
+        (typeof err?.message === 'string' && err.message) ||
+        'Failed to remove item.';
+      return { success: false, error };
     }
 
     return { success: true };

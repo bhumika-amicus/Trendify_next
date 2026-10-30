@@ -9,6 +9,7 @@ import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
 import RatingStars from '@/components/common/RatingStars';
 import QuantitySelector from '@/components/cart/QuantitySelector';
+import toast from 'react-hot-toast';
 import { formatINR } from '@/utils/formatters';
 import { addToCartAction } from '@/actions/cart';
 import { emitCartUpdate } from '@/utils/cartEvents';
@@ -25,23 +26,40 @@ function ProductCard({ product, onAddToCart }: ProductCardProps) {
 
   const handleAddToCart = async () => {
     if (isAdding) return;
+
+    if (quantity > 99) {
+      toast.error('Maximum quantity limit is 99 items.');
+      setQuantity(99);
+      return;
+    }
+
+    if (quantity < 1) {
+      toast.error('Please select at least 1 item.');
+      setQuantity(1);
+      return;
+    }
+
     setIsAdding(true);
     try {
       if (onAddToCart) {
         onAddToCart(product, quantity);
       } else {
         const res = await addToCartAction({ productId: product.id, quantity });
-        if (!res.success && res.requireAuth) {
-          const currentPath =
-            typeof window !== 'undefined'
-              ? `${window.location.pathname}${window.location.search}`
-              : '/products';
-          router.push(`/login?callbackUrl=${encodeURIComponent(currentPath)}`);
+        if (!res.success) {
+          if (res.requireAuth) {
+            toast.error('Please log in to add items to your cart.');
+            const currentPath =
+              typeof window !== 'undefined'
+                ? `${window.location.pathname}${window.location.search}`
+                : '/products';
+            router.push(`/login?callbackUrl=${encodeURIComponent(currentPath)}`);
+            return;
+          }
+          toast.error(res.error || 'Failed to add item to cart.');
           return;
         }
-        if (res.success) {
-          emitCartUpdate(res.count);
-        }
+        emitCartUpdate(res.count);
+        toast.success(`${product.name} added to cart!`);
       }
       setQuantity(1);
     } finally {
