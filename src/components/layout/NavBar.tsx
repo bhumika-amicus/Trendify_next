@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { ShoppingCart, LogIn, Menu, X, Store, User } from 'lucide-react';
 import ProductSearch from '@/components/product/ProductSearch';
 import { useUserSession, type UserSessionData } from '@/hooks/useUserSession';
+import { useCartCount } from '@/hooks/useCartCount';
 import UserDropdown from './UserDropdown';
 import MobileNavDrawer from './MobileNavDrawer';
 
@@ -32,9 +33,9 @@ export default function NavBar({ initialUser }: NavBarProps = {}) {
   }
 
   const user = useUserSession(initialUser);
+  const cartCount = useCartCount();
 
   const isLinkActive = (path: string) => pathname.startsWith(path);
-  const cartCount = 0;
 
   return (
     <header className="relative w-full border-b border-border-subtle bg-white">

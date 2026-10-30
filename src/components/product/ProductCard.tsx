@@ -3,12 +3,15 @@
 import { useState, memo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import type { Product } from '@/types';
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
 import RatingStars from '@/components/common/RatingStars';
 import QuantitySelector from '@/components/cart/QuantitySelector';
 import { formatINR } from '@/utils/formatters';
+import { addToCartAction } from '@/actions/cart';
+import { emitCartUpdate } from '@/utils/cartEvents';
 
 interface ProductCardProps {
   product: Product;
@@ -16,6 +19,7 @@ interface ProductCardProps {
 }
 
 function ProductCard({ product, onAddToCart }: ProductCardProps) {
+  const router = useRouter();
   const [isAdding, setIsAdding] = useState(false);
   const [quantity, setQuantity] = useState(1);
 
@@ -26,7 +30,18 @@ function ProductCard({ product, onAddToCart }: ProductCardProps) {
       if (onAddToCart) {
         onAddToCart(product, quantity);
       } else {
-        await new Promise((resolve) => setTimeout(resolve, 300));
+        const res = await addToCartAction({ productId: product.id, quantity });
+        if (!res.success && res.requireAuth) {
+          const currentPath =
+            typeof window !== 'undefined'
+              ? `${window.location.pathname}${window.location.search}`
+              : '/products';
+          router.push(`/login?callbackUrl=${encodeURIComponent(currentPath)}`);
+          return;
+        }
+        if (res.success) {
+          emitCartUpdate(res.count);
+        }
       }
       setQuantity(1);
     } finally {

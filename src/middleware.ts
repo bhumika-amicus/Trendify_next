@@ -2,9 +2,6 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { DOTNET_API_BASE_URL } from '@/config';
 
-/**
- * Protected routes requiring an active session cookie.
- */
 const PROTECTED_ROUTES = ['/checkout', '/orders', '/dashboard'];
 
 export async function middleware(request: NextRequest) {
@@ -12,16 +9,15 @@ export async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
   const method = request.method;
 
-  // 1. Read existing cookies
+  //Read existing cookies
   let sessionToken = request.cookies.get('session')?.value;
   const refreshToken = request.cookies.get('refreshToken')?.value;
 
   let newSessionToken: string | null = null;
   let newRefreshToken: string | null = null;
 
-  // 2. Transparent Token Refresh:
-  // If the short-lived access token (2h) has expired, but the 7-day refreshToken exists,
-  // silently exchange it for a fresh access token before proceeding.
+
+  // If the short-lived access token has expired, but refreshToken exists, silently exchange it for a fresh access token.
   if (!sessionToken && refreshToken) {
     try {
       const refreshResponse = await fetch(`${DOTNET_API_BASE_URL}/api/auth/refresh`, {
@@ -74,7 +70,7 @@ export async function middleware(request: NextRequest) {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
-      maxAge: 60 * 60 * 2, 
+      maxAge: 60 * 60 * 2,
     });
 
     if (newRefreshToken) {
@@ -83,7 +79,7 @@ export async function middleware(request: NextRequest) {
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
         path: '/',
-        maxAge: 60 * 60 * 24 * 7, 
+        maxAge: 60 * 60 * 24 * 7,
       });
     }
   }
@@ -98,15 +94,7 @@ export async function middleware(request: NextRequest) {
   return response;
 }
 
-/**
- * Matcher configuration:
- * Run middleware on application routes, while completely excluding:
- * - API routes (/api/*)
- * - Next.js internal static assets (_next/static/*)
- * - Next.js optimized images (_next/image/*)
- * - Favicon, sitemaps, robots.txt
- * - Static file extensions (.svg, .png, .jpg, .jpeg, .gif, .webp, .ico)
- */
+// Matcher configuration
 export const config = {
   matcher: [
     '/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',

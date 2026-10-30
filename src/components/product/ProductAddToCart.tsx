@@ -1,16 +1,20 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Check, ShoppingCart } from 'lucide-react';
 import type { Product } from '@/types';
 import Button from '@/components/common/Button';
 import QuantitySelector from '@/components/cart/QuantitySelector';
+import { addToCartAction } from '@/actions/cart';
+import { emitCartUpdate } from '@/utils/cartEvents';
 
 interface ProductAddToCartProps {
   product: Pick<Product, 'id' | 'name' | 'price'>;
 }
 
 export default function ProductAddToCart({ product }: ProductAddToCartProps) {
+  const router = useRouter();
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -20,11 +24,21 @@ export default function ProductAddToCart({ product }: ProductAddToCartProps) {
     setIsAdding(true);
 
     try {
-      // Future-proof integration: works immediately and seamlessly hooks into cart store/context
-      await new Promise((resolve) => setTimeout(resolve, 400));
-      setIsSuccess(true);
-      setQuantity(1);
-      setTimeout(() => setIsSuccess(false), 2000);
+      const res = await addToCartAction({ productId: product.id, quantity });
+      if (!res.success && res.requireAuth) {
+        const currentPath =
+          typeof window !== 'undefined'
+            ? `${window.location.pathname}${window.location.search}`
+            : '/products';
+        router.push(`/login?callbackUrl=${encodeURIComponent(currentPath)}`);
+        return;
+      }
+      if (res.success) {
+        emitCartUpdate(res.count);
+        setIsSuccess(true);
+        setQuantity(1);
+        setTimeout(() => setIsSuccess(false), 2000);
+      }
     } finally {
       setIsAdding(false);
     }
