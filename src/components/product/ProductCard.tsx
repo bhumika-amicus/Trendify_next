@@ -73,6 +73,7 @@ function ProductCard({ product }: ProductCardProps) {
     >
       <Link
         href={`/products/${product.id}`}
+        prefetch={false}
         className="relative flex h-40 w-full items-center justify-center border-b border-border-light bg-white max-[650px]:h-48 group overflow-hidden"
       >
         <Image
