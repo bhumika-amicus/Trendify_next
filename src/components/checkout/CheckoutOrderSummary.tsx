@@ -8,30 +8,31 @@ import Button from '@/components/common/Button';
 import { formatINR } from '@/utils/formatters';
 import type { CheckoutStepNumber } from './CheckoutSteps';
 
-interface CheckoutOrderSummaryProps {
-  items: CartItem[];
+export interface CheckoutSummaryData {
   subtotal: number;
   shippingFee: number;
   tax: number;
   total: number;
+  totalCount?: number;
+}
+
+interface CheckoutOrderSummaryProps {
+  items: CartItem[];
+  summary: CheckoutSummaryData;
   currentStep: CheckoutStepNumber;
   isSubmitting?: boolean;
-  onContinueToPayment?: () => void;
-  onContinueToReview?: () => void;
+  onContinue?: () => void;
 }
 
 export default function CheckoutOrderSummary({
   items,
-  subtotal,
-  shippingFee,
-  tax,
-  total,
+  summary,
   currentStep,
   isSubmitting = false,
-  onContinueToPayment,
-  onContinueToReview,
+  onContinue,
 }: CheckoutOrderSummaryProps) {
-  const totalItemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+  const totalItemCount =
+    summary.totalCount ?? items.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
     <aside className="w-full lg:w-80 xl:w-96 min-w-0 lg:sticky lg:top-6 self-start">
@@ -80,17 +81,17 @@ export default function CheckoutOrderSummary({
           <div className="flex flex-col gap-3 mb-5 text-sm text-gray-600">
             <div className="flex justify-between">
               <span>Subtotal ({totalItemCount} {totalItemCount === 1 ? 'item' : 'items'}):</span>
-              <span className="font-medium text-gray-900">{formatINR(subtotal)}</span>
+              <span className="font-medium text-gray-900">{formatINR(summary.subtotal)}</span>
             </div>
             <div className="flex justify-between">
               <span>Estimated Shipping:</span>
               <span className="font-medium text-gray-900">
-                {shippingFee > 0 ? formatINR(shippingFee) : 'Free'}
+                {summary.shippingFee > 0 ? formatINR(summary.shippingFee) : 'Free'}
               </span>
             </div>
             <div className="flex justify-between">
               <span>Estimated Tax (18%):</span>
-              <span className="font-medium text-gray-900">{formatINR(tax)}</span>
+              <span className="font-medium text-gray-900">{formatINR(summary.tax)}</span>
             </div>
           </div>
 
@@ -99,7 +100,7 @@ export default function CheckoutOrderSummary({
           {/* Grand Total */}
           <div className="flex justify-between items-baseline mb-6">
             <span className="font-bold text-lg text-gray-800">Total:</span>
-            <span className="font-bold text-2xl text-brand-orange">{formatINR(total)}</span>
+            <span className="font-bold text-2xl text-brand-orange">{formatINR(summary.total)}</span>
           </div>
 
           {/* Contextual Action Button based on currentStep */}
@@ -108,7 +109,7 @@ export default function CheckoutOrderSummary({
               variant="primary"
               type="button"
               className="w-full uppercase tracking-wider py-3 flex items-center justify-center gap-2 text-sm shadow-sm"
-              onClick={onContinueToPayment}
+              onClick={onContinue}
             >
               <span>CONTINUE TO PAYMENT</span>
               <ArrowRight size={16} />
@@ -120,7 +121,7 @@ export default function CheckoutOrderSummary({
               variant="primary"
               type="button"
               className="w-full uppercase tracking-wider py-3 flex items-center justify-center gap-2 text-sm shadow-sm"
-              onClick={onContinueToReview}
+              onClick={onContinue}
             >
               <span>CONTINUE TO REVIEW</span>
               <ArrowRight size={16} />

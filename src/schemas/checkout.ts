@@ -116,10 +116,7 @@ export const ShippingAddressSchema = z.object({
 
 export type ShippingAddressFormData = z.infer<typeof ShippingAddressSchema>;
 
-/**
- * Complete Order Placement Schema for Step 3 and the Server Action.
- * Combines shipping address, selected payment method, and optional customer note.
- */
+
 export const PlaceOrderSchema = ShippingAddressSchema.extend({
   paymentMethod: PaymentMethodEnum.default('cod'),
 });

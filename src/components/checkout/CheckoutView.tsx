@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import type { CartItem, AddressDto } from '@/types';
 import type { UserSession } from '@/lib/session';
 import { placeOrderAction } from '@/actions/order';
 import { emitCartUpdate } from '@/utils/cartEvents';
+import { calculateCheckoutSummary } from '@/utils/cartCalculations';
 import CheckoutSteps, { type CheckoutStepNumber } from './CheckoutSteps';
 import CheckoutOrderSummary from './CheckoutOrderSummary';
 import ShippingStep from './ShippingStep';
@@ -18,12 +19,7 @@ import {
   type ShippingAddressFormData,
   type PaymentMethod,
 } from '@/schemas/checkout';
-import {
-  getCountries,
-  getStates,
-  getCities,
-  type StateOption,
-} from '@/services/locationService';
+import type { StateOption } from '@/services/locationService';
 
 interface CheckoutViewProps {
   initialItems: CartItem[];
@@ -45,8 +41,8 @@ export default function CheckoutView({
   const [currentStep, setCurrentStep] = useState<CheckoutStepNumber>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Saved Addresses State
-  const [savedAddresses] = useState<AddressDto[]>(initialAddresses);
+  // Saved Addresses
+  const savedAddresses = initialAddresses;
   const defaultAddr =
     initialAddresses.find((a) => a.isDefault) || initialAddresses[0] || null;
 
@@ -75,117 +71,15 @@ export default function CheckoutView({
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cod');
   const [errors, setErrors] = useState<Partial<Record<keyof ShippingAddressFormData, string>>>({});
 
-  // Location State
-  const [countries, setCountries] = useState<string[]>(initialCountries);
-  const [isLoadingCountries, setIsLoadingCountries] = useState<boolean>(
-    initialCountries.length === 0
-  );
-  const [states, setStates] = useState<StateOption[]>(initialStates);
-  const [cities, setCities] = useState<string[]>(initialCities);
-  const [isLoadingStates, setIsLoadingStates] = useState(false);
-  const [isLoadingCities, setIsLoadingCities] = useState(false);
-
-  // AbortControllers to prevent out-of-order race conditions
-  const stateAbortRef = useRef<AbortController | null>(null);
-  const cityAbortRef = useRef<AbortController | null>(null);
-
-  // Client-side fallback if server SSR had a network failure loading countries
-  useEffect(() => {
-    let isSubscribed = true;
-    if (countries.length === 0) {
-      getCountries()
-        .then((data) => {
-          if (isSubscribed && data && data.length > 0) {
-            setCountries(data);
-          }
-        })
-        .finally(() => {
-          if (isSubscribed) {
-            setIsLoadingCountries(false);
-          }
-        });
-    }
-    return () => {
-      isSubscribed = false;
-    };
-  }, [countries.length]);
-
-  // Race-condition-safe state loading
-  const loadStatesForCountry = useCallback(async (countryName: string) => {
-    if (stateAbortRef.current) {
-      stateAbortRef.current.abort();
-    }
-    if (cityAbortRef.current) {
-      cityAbortRef.current.abort();
-    }
-
-    setStates([]);
-    setCities([]);
-
-    if (!countryName) {
-      setIsLoadingStates(false);
-      return;
-    }
-
-    const controller = new AbortController();
-    stateAbortRef.current = controller;
-    setIsLoadingStates(true);
-
-    try {
-      const data = await getStates(countryName, controller.signal);
-      if (!controller.signal.aborted) {
-        setStates(data);
-      }
-    } finally {
-      if (!controller.signal.aborted) {
-        setIsLoadingStates(false);
-      }
-    }
-  }, []);
-
-  // Race-condition-safe city loading
-  const loadCitiesForState = useCallback(async (countryName: string, stateName: string) => {
-    if (cityAbortRef.current) {
-      cityAbortRef.current.abort();
-    }
-
-    setCities([]);
-
-    if (!countryName || !stateName) {
-      setIsLoadingCities(false);
-      return;
-    }
-
-    const controller = new AbortController();
-    cityAbortRef.current = controller;
-    setIsLoadingCities(true);
-
-    try {
-      const data = await getCities(countryName, stateName, controller.signal);
-      if (!controller.signal.aborted) {
-        setCities(data);
-      }
-    } finally {
-      if (!controller.signal.aborted) {
-        setIsLoadingCities(false);
-      }
-    }
-  }, []);
-
   // Dynamic Live Order Calculations
-  const { subtotal, shippingFee, tax, total } = useMemo(() => {
-    const sub = initialItems.reduce((sum, item) => sum + item.itemSubtotal, 0);
-    const fee = SHIPPING_RATES[formData.shippingMethod] ?? 100;
-    const computedTax = Math.round(sub * 0.18);
-    const grandTotal = sub + fee + computedTax;
-
-    return {
-      subtotal: sub,
-      shippingFee: fee,
-      tax: computedTax,
-      total: grandTotal,
-    };
-  }, [initialItems, formData.shippingMethod]);
+  const summary = useMemo(
+    () =>
+      calculateCheckoutSummary(
+        initialItems,
+        SHIPPING_RATES[formData.shippingMethod] ?? 100
+      ),
+    [initialItems, formData.shippingMethod]
+  );
 
   const handleFieldChange = (
     field: keyof ShippingAddressFormData,
@@ -202,13 +96,6 @@ export default function CheckoutView({
       return next;
     });
 
-    if (field === 'country') {
-      void loadStatesForCountry(value);
-    } else if (field === 'state') {
-      void loadCitiesForState(formData.country, value);
-    }
-
-    // Real-time error clearing
     if (errors[field]) {
       setErrors((prev) => {
         const next = { ...prev };
@@ -218,24 +105,19 @@ export default function CheckoutView({
     }
   };
 
-  const handleSelectAddress = useCallback(
-    (addr: AddressDto) => {
-      setSelectedAddressId(addr.addressId);
-      setFormData((prev) => ({
-        ...prev,
-        address: addr.addressLine1,
-        apartment: addr.addressLine2 || '',
-        city: addr.city,
-        state: addr.state,
-        postalCode: addr.postalCode,
-        country: addr.country,
-      }));
-      setIsAddingNewAddress(false);
-      void loadStatesForCountry(addr.country);
-      void loadCitiesForState(addr.country, addr.state);
-    },
-    [loadStatesForCountry, loadCitiesForState]
-  );
+  const handleSelectAddress = useCallback((addr: AddressDto) => {
+    setSelectedAddressId(addr.addressId);
+    setFormData((prev) => ({
+      ...prev,
+      address: addr.addressLine1,
+      apartment: addr.addressLine2 || '',
+      city: addr.city,
+      state: addr.state,
+      postalCode: addr.postalCode,
+      country: addr.country,
+    }));
+    setIsAddingNewAddress(false);
+  }, []);
 
   const handleEditAddress = (addr: AddressDto) => {
     handleSelectAddress(addr);
@@ -257,8 +139,6 @@ export default function CheckoutView({
         postalCode: '',
         country: '',
       }));
-      setStates([]);
-      setCities([]);
     } else if (defaultAddr) {
       handleSelectAddress(defaultAddr);
     }
@@ -325,7 +205,6 @@ export default function CheckoutView({
     e.preventDefault();
     if (isSubmitting) return;
 
-    // Validate that shipping details are complete
     if (!validateShippingForm()) {
       setCurrentStep(1);
       toast.error('Please complete all required shipping fields.');
@@ -349,6 +228,12 @@ export default function CheckoutView({
           return;
         }
         toast.error(res.error || 'Failed to place order.', { id: toastId });
+
+        const errorLower = res.error?.toLowerCase() || '';
+        if (errorLower.includes('address') || errorLower.includes('stock')) {
+          setCurrentStep(1);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
         return;
       }
 
@@ -399,12 +284,9 @@ export default function CheckoutView({
                 isAddingNewAddress={isAddingNewAddress}
                 formMode={formMode}
                 onToggleAddNewAddress={handleToggleAddNewAddress}
-                countries={countries}
-                states={states}
-                cities={cities}
-                isLoadingCountries={isLoadingCountries}
-                isLoadingStates={isLoadingStates}
-                isLoadingCities={isLoadingCities}
+                initialCountries={initialCountries}
+                initialStates={initialStates}
+                initialCities={initialCities}
               />
             )}
 
@@ -419,8 +301,7 @@ export default function CheckoutView({
               <ReviewStep
                 formData={formData}
                 paymentMethod={paymentMethod}
-                onEditShipping={() => setCurrentStep(1)}
-                onEditPayment={() => setCurrentStep(2)}
+                onEditStep={setCurrentStep}
               />
             )}
           </div>
@@ -428,17 +309,20 @@ export default function CheckoutView({
           {/* 3. Dynamic Sticky Order Summary */}
           <CheckoutOrderSummary
             items={initialItems}
-            subtotal={subtotal}
-            shippingFee={shippingFee}
-            tax={tax}
-            total={total}
+            summary={summary}
             currentStep={currentStep}
             isSubmitting={isSubmitting}
-            onContinueToPayment={handleContinueToPayment}
-            onContinueToReview={handleContinueToReview}
+            onContinue={
+              currentStep === 1
+                ? handleContinueToPayment
+                : currentStep === 2
+                  ? handleContinueToReview
+                  : undefined
+            }
           />
         </div>
       </form>
     </div>
   );
 }
+

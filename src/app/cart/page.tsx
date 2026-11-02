@@ -25,20 +25,15 @@ export default async function CartPage() {
     redirect('/login?callbackUrl=/cart');
   }
 
-  let items: CartItem[] = [];
-  try {
-    const backendCart = await getBackendCart(sessionToken);
-    items = backendCart.map((item) => ({
-      productId: item.productId,
-      productName: item.productName,
-      price: item.price,
-      imageUrl: '',
-      quantity: item.quantity,
-      itemSubtotal: item.price * item.quantity,
-    }));
-  } catch (err) {
-    console.error('[CART_PAGE] Failed to fetch authoritative cart from backend:', err);
-  }
+  const backendCart = await getBackendCart(sessionToken);
+  const items: CartItem[] = backendCart.map((item) => ({
+    productId: item.productId,
+    productName: item.productName,
+    price: item.price,
+    imageUrl: '',
+    quantity: item.quantity,
+    itemSubtotal: item.price * item.quantity,
+  }));
 
   return (
     <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto w-full min-h-[60vh]">

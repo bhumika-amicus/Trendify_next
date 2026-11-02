@@ -11,8 +11,7 @@ import {
 interface ReviewStepProps {
   formData: ShippingAddressFormData;
   paymentMethod: PaymentMethod;
-  onEditShipping: () => void;
-  onEditPayment: () => void;
+  onEditStep: (step: 1 | 2) => void;
 }
 
 const PAYMENT_LABELS: Record<PaymentMethod, string> = {
@@ -24,8 +23,7 @@ const PAYMENT_LABELS: Record<PaymentMethod, string> = {
 export default function ReviewStep({
   formData,
   paymentMethod,
-  onEditShipping,
-  onEditPayment,
+  onEditStep,
 }: ReviewStepProps) {
   const selectedSpeed = SHIPPING_OPTIONS.find(
     (opt) => opt.id === formData.shippingMethod
@@ -42,7 +40,7 @@ export default function ReviewStep({
           </div>
           <button
             type="button"
-            onClick={onEditShipping}
+            onClick={() => onEditStep(1)}
             className="flex items-center gap-1 text-xs font-semibold text-brand-orange hover:text-white transition-colors uppercase cursor-pointer"
           >
             <Pencil size={12} />
@@ -81,7 +79,7 @@ export default function ReviewStep({
           </div>
           <button
             type="button"
-            onClick={onEditShipping}
+            onClick={() => onEditStep(1)}
             className="flex items-center gap-1 text-xs font-semibold text-brand-orange hover:text-white transition-colors uppercase cursor-pointer"
           >
             <Pencil size={12} />
@@ -108,7 +106,7 @@ export default function ReviewStep({
           </div>
           <button
             type="button"
-            onClick={onEditPayment}
+            onClick={() => onEditStep(2)}
             className="flex items-center gap-1 text-xs font-semibold text-brand-orange hover:text-white transition-colors uppercase cursor-pointer"
           >
             <Pencil size={12} />

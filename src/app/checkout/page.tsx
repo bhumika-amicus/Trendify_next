@@ -6,7 +6,7 @@ import CheckoutView from '@/components/checkout/CheckoutView';
 import { getCurrentUser } from '@/lib/session';
 import { getAddressesServer } from '@/services/serverAddressService';
 import { getBackendCart } from '@/services/serverCartService';
-import { getCountries, getStates, getCities } from '@/services/locationService';
+import { getCountries } from '@/services/locationService';
 import type { CartItem } from '@/types';
 
 export const metadata: Metadata = {
@@ -45,17 +45,6 @@ export default async function CheckoutPage() {
     redirect('/products?emptyCart=true');
   }
 
-  // If user has a saved address, pre-hydrate its specific states and cities
-  const defaultAddr =
-    savedAddresses.find((a) => a.isDefault) || savedAddresses[0] || null;
-
-  const [initialStates, initialCities] = await Promise.all([
-    defaultAddr?.country ? getStates(defaultAddr.country) : Promise.resolve([]),
-    defaultAddr?.country && defaultAddr?.state
-      ? getCities(defaultAddr.country, defaultAddr.state)
-      : Promise.resolve([]),
-  ]);
-
   return (
     <div className="mx-auto min-h-[60vh] w-full max-w-7xl px-4 py-6 sm:px-6 md:px-8">
       <Breadcrumbs />
@@ -64,8 +53,6 @@ export default async function CheckoutPage() {
         initialUser={user}
         initialAddresses={savedAddresses}
         initialCountries={initialCountries}
-        initialStates={initialStates}
-        initialCities={initialCities}
       />
     </div>
   );

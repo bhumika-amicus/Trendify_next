@@ -27,17 +27,7 @@ export interface PlaceOrderResult {
   error?: string;
 }
 
-/**
- * Server Action to place an order end-to-end.
- * Executes atomically on the server:
- * 1. Validates session authentication.
- * 2. Validates inputs with Zod (whitespace rejection, email regex, 10-digit phone, etc.).
- * 3. Creates address on Azure backend if a new address was entered.
- * 4. Calls Azure /api/v1/checkout to create the order with status "Processing".
- * 5. Calls Azure /api/payments/mock to process the payment.
- * 6. Atomically clears cart cookies and remote Azure cart database.
- * 7. Purges Next.js cache for /cart and /orders.
- */
+
 export async function placeOrderAction(
   rawInput: unknown
 ): Promise<PlaceOrderResult> {

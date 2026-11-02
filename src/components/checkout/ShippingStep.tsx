@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   Truck,
   Zap,
@@ -8,10 +8,10 @@ import {
   Plus,
   MapPin,
   X,
-  ChevronDown,
   Pencil,
 } from 'lucide-react';
 import Input from '@/components/common/Input';
+import Select from '@/components/common/Select';
 import Button from '@/components/common/Button';
 import AddressCard from './AddressCard';
 import {
@@ -21,6 +21,7 @@ import {
 } from '@/schemas/checkout';
 import type { AddressDto } from '@/types';
 import type { StateOption } from '@/services/locationService';
+import { useLocationCascade } from '@/hooks/useLocationCascade';
 import { formatINR } from '@/utils/formatters';
 
 interface ShippingStepProps {
@@ -36,13 +37,9 @@ interface ShippingStepProps {
   formMode?: 'create' | 'edit';
   onToggleAddNewAddress: (addingNew: boolean) => void;
   onDeleteAddress?: (addressId: number) => void;
-  // Cascading location data
-  countries: string[];
-  states: StateOption[];
-  cities: string[];
-  isLoadingCountries?: boolean;
-  isLoadingStates: boolean;
-  isLoadingCities: boolean;
+  initialCountries?: string[];
+  initialStates?: StateOption[];
+  initialCities?: string[];
 }
 
 const SPEED_ICONS = {
@@ -63,18 +60,65 @@ export default function ShippingStep({
   formMode = 'create',
   onToggleAddNewAddress,
   onDeleteAddress,
-  countries,
-  states,
-  cities,
-  isLoadingCountries = false,
-  isLoadingStates,
-  isLoadingCities,
+  initialCountries = [],
+  initialStates = [],
+  initialCities = [],
 }: ShippingStepProps) {
+  const {
+    countries,
+    states,
+    cities,
+    loading,
+    loadStatesForCountry,
+    loadCitiesForState,
+    resetLocations,
+  } = useLocationCascade({
+    initialCountries,
+    initialStates,
+    initialCities,
+  });
+
+  // Pre-load states and cities if country is pre-populated (e.g. from saved address)
+  useEffect(() => {
+    if (formData.country && states.length === 0) {
+      void loadStatesForCountry(formData.country);
+    }
+    if (formData.country && formData.state && cities.length === 0) {
+      void loadCitiesForState(formData.country, formData.state);
+    }
+  }, [
+    formData.country,
+    formData.state,
+    states.length,
+    cities.length,
+    loadStatesForCountry,
+    loadCitiesForState,
+  ]);
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
     onChange(name as keyof ShippingAddressFormData, value);
+
+    if (name === 'country') {
+      void loadStatesForCountry(value);
+    } else if (name === 'state') {
+      void loadCitiesForState(formData.country, value);
+    }
+  };
+
+  const handleSelect = (addr: AddressDto) => {
+    onSelectAddress(addr);
+    void loadStatesForCountry(addr.country);
+    void loadCitiesForState(addr.country, addr.state);
+  };
+
+  const handleToggleAddNew = (addingNew: boolean) => {
+    onToggleAddNewAddress(addingNew);
+    if (addingNew) {
+      resetLocations();
+    }
   };
 
   const hasSavedAddresses = savedAddresses.length > 0;
@@ -150,7 +194,7 @@ export default function ShippingStep({
                 variant="outline"
                 size="sm"
                 type="button"
-                onClick={() => onToggleAddNewAddress(true)}
+                onClick={() => handleToggleAddNew(true)}
                 className="flex items-center gap-1.5 text-xs"
               >
                 <Plus size={14} />
@@ -161,7 +205,7 @@ export default function ShippingStep({
                 variant="secondary"
                 size="sm"
                 type="button"
-                onClick={() => onToggleAddNewAddress(false)}
+                onClick={() => handleToggleAddNew(false)}
                 className="flex items-center gap-1.5 text-xs text-gray-600"
               >
                 <X size={14} />
@@ -177,13 +221,13 @@ export default function ShippingStep({
                   key={addr.addressId}
                   address={addr}
                   isSelected={selectedAddressId === addr.addressId}
-                  onSelect={onSelectAddress}
+                  onSelect={handleSelect}
                   onEdit={() => {
                     if (onEditAddress) {
                       onEditAddress(addr);
                     } else {
-                      onSelectAddress(addr);
-                      onToggleAddNewAddress(true);
+                      handleSelect(addr);
+                      handleToggleAddNew(true);
                     }
                   }}
                   onDelete={onDeleteAddress}
@@ -258,131 +302,53 @@ export default function ShippingStep({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Country Dropdown */}
-              <div>
-                <label
-                  htmlFor="country"
-                  className="block text-sm font-medium text-gray-700 mb-1.5"
-                >
-                  Country <span className="text-brand-orange">*</span>
-                </label>
-                <div className="relative">
-                  <select
-                    id="country"
-                    name="country"
-                    value={formData.country}
-                    onChange={handleInputChange}
-                    disabled={isLoadingCountries}
-                    className={`block w-full appearance-none rounded-md border bg-white py-2.5 pl-3 pr-10 text-sm text-gray-900 shadow-sm focus:border-brand-orange focus:outline-none focus:ring-1 focus:ring-brand-orange ${
-                      errors.country ? 'border-red-400 bg-red-50/20' : 'border-gray-300'
-                    }`}
-                  >
-                    <option value="">
-                      {isLoadingCountries ? 'Loading countries...' : 'Select Country'}
-                    </option>
-                    {countries.map((c) => (
-                      <option key={c} value={c}>
-                        {c}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400">
-                    <ChevronDown size={16} />
-                  </div>
-                </div>
-                {errors.country && (
-                  <p className="mt-1 text-xs text-red-600">{errors.country}</p>
-                )}
-              </div>
+              <Select
+                id="country"
+                name="country"
+                label="Country"
+                required
+                value={formData.country}
+                onChange={handleInputChange}
+                options={countries}
+                isLoading={loading.countries}
+                loadingText="Loading countries..."
+                placeholder="Select Country"
+                error={errors.country}
+              />
 
               {/* State Dropdown */}
-              <div>
-                <label
-                  htmlFor="state"
-                  className="block text-sm font-medium text-gray-700 mb-1.5"
-                >
-                  State / Region <span className="text-brand-orange">*</span>
-                </label>
-                <div className="relative">
-                  <select
-                    id="state"
-                    name="state"
-                    value={formData.state}
-                    onChange={handleInputChange}
-                    disabled={isLoadingStates || !formData.country}
-                    className={`block w-full appearance-none rounded-md border py-2.5 pl-3 pr-10 text-sm text-gray-900 shadow-sm transition-colors focus:outline-none focus:ring-1 focus:ring-brand-orange focus:border-brand-orange ${
-                      isLoadingStates || !formData.country
-                        ? 'bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200'
-                        : 'bg-white'
-                    } ${errors.state ? 'border-red-400 bg-red-50/20' : 'border-gray-300'}`}
-                  >
-                    <option value="">
-                      {isLoadingStates
-                        ? 'Loading states...'
-                        : !formData.country
-                          ? 'Select a country first'
-                          : states.length > 0
-                            ? 'Select State'
-                            : 'No states found'}
-                    </option>
-                    {states.map((s) => (
-                      <option key={`${s.name}-${s.state_code}`} value={s.name}>
-                        {s.name}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400">
-                    <ChevronDown size={16} />
-                  </div>
-                </div>
-                {errors.state && (
-                  <p className="mt-1 text-xs text-red-600">{errors.state}</p>
-                )}
-              </div>
+              <Select
+                id="state"
+                name="state"
+                label="State / Region"
+                required
+                value={formData.state}
+                onChange={handleInputChange}
+                options={states.map((s) => ({ value: s.name, label: s.name }))}
+                isLoading={loading.states}
+                loadingText="Loading states..."
+                disabled={!formData.country}
+                disabledText="Select a country first"
+                placeholder={states.length > 0 ? 'Select State' : 'No states found'}
+                error={errors.state}
+              />
 
               {/* City Dropdown */}
-              <div>
-                <label
-                  htmlFor="city"
-                  className="block text-sm font-medium text-gray-700 mb-1.5"
-                >
-                  City <span className="text-brand-orange">*</span>
-                </label>
-                <div className="relative">
-                  <select
-                    id="city"
-                    name="city"
-                    value={formData.city}
-                    onChange={handleInputChange}
-                    disabled={isLoadingCities || !formData.state}
-                    className={`block w-full appearance-none rounded-md border py-2.5 pl-3 pr-10 text-sm text-gray-900 shadow-sm transition-colors focus:outline-none focus:ring-1 focus:ring-brand-orange focus:border-brand-orange ${
-                      isLoadingCities || !formData.state
-                        ? 'bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200'
-                        : 'bg-white'
-                    } ${errors.city ? 'border-red-400 bg-red-50/20' : 'border-gray-300'}`}
-                  >
-                    <option value="">
-                      {isLoadingCities
-                        ? 'Loading cities...'
-                        : !formData.state
-                          ? 'Select a state first'
-                          : cities.length > 0
-                            ? 'Select City'
-                            : 'No cities found'}
-                    </option>
-                    {cities.map((city) => (
-                      <option key={city} value={city}>
-                        {city}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400">
-                    <ChevronDown size={16} />
-                  </div>
-                </div>
-                {errors.city && (
-                  <p className="mt-1 text-xs text-red-600">{errors.city}</p>
-                )}
-              </div>
+              <Select
+                id="city"
+                name="city"
+                label="City"
+                required
+                value={formData.city}
+                onChange={handleInputChange}
+                options={cities}
+                isLoading={loading.cities}
+                loadingText="Loading cities..."
+                disabled={!formData.state}
+                disabledText="Select a state first"
+                placeholder={cities.length > 0 ? 'Select City' : 'No cities found'}
+                error={errors.city}
+              />
 
               {/* Postal Code */}
               <Input

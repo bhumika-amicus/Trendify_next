@@ -64,6 +64,7 @@ export default function CartView({ items }: CartViewProps) {
         return;
       }
       toast.error(res.error || 'Failed to update quantity. Please try again.');
+      router.refresh();
       return;
     }
     emitCartUpdate(res.count);
