@@ -7,15 +7,14 @@ import {
   UpdateCartQuantitySchema,
   RemoveCartItemSchema,
 } from '@/schemas/cart';
-import { getCartFromCookies, saveCartToCookies } from '@/lib/cart';
-import { getProductByIdServer } from '@/services/serverProductService';
+import { setCartCountCookie } from '@/lib/cart';
 import {
   addBackendCartItem,
   updateBackendCartItem,
   removeBackendCartItem,
   clearBackendCart,
+  getBackendCartCount,
 } from '@/services/serverCartService';
-import type { CartItem } from '@/types';
 
 export interface CartActionResult {
   success: boolean;
@@ -28,7 +27,7 @@ export interface CartActionResult {
 /**
  * Server Action to add an item to the cart.
  * Requires user authentication, syncs with Azure .NET backend,
- * caches in HTTP cookies for 0ms SSR, and revalidates /cart.
+ * updates the lightweight cart count cookie, and revalidates /cart.
  */
 export async function addToCartAction(
   rawInput: unknown
@@ -56,7 +55,7 @@ export async function addToCartAction(
   const { productId, quantity } = parsed.data;
 
   try {
-    // 1. Sync with Azure .NET backend database
+    // 1. Sync directly with Azure .NET backend database
     const backendRes = await addBackendCartItem(sessionToken, productId, quantity);
     if (!backendRes.success) {
       return {
@@ -65,46 +64,12 @@ export async function addToCartAction(
       };
     }
 
-    // 2. Update local cookie cache for instant SSR and client badge
-    const existingCart = await getCartFromCookies();
-    const existingIndex = existingCart.findIndex(
-      (item) => item.productId === productId
-    );
+    // 2. Fetch fresh cart count from Azure backend
+    const totalCount = await getBackendCartCount(sessionToken);
 
-    if (existingIndex >= 0) {
-      const existingItem = existingCart[existingIndex];
-      const updatedQuantity = Math.min(99, existingItem.quantity + quantity);
-      existingCart[existingIndex] = {
-        ...existingItem,
-        quantity: updatedQuantity,
-        itemSubtotal: existingItem.price * updatedQuantity,
-      };
-    } else {
-      const product = await getProductByIdServer(productId);
-
-      if (!product) {
-        return {
-          success: false,
-          error: 'Product not found or unavailable.',
-        };
-      }
-
-      const newItem: CartItem = {
-        productId: product.id,
-        productName: product.name,
-        price: product.price,
-        imageUrl: product.imageUrl || '',
-        quantity,
-        itemSubtotal: product.price * quantity,
-      };
-
-      existingCart.push(newItem);
-    }
-
-    await saveCartToCookies(existingCart);
+    // 3. Update the lightweight count cookie for 0ms client badge hydration
+    await setCartCountCookie(totalCount);
     revalidatePath('/cart');
-
-    const totalCount = existingCart.reduce((sum, item) => sum + item.quantity, 0);
 
     return {
       success: true,
@@ -122,7 +87,7 @@ export async function addToCartAction(
 
 /**
  * Server Action to update the quantity of an item in the cart.
- * Syncs with Azure .NET backend and updates cookies.
+ * Syncs with Azure .NET backend and updates the count cookie.
  */
 export async function updateCartQuantityAction(
   rawInput: unknown
@@ -152,34 +117,21 @@ export async function updateCartQuantityAction(
   try {
     // 1. Sync with Azure .NET backend
     if (quantity <= 0) {
-      await removeBackendCartItem(sessionToken, productId);
+      const res = await removeBackendCartItem(sessionToken, productId);
+      if (!res.success) {
+        return { success: false, error: res.error || 'Failed to remove item.' };
+      }
     } else {
-      await updateBackendCartItem(sessionToken, productId, quantity);
+      const res = await updateBackendCartItem(sessionToken, productId, quantity);
+      if (!res.success) {
+        return { success: false, error: res.error || 'Failed to update item quantity.' };
+      }
     }
 
-    // 2. Update local cookie cache
-    const existingCart = await getCartFromCookies();
-
-    let updatedCart: CartItem[];
-    if (quantity <= 0) {
-      updatedCart = existingCart.filter((item) => item.productId !== productId);
-    } else {
-      updatedCart = existingCart.map((item) => {
-        if (item.productId === productId) {
-          return {
-            ...item,
-            quantity,
-            itemSubtotal: item.price * quantity,
-          };
-        }
-        return item;
-      });
-    }
-
-    await saveCartToCookies(updatedCart);
+    // 2. Fetch fresh total count from Azure
+    const totalCount = await getBackendCartCount(sessionToken);
+    await setCartCountCookie(totalCount);
     revalidatePath('/cart');
-
-    const totalCount = updatedCart.reduce((sum, item) => sum + item.quantity, 0);
 
     return { success: true, count: totalCount };
   } catch (error) {
@@ -193,7 +145,7 @@ export async function updateCartQuantityAction(
 
 /**
  * Server Action to remove an item completely from the cart.
- * Syncs with Azure .NET backend and updates cookies.
+ * Syncs with Azure .NET backend and updates the count cookie.
  */
 export async function removeCartItemAction(
   rawInput: unknown
@@ -222,16 +174,15 @@ export async function removeCartItemAction(
 
   try {
     // 1. Sync with Azure .NET backend
-    await removeBackendCartItem(sessionToken, productId);
+    const res = await removeBackendCartItem(sessionToken, productId);
+    if (!res.success) {
+      return { success: false, error: res.error || 'Failed to remove item from cart.' };
+    }
 
-    // 2. Update local cookie cache
-    const existingCart = await getCartFromCookies();
-    const updatedCart = existingCart.filter((item) => item.productId !== productId);
-
-    await saveCartToCookies(updatedCart);
+    // 2. Fetch fresh total count from Azure
+    const totalCount = await getBackendCartCount(sessionToken);
+    await setCartCountCookie(totalCount);
     revalidatePath('/cart');
-
-    const totalCount = updatedCart.reduce((sum, item) => sum + item.quantity, 0);
 
     return { success: true, count: totalCount };
   } catch (error) {
@@ -255,7 +206,7 @@ export async function clearCartAction(): Promise<CartActionResult> {
   }
 
   try {
-    await saveCartToCookies([]);
+    await setCartCountCookie(0);
     revalidatePath('/cart');
     return { success: true, count: 0 };
   } catch (error) {

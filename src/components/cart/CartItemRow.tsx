@@ -12,17 +12,17 @@ interface CartItemRowProps {
   item: CartItem;
   onQuantityChange: (productId: number, quantity: number) => void;
   onRemove: (productId: number, productName?: string) => void;
-  isPending?: boolean;
+  isDeleting?: boolean;
 }
 
 function CartItemRow({
   item,
   onQuantityChange,
   onRemove,
-  isPending = false,
+  isDeleting = false,
 }: CartItemRowProps) {
   const handleQuantityChange = (newQuantity: number) => {
-    if (newQuantity === item.quantity || isPending) return;
+    if (newQuantity === item.quantity || isDeleting) return;
     if (newQuantity <= 0) {
       onRemove(item.productId, item.productName);
     } else {
@@ -33,7 +33,7 @@ function CartItemRow({
   return (
     <div
       className={`flex flex-col md:flex-row items-center border-b border-gray-200 py-6 gap-4 transition-opacity duration-200 ${
-        isPending ? 'opacity-50 pointer-events-none' : 'opacity-100'
+        isDeleting ? 'opacity-40 pointer-events-none' : 'opacity-100'
       }`}
     >
       {/* Product Info (Thumbnail + Name + Remove Button) */}
@@ -63,15 +63,15 @@ function CartItemRow({
             type="button"
             className="text-xs md:text-sm self-start text-red-500 hover:text-red-700 hover:underline inline-flex items-center gap-1.5 transition-colors cursor-pointer bg-transparent border-0 p-0 disabled:opacity-50"
             onClick={() => onRemove(item.productId, item.productName)}
-            disabled={isPending}
+            disabled={isDeleting}
             aria-label={`Remove ${item.productName} from cart`}
           >
-            {isPending ? (
+            {isDeleting ? (
               <Loader2 size={14} className="animate-spin text-red-500" />
             ) : (
               <Trash2 size={14} />
             )}
-            <span>Remove</span>
+            <span>{isDeleting ? 'Removing...' : 'Remove'}</span>
           </button>
         </div>
       </div>
@@ -91,7 +91,7 @@ function CartItemRow({
           <QuantitySelector
             quantity={item.quantity}
             onQuantityChange={handleQuantityChange}
-            disabled={isPending}
+            disabled={isDeleting}
             minQuantity={0}
           />
         </div>

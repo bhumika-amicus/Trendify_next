@@ -6,9 +6,8 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { DOTNET_API_BASE_URL } from '@/config';
 import { LoginSchema, RegisterSchema } from '@/schemas/auth';
-import { getBackendCart } from '@/services/serverCartService';
-import { saveCartToCookies } from '@/lib/cart';
-import type { CartItem } from '@/types';
+import { getBackendCartCount } from '@/services/serverCartService';
+import { setCartCountCookie, clearCartCookies } from '@/lib/cart';
 
 export interface AuthFieldErrors {
   name?: string;
@@ -163,20 +162,12 @@ export async function loginAction(
       });
     }
 
-    // Sync the user's database cart into local cookies for 0ms SSR
+    // Fetch accurate cart count from Azure backend for 0ms Navbar badge hydration
     try {
-      const backendCart = await getBackendCart(data.token);
-      const cartItems: CartItem[] = backendCart.map((item) => ({
-        productId: item.productId,
-        productName: item.productName,
-        price: item.price,
-        imageUrl: '',
-        quantity: item.quantity,
-        itemSubtotal: item.price * item.quantity,
-      }));
-      await saveCartToCookies(cartItems);
+      const cartCount = await getBackendCartCount(data.token);
+      await setCartCountCookie(cartCount);
     } catch (cartErr) {
-      console.warn('[AUTH] Could not pre-fetch cart on login:', cartErr);
+      console.warn('[AUTH] Could not pre-fetch cart count on login:', cartErr);
     }
 
     // Revalidate the entire layout tree to reflect the new user session instantly
@@ -314,9 +305,8 @@ export async function logoutAction(): Promise<void> {
   cookieStore.delete('customerId');
   cookieStore.delete('role');
 
-  // Purge cart cookies so shared devices do not leak cart data
-  cookieStore.delete('trendify_cart');
-  cookieStore.delete('trendify_cart_count');
+  // Purge cart count cookies so shared devices do not leak cart data
+  await clearCartCookies();
 
   // Purge cached layout states (e.g. UserDropdown)
   revalidatePath('/', 'layout');

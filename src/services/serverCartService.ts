@@ -11,6 +11,19 @@ export async function getBackendCart(token: string): Promise<BackendCartItemDto[
   return Array.isArray(res.data) ? res.data : [];
 }
 
+export async function getBackendCartCount(token: string): Promise<number> {
+  const res = await serverApiFetch<{ itemCount?: number }>('/api/v1/cart/count', {
+    method: 'GET',
+    token,
+    cache: 'no-store',
+  });
+
+  if (res.ok && res.data && typeof res.data.itemCount === 'number') {
+    return res.data.itemCount;
+  }
+  return 0;
+}
+
 export async function addBackendCartItem(
   token: string,
   productId: number,

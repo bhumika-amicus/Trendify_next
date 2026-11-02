@@ -48,15 +48,4 @@ export const RemoveCartItemSchema = z.object({
 
 export type RemoveCartItemInput = z.infer<typeof RemoveCartItemSchema>;
 
-/**
- * Zod schema for validating cart item structure stored in cookies.
- */
-export const StoredCartItemSchema = z.object({
-  productId: z.number().int().positive(),
-  productName: z.string().min(1),
-  price: z.number().nonnegative(),
-  imageUrl: z.string().optional().default(''),
-  quantity: z.number().int().min(1).max(99),
-});
 
-export const StoredCartSchema = z.array(StoredCartItemSchema);

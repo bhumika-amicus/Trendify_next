@@ -17,6 +17,8 @@ export function emitCartUpdate(count?: number): void {
   if (resolvedCount === undefined) {
     const match = document.cookie.match(/(?:^|;\s*)trendify_cart_count=([^;]*)/);
     resolvedCount = match ? parseInt(decodeURIComponent(match[1]), 10) || 0 : 0;
+  } else {
+    document.cookie = `trendify_cart_count=${resolvedCount}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax`;
   }
 
   window.dispatchEvent(

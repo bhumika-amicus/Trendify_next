@@ -3,12 +3,8 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import Breadcrumbs from '@/components/common/Breadcrumbs';
 import CartView from '@/components/cart/CartView';
-import {
-  getCartFromCookies,
-  saveCartToCookies,
-  CART_COOKIE_NAME,
-} from '@/lib/cart';
 import { getBackendCart } from '@/services/serverCartService';
+import type { CartItem } from '@/types';
 
 export const metadata: Metadata = {
   title: 'Shopping Cart | Trendify',
@@ -18,8 +14,8 @@ export const metadata: Metadata = {
 
 /**
  * Shopping Cart Page (React Server Component)
- * Enforces authentication, hydrates cart from cookies or upstream .NET backend,
- * computes totals, and renders the interactive CartView with zero hydration delay.
+ * Enforces authentication, hydrates cart directly from the authoritative Azure .NET backend,
+ * synchronizes the lightweight count cookie, and renders the interactive CartView.
  */
 export default async function CartPage() {
   const cookieStore = await cookies();
@@ -29,27 +25,19 @@ export default async function CartPage() {
     redirect('/login?callbackUrl=/cart');
   }
 
-  let items = await getCartFromCookies();
-
-  // Only hydrate from the Azure backend database if the cart cookie has never been initialized
-  const hasCartCookie = cookieStore.has(CART_COOKIE_NAME);
-  if (!hasCartCookie) {
-    try {
-      const backendCart = await getBackendCart(sessionToken);
-      if (backendCart.length > 0) {
-        items = backendCart.map((item) => ({
-          productId: item.productId,
-          productName: item.productName,
-          price: item.price,
-          imageUrl: '',
-          quantity: item.quantity,
-          itemSubtotal: item.price * item.quantity,
-        }));
-        await saveCartToCookies(items);
-      }
-    } catch (err) {
-      console.warn('[CART_PAGE] Failed to hydrate cart from backend:', err);
-    }
+  let items: CartItem[] = [];
+  try {
+    const backendCart = await getBackendCart(sessionToken);
+    items = backendCart.map((item) => ({
+      productId: item.productId,
+      productName: item.productName,
+      price: item.price,
+      imageUrl: '',
+      quantity: item.quantity,
+      itemSubtotal: item.price * item.quantity,
+    }));
+  } catch (err) {
+    console.error('[CART_PAGE] Failed to fetch authoritative cart from backend:', err);
   }
 
   return (

@@ -1,6 +1,6 @@
 'use client';
 
-import { useOptimistic, useTransition } from 'react';
+import { useState, useEffect, useOptimistic, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import type { CartItem } from '@/types';
@@ -15,15 +15,14 @@ interface CartViewProps {
   items: CartItem[];
 }
 
-type OptimisticAction =
-  | { type: 'UPDATE_QTY'; productId: number; quantity: number }
-  | { type: 'REMOVE'; productId: number };
+type OptimisticAction = { type: 'UPDATE_QTY'; productId: number; quantity: number };
 
 export default function CartView({ items }: CartViewProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [deletingProductId, setDeletingProductId] = useState<number | null>(null);
 
-  // Optimistic state updates locally in 0ms before the server response
+  // Optimistic state updates quantities locally in 0ms before the server response
   const [optimisticItems, setOptimisticItems] = useOptimistic(
     items,
     (state: CartItem[], action: OptimisticAction) => {
@@ -40,8 +39,6 @@ export default function CartView({ items }: CartViewProps) {
                 : item
             )
             .filter((item) => item.quantity > 0);
-        case 'REMOVE':
-          return state.filter((item) => item.productId !== action.productId);
         default:
           return state;
       }
@@ -49,6 +46,10 @@ export default function CartView({ items }: CartViewProps) {
   );
 
   const optimisticSummary = calculateCartSummary(optimisticItems);
+
+  useEffect(() => {
+    emitCartUpdate(optimisticSummary.totalCount);
+  }, [optimisticSummary.totalCount]);
 
   const handleQuantityChange = async (productId: number, quantity: number) => {
     startTransition(() => {
@@ -69,32 +70,32 @@ export default function CartView({ items }: CartViewProps) {
   };
 
   const handleRemove = async (productId: number, productName?: string) => {
-    startTransition(() => {
-      setOptimisticItems({ type: 'REMOVE', productId });
-    });
+    if (deletingProductId) return;
 
-    const toastId = toast.loading(
-      productName ? `Removing ${productName}...` : 'Removing item...'
-    );
+    setDeletingProductId(productId);
 
     try {
       const res = await removeCartItemAction({ productId });
       if (!res.success) {
         if (res.requireAuth) {
-          toast.error('Please log in to manage your cart.', { id: toastId, duration: 3000 });
+          toast.error('Please log in to manage your cart.');
           router.push('/login?callbackUrl=/cart');
           return;
         }
-        toast.error(res.error || 'Failed to remove item.', { id: toastId, duration: 3000 });
+        toast.error(res.error || 'Failed to remove item.');
         return;
       }
+
       emitCartUpdate(res.count);
+      router.refresh();
       toast.success(
         productName ? `${productName} removed from cart` : 'Item removed from cart',
-        { id: toastId, duration: 2500 }
+        { duration: 2500 }
       );
     } catch {
-      toast.error('Failed to remove item. Please try again.', { id: toastId, duration: 3000 });
+      toast.error('Failed to remove item. Please try again.', { duration: 3000 });
+    } finally {
+      setDeletingProductId(null);
     }
   };
 
@@ -141,7 +142,7 @@ export default function CartView({ items }: CartViewProps) {
                 item={item}
                 onQuantityChange={handleQuantityChange}
                 onRemove={handleRemove}
-                isPending={isPending}
+                isDeleting={deletingProductId === item.productId}
               />
             ))}
           </div>
