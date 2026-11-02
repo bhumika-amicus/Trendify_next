@@ -1,5 +1,5 @@
 import Button from '@/components/common/Button';
-import type { OrderSummaryItemDto } from '@/services/serverOrderService';
+import type { OrderSummaryItemDto } from '@/types';
 import { formatINR, formatDate } from '@/utils/formatters';
 import OrderStatusBadge from './OrderStatusBadge';
 

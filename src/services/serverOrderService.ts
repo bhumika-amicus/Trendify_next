@@ -1,58 +1,83 @@
-import { DOTNET_API_BASE_URL } from '@/config';
+import { serverApiFetch } from './serverApi';
+import type {
+  CheckoutRequest,
+  CheckoutResponse,
+  MockPaymentRequest,
+  MockPaymentResponse,
+  OrderSummaryItemDto,
+  OrderHistoryResponse,
+} from '@/types';
 
-export interface OrderSummaryItemDto {
-  orderId: number;
-  customerId: number;
-  subtotal: number;
-  shippingCharge: number;
-  tax: number;
-  totalAmount: number;
-  orderStatus: string;
-  createdAt: string;
-  createdBy?: number;
-  updatedAt?: string | null;
-  updatedBy?: number | null;
-}
-
-export interface OrderHistoryResponse {
-  orders: OrderSummaryItemDto[];
-  page: number;
-  pageSize: number;
-  totalRecords: number;
-  totalPages: number;
-}
-
-/**
- * Server-side helper to fetch recent order history for the authenticated user.
- * Simulates network latency (2500ms) to clearly demonstrate Next.js streaming with Suspense.
- */
 export async function getRecentOrdersServer(
   token?: string,
   limit = 3
 ): Promise<OrderSummaryItemDto[]> {
   if (!token) return [];
 
-  try {
-    const response = await fetch(
-      `${DOTNET_API_BASE_URL}/api/v1/orders/history?pageSize=${limit}&page=1`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: 'application/json',
-        },
-        cache: 'no-store',
-      }
-    );
-
-    if (!response.ok) {
-      console.warn(`[ORDERS] Request failed with upstream status [${response.status}]`);
-      return [];
+  const res = await serverApiFetch<OrderHistoryResponse>(
+    `/api/v1/orders/history?pageSize=${limit}&page=1`,
+    {
+      method: 'GET',
+      token,
+      cache: 'no-store',
     }
+  );
 
-    const data: OrderHistoryResponse = await response.json();
-    return Array.isArray(data?.orders) ? data.orders : [];
-  } catch (error) {
-    console.error('[ORDERS] Error fetching orders on server:', error);
-    return [];
+  return Array.isArray(res.data?.orders) ? res.data.orders : [];
+}
+
+export async function createCheckoutServer(
+  token: string,
+  checkoutData: CheckoutRequest
+): Promise<CheckoutResponse | null> {
+  const res = await serverApiFetch<CheckoutResponse>('/api/v1/checkout', {
+    method: 'POST',
+    token,
+    body: checkoutData,
+  });
+
+  if (res.ok && res.data) {
+    return res.data;
   }
+
+  if (res.data) {
+    return {
+      ...res.data,
+      message: res.error || res.data.message,
+    };
+  }
+
+  if (res.error) {
+    console.warn('[CHECKOUT_API] createCheckout failed:', res.error);
+  }
+
+  return null;
+}
+
+export async function processMockPaymentServer(
+  token: string,
+  paymentData: MockPaymentRequest
+): Promise<MockPaymentResponse | null> {
+  const res = await serverApiFetch<MockPaymentResponse>('/api/payments/mock', {
+    method: 'POST',
+    token,
+    body: paymentData,
+  });
+
+  if (res.ok && res.data) {
+    return res.data;
+  }
+
+  if (res.data) {
+    return {
+      ...res.data,
+      message: res.error || res.data.message,
+    };
+  }
+
+  if (res.error) {
+    console.warn('[PAYMENT_API] processMockPayment failed:', res.error);
+  }
+
+  return null;
 }

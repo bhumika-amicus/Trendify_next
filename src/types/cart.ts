@@ -17,3 +17,12 @@ export interface CartSummary {
   finalTotal: number;
   totalCount: number;
 }
+
+export interface BackendCartItemDto {
+  cartItemId: number;
+  productId: number;
+  productName: string;
+  quantity: number;
+  price: number;
+  itemSubtotal: number;
+}

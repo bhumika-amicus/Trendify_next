@@ -1,5 +1,5 @@
 import { MapPin } from 'lucide-react';
-import { getDefaultAddressServer } from '@/services/serverCustomerService';
+import { getDefaultAddressServer } from '@/services/serverAddressService';
 
 interface DefaultAddressSectionProps {
   token?: string;

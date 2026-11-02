@@ -1,41 +1,14 @@
-import { DOTNET_API_BASE_URL } from '@/config';
-
-export interface BackendCartItemDto {
-  cartItemId: number;
-  productId: number;
-  productName: string;
-  quantity: number;
-  price: number;
-  itemSubtotal: number;
-}
-
-/**
- * Server-only service to communicate with the .NET Azure Cart API.
- * All calls require a valid JWT bearer token.
- */
+import { serverApiFetch } from './serverApi';
+import type { BackendCartItemDto } from '@/types';
 
 export async function getBackendCart(token: string): Promise<BackendCartItemDto[]> {
-  try {
-    const res = await fetch(`${DOTNET_API_BASE_URL}/api/v1/cart`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: 'application/json',
-      },
-      cache: 'no-store',
-    });
+  const res = await serverApiFetch<BackendCartItemDto[]>('/api/v1/cart', {
+    method: 'GET',
+    token,
+    cache: 'no-store',
+  });
 
-    if (!res.ok) {
-      console.warn(`[CART_API] getBackendCart returned status ${res.status}`);
-      return [];
-    }
-
-    const data: unknown = await res.json();
-    return Array.isArray(data) ? (data as BackendCartItemDto[]) : [];
-  } catch (error) {
-    console.error('[CART_API] Error fetching backend cart:', error);
-    return [];
-  }
+  return Array.isArray(res.data) ? res.data : [];
 }
 
 export async function addBackendCartItem(
@@ -43,31 +16,18 @@ export async function addBackendCartItem(
   productId: number,
   quantity: number
 ): Promise<{ success: boolean; error?: string }> {
-  try {
-    const res = await fetch(`${DOTNET_API_BASE_URL}/api/v1/cart/items`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      body: JSON.stringify({ productId, quantity }),
-    });
+  const res = await serverApiFetch<unknown>('/api/v1/cart/items', {
+    method: 'POST',
+    token,
+    body: { productId, quantity },
+  });
 
-    if (!res.ok) {
-      const err = await res.json().catch(() => null);
-      const error =
-        (typeof err?.detail === 'string' && err.detail) ||
-        (typeof err?.message === 'string' && err.message) ||
-        'Failed to add item to cart. Please check stock availability.';
-      return { success: false, error };
-    }
-
-    return { success: true };
-  } catch (error) {
-    console.error('[CART_API] Network error in addBackendCartItem:', error);
-    return { success: false, error: 'Cart service unavailable.' };
-  }
+  return {
+    success: res.ok,
+    error: res.ok
+      ? undefined
+      : res.error || 'Failed to add item to cart. Please check stock availability.',
+  };
 }
 
 export async function updateBackendCartItem(
@@ -75,75 +35,38 @@ export async function updateBackendCartItem(
   productId: number,
   quantity: number
 ): Promise<{ success: boolean; error?: string }> {
-  try {
-    const res = await fetch(`${DOTNET_API_BASE_URL}/api/v1/cart/items/${productId}`, {
-      method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      body: JSON.stringify({ quantity }),
-    });
+  const res = await serverApiFetch<unknown>(`/api/v1/cart/items/${productId}`, {
+    method: 'PUT',
+    token,
+    body: { quantity },
+  });
 
-    if (!res.ok) {
-      const err = await res.json().catch(() => null);
-      const error =
-        (typeof err?.detail === 'string' && err.detail) ||
-        (typeof err?.message === 'string' && err.message) ||
-        'Failed to update item quantity.';
-      return { success: false, error };
-    }
-
-    return { success: true };
-  } catch (error) {
-    console.error('[CART_API] Network error in updateBackendCartItem:', error);
-    return { success: false, error: 'Cart service unavailable.' };
-  }
+  return {
+    success: res.ok,
+    error: res.ok ? undefined : res.error || 'Failed to update item quantity.',
+  };
 }
 
 export async function removeBackendCartItem(
   token: string,
   productId: number
 ): Promise<{ success: boolean; error?: string }> {
-  try {
-    const res = await fetch(`${DOTNET_API_BASE_URL}/api/v1/cart/items/${productId}`, {
-      method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: 'application/json',
-      },
-    });
+  const res = await serverApiFetch<unknown>(`/api/v1/cart/items/${productId}`, {
+    method: 'DELETE',
+    token,
+  });
 
-    if (!res.ok) {
-      const err = await res.json().catch(() => null);
-      const error =
-        (typeof err?.detail === 'string' && err.detail) ||
-        (typeof err?.message === 'string' && err.message) ||
-        'Failed to remove item.';
-      return { success: false, error };
-    }
-
-    return { success: true };
-  } catch (error) {
-    console.error('[CART_API] Network error in removeBackendCartItem:', error);
-    return { success: false, error: 'Cart service unavailable.' };
-  }
+  return {
+    success: res.ok,
+    error: res.ok ? undefined : res.error || 'Failed to remove item.',
+  };
 }
 
 export async function clearBackendCart(token: string): Promise<{ success: boolean }> {
-  try {
-    const res = await fetch(`${DOTNET_API_BASE_URL}/api/v1/cart`, {
-      method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: 'application/json',
-      },
-    });
+  const res = await serverApiFetch<unknown>('/api/v1/cart', {
+    method: 'DELETE',
+    token,
+  });
 
-    return { success: res.ok };
-  } catch (error) {
-    console.error('[CART_API] Network error in clearBackendCart:', error);
-    return { success: false };
-  }
+  return { success: res.ok };
 }

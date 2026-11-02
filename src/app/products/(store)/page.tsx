@@ -1,9 +1,11 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import { getProductsServer } from '@/services/serverProductService';
 import ProductGrid from '@/components/product/ProductGrid';
 import StateMessage from '@/components/common/StateMessage';
 import Pagination from '@/components/common/Pagination';
 import Button from '@/components/common/Button';
+import EmptyCartToast from '@/components/common/EmptyCartToast';
 import { parseProductSearchParams } from '@/utils/productParams';
 
 export const metadata: Metadata = {
@@ -37,6 +39,9 @@ export default async function ProductListingPage({
 
   return (
     <div className="w-full">
+      <Suspense fallback={null}>
+        <EmptyCartToast />
+      </Suspense>
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-lg md:text-xl lg:text-2xl font-bold m-0 text-text-main">
           Product Listing
