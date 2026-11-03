@@ -14,6 +14,12 @@ export interface LocationCascadeLoadingState {
   cities: boolean;
 }
 
+export interface LocationCascadeErrorState {
+  countries: string | null;
+  states: string | null;
+  cities: string | null;
+}
+
 export interface UseLocationCascadeOptions {
   initialCountries?: string[];
   initialStates?: StateOption[];
@@ -36,6 +42,12 @@ export function useLocationCascade({
     cities: false,
   });
 
+  const [error, setError] = useState<LocationCascadeErrorState>({
+    countries: null,
+    states: null,
+    cities: null,
+  });
+
   const stateAbortRef = useRef<AbortController | null>(null);
   const cityAbortRef = useRef<AbortController | null>(null);
 
@@ -47,6 +59,12 @@ export function useLocationCascade({
         .then((data) => {
           if (isSubscribed && data && data.length > 0) {
             setCountries(data);
+            setError((prev) => ({ ...prev, countries: null }));
+          }
+        })
+        .catch((err: unknown) => {
+          if (isSubscribed && (err as Error)?.name !== 'AbortError') {
+            setError((prev) => ({ ...prev, countries: 'Unable to load countries' }));
           }
         })
         .finally(() => {
@@ -64,22 +82,30 @@ export function useLocationCascade({
     stateAbortRef.current?.abort();
     cityAbortRef.current?.abort();
 
-    setStates([]);
-    setCities([]);
-
     if (!countryName) {
-      setLoading((prev) => ({ ...prev, states: false }));
+      setStates([]);
+      setCities([]);
+      setError((prev) => ({ ...prev, states: null, cities: null }));
+      setLoading((prev) => ({ ...prev, states: false, cities: false }));
       return;
     }
+
+    setStates([]);
+    setCities([]);
 
     const controller = new AbortController();
     stateAbortRef.current = controller;
     setLoading((prev) => ({ ...prev, states: true }));
+    setError((prev) => ({ ...prev, states: null, cities: null }));
 
     try {
       const data = await getStates(countryName, controller.signal);
       if (!controller.signal.aborted) {
         setStates(data);
+      }
+    } catch (err: unknown) {
+      if ((err as Error)?.name !== 'AbortError') {
+        setError((prev) => ({ ...prev, states: 'Unable to load states' }));
       }
     } finally {
       if (!controller.signal.aborted) {
@@ -91,27 +117,98 @@ export function useLocationCascade({
   const loadCitiesForState = useCallback(async (countryName: string, stateName: string) => {
     cityAbortRef.current?.abort();
 
-    setCities([]);
-
     if (!countryName || !stateName) {
+      setCities([]);
+      setError((prev) => ({ ...prev, cities: null }));
       setLoading((prev) => ({ ...prev, cities: false }));
       return;
     }
 
+    setCities([]);
+
     const controller = new AbortController();
     cityAbortRef.current = controller;
     setLoading((prev) => ({ ...prev, cities: true }));
+    setError((prev) => ({ ...prev, cities: null }));
 
     try {
       const data = await getCities(countryName, stateName, controller.signal);
       if (!controller.signal.aborted) {
         setCities(data);
       }
+    } catch (err: unknown) {
+      if ((err as Error)?.name !== 'AbortError') {
+        setError((prev) => ({ ...prev, cities: 'Unable to load cities' }));
+      }
     } finally {
       if (!controller.signal.aborted) {
         setLoading((prev) => ({ ...prev, cities: false }));
       }
     }
+  }, []);
+
+  // Atomic loader for prefilled / edit addresses to prevent race conditions
+  const loadAddressLocations = useCallback(async (countryName: string, stateName?: string) => {
+    stateAbortRef.current?.abort();
+    cityAbortRef.current?.abort();
+
+    if (!countryName) {
+      setStates([]);
+      setCities([]);
+      setError({ countries: null, states: null, cities: null });
+      setLoading((prev) => ({ ...prev, states: false, cities: false }));
+      return;
+    }
+
+    const stateCtrl = new AbortController();
+    stateAbortRef.current = stateCtrl;
+
+    const cityCtrl = stateName ? new AbortController() : null;
+    if (cityCtrl) {
+      cityAbortRef.current = cityCtrl;
+    }
+
+    setLoading((prev) => ({ ...prev, states: true, cities: !!stateName }));
+    setError((prev) => ({ ...prev, states: null, cities: null }));
+
+    // Fetch states
+    const statesPromise = getStates(countryName, stateCtrl.signal)
+      .then((data) => {
+        if (!stateCtrl.signal.aborted) {
+          setStates(data);
+        }
+      })
+      .catch((err: unknown) => {
+        if ((err as Error)?.name !== 'AbortError') {
+          setError((prev) => ({ ...prev, states: 'Unable to load states' }));
+        }
+      })
+      .finally(() => {
+        if (!stateCtrl.signal.aborted) {
+          setLoading((prev) => ({ ...prev, states: false }));
+        }
+      });
+
+    // Concurrently fetch cities if state is known, without cross-aborting
+    const citiesPromise = (async () => {
+      if (!stateName || !cityCtrl) return;
+      try {
+        const citiesData = await getCities(countryName, stateName, cityCtrl.signal);
+        if (!cityCtrl.signal.aborted) {
+          setCities(citiesData);
+        }
+      } catch (err: unknown) {
+        if ((err as Error)?.name !== 'AbortError') {
+          setError((prev) => ({ ...prev, cities: 'Unable to load cities' }));
+        }
+      } finally {
+        if (!cityCtrl.signal.aborted) {
+          setLoading((prev) => ({ ...prev, cities: false }));
+        }
+      }
+    })();
+
+    await Promise.allSettled([statesPromise, citiesPromise]);
   }, []);
 
   // Cleanup abort controllers on unmount
@@ -127,6 +224,7 @@ export function useLocationCascade({
     cityAbortRef.current?.abort();
     setStates([]);
     setCities([]);
+    setError({ countries: null, states: null, cities: null });
     setLoading((prev) => ({ ...prev, states: false, cities: false }));
   }, []);
 
@@ -135,8 +233,10 @@ export function useLocationCascade({
     states,
     cities,
     loading,
+    error,
     loadStatesForCountry,
     loadCitiesForState,
+    loadAddressLocations,
     resetLocations,
   };
 }

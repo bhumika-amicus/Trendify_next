@@ -84,6 +84,18 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
                   : placeholder}
             </option>
 
+            {/* Retain current prefilled value if options are still loading or not yet populated */}
+            {props.value &&
+              !options.some((opt) =>
+                typeof opt === 'string'
+                  ? opt === props.value
+                  : opt.value === props.value
+              ) && (
+                <option value={props.value as string} key={String(props.value)}>
+                  {String(props.value)}
+                </option>
+              )}
+
             {/* Dynamic Options */}
             {options.map((opt) => {
               const value = typeof opt === 'string' ? opt : opt.value;

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { MapPin, Plus, X, Pencil } from 'lucide-react';
 import Input from '@/components/common/Input';
 import Select from '@/components/common/Select';
@@ -47,8 +47,10 @@ export default function AddressSection({
     states,
     cities,
     loading,
+    error: locationError,
     loadStatesForCountry,
     loadCitiesForState,
+    loadAddressLocations,
     resetLocations,
   } = useLocationCascade({
     initialCountries,
@@ -56,22 +58,20 @@ export default function AddressSection({
     initialCities,
   });
 
-  // Pre-load states and cities if country is pre-populated
+  // Lazy-load locations on mount ONLY if the user has NO saved addresses
+  const hasInitializedRef = useRef(false);
+  const hasSavedAddresses = savedAddresses.length > 0;
+  const showAddressForm = !hasSavedAddresses || isAddingNewAddress;
+
   useEffect(() => {
-    if (formData.country && states.length === 0) {
-      void loadStatesForCountry(formData.country);
+    if (hasInitializedRef.current) return;
+    hasInitializedRef.current = true;
+
+    // Only eager-fetch if there are no saved addresses and the form is shown on mount
+    if (!hasSavedAddresses && formData.country) {
+      void loadAddressLocations(formData.country, formData.state);
     }
-    if (formData.country && formData.state && cities.length === 0) {
-      void loadCitiesForState(formData.country, formData.state);
-    }
-  }, [
-    formData.country,
-    formData.state,
-    states.length,
-    cities.length,
-    loadStatesForCountry,
-    loadCitiesForState,
-  ]);
+  }, [hasSavedAddresses, formData.country, formData.state, loadAddressLocations]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -88,19 +88,26 @@ export default function AddressSection({
 
   const handleSelect = (addr: AddressDto) => {
     onSelectAddress(addr);
-    void loadStatesForCountry(addr.country);
-    void loadCitiesForState(addr.country, addr.state);
+  };
+
+  // Event-driven edit: load states and cities atomically when the user clicks 'Edit'
+  const handleEdit = (addr: AddressDto) => {
+    if (onEditAddress) {
+      onEditAddress(addr);
+    } else {
+      onSelectAddress(addr);
+      onToggleAddNewAddress(true);
+    }
+
+    if (addr.country) {
+      void loadAddressLocations(addr.country, addr.state);
+    }
   };
 
   const handleToggleAddNew = (addingNew: boolean) => {
     onToggleAddNewAddress(addingNew);
-    if (addingNew) {
-      resetLocations();
-    }
+    resetLocations();
   };
-
-  const hasSavedAddresses = savedAddresses.length > 0;
-  const showAddressForm = !hasSavedAddresses || isAddingNewAddress;
 
   return (
     <div className="space-y-6">
@@ -151,14 +158,7 @@ export default function AddressSection({
                   address={addr}
                   isSelected={selectedAddressId === addr.addressId}
                   onSelect={handleSelect}
-                  onEdit={() => {
-                    if (onEditAddress) {
-                      onEditAddress(addr);
-                    } else {
-                      handleSelect(addr);
-                      handleToggleAddNew(true);
-                    }
-                  }}
+                  onEdit={() => handleEdit(addr)}
                 />
               ))}
             </div>
@@ -255,8 +255,14 @@ export default function AddressSection({
                 loadingText="Loading states..."
                 disabled={!formData.country}
                 disabledText="Select a country first"
-                placeholder={states.length > 0 ? 'Select State' : 'No states found'}
-                error={errors.state}
+                placeholder={
+                  locationError.states
+                    ? 'Failed to load states'
+                    : states.length > 0
+                      ? 'Select State'
+                      : 'No states found'
+                }
+                error={errors.state || locationError.states || undefined}
               />
 
               <Select
@@ -271,8 +277,14 @@ export default function AddressSection({
                 loadingText="Loading cities..."
                 disabled={!formData.state}
                 disabledText="Select a state first"
-                placeholder={cities.length > 0 ? 'Select City' : 'No cities found'}
-                error={errors.city}
+                placeholder={
+                  locationError.cities
+                    ? 'Failed to load cities'
+                    : cities.length > 0
+                      ? 'Select City'
+                      : 'No cities found'
+                }
+                error={errors.city || locationError.cities || undefined}
               />
 
               <Input

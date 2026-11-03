@@ -51,16 +51,21 @@ export async function getStates(
       signal,
     });
 
-    if (!response.ok) return [];
+    if (!response.ok) {
+      throw new Error(`Location API HTTP ${response.status}`);
+    }
 
     const result = (await response.json()) as ApiResponse<{ states?: StateOption[] }>;
-    if (result.error || !result.data?.states) return [];
+    if (result.error || !result.data?.states) {
+      throw new Error(result.msg || 'Invalid API response format');
+    }
 
     stateCache.set(country, result.data.states);
     return result.data.states;
   } catch (err: unknown) {
     if ((err as Error)?.name !== 'AbortError') {
       console.warn(`[LOCATION_API] Failed to fetch states for ${country}:`, err);
+      throw err;
     }
     return [];
   }
@@ -85,16 +90,21 @@ export async function getCities(
       signal,
     });
 
-    if (!response.ok) return [];
+    if (!response.ok) {
+      throw new Error(`Location API HTTP ${response.status}`);
+    }
 
     const result = (await response.json()) as ApiResponse<string[]>;
-    if (result.error || !Array.isArray(result.data)) return [];
+    if (result.error || !Array.isArray(result.data)) {
+      throw new Error(result.msg || 'Invalid API response format');
+    }
 
     cityCache.set(cacheKey, result.data);
     return result.data;
   } catch (err: unknown) {
     if ((err as Error)?.name !== 'AbortError') {
       console.warn(`[LOCATION_API] Failed to fetch cities for ${country}/${state}:`, err);
+      throw err;
     }
     return [];
   }
