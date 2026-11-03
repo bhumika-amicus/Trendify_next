@@ -15,6 +15,7 @@ import {
 import { logoutAction } from '@/actions/auth';
 import CartBadge from './CartBadge';
 import toast from 'react-hot-toast';
+import { useCartActions } from '@/context/CartContext';
 import type { NavUser } from './NavBar';
 
 interface MobileNavDrawerProps {
@@ -33,6 +34,7 @@ export default function MobileNavDrawer({
   user,
 }: MobileNavDrawerProps) {
   const pathname = usePathname();
+  const { resetCart } = useCartActions();
 
   if (!isOpen) return null;
 
@@ -48,6 +50,7 @@ export default function MobileNavDrawer({
 
   const handleLogout = async () => {
     onClose();
+    resetCart();
     toast.success('Logged out successfully');
     await logoutAction();
   };

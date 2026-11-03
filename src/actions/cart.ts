@@ -7,7 +7,6 @@ import {
   UpdateCartQuantitySchema,
   RemoveCartItemSchema,
 } from '@/schemas/cart';
-import { setCartCountCookie } from '@/lib/cart';
 import {
   addBackendCartItem,
   updateBackendCartItem,
@@ -22,6 +21,23 @@ export interface CartActionResult {
   count?: number;
   message?: string;
   error?: string;
+}
+
+/**
+ * Server Action to fetch the authenticated user's current cart count
+ * directly from the authoritative backend database.
+ */
+export async function getCartCountAction(): Promise<number> {
+  try {
+    const cookieStore = await cookies();
+    const sessionToken = cookieStore.get('session')?.value;
+    if (!sessionToken) return 0;
+
+    return await getBackendCartCount(sessionToken);
+  } catch (error) {
+    console.error('[CART] Failed to fetch cart count from backend:', error);
+    return 0;
+  }
 }
 
 /**
@@ -66,9 +82,6 @@ export async function addToCartAction(
 
     // 2. Fetch fresh cart count from Azure backend
     const totalCount = await getBackendCartCount(sessionToken);
-
-    // 3. Update the lightweight count cookie for 0ms client badge hydration
-    await setCartCountCookie(totalCount);
     revalidatePath('/cart');
 
     return {
@@ -130,7 +143,6 @@ export async function updateCartQuantityAction(
 
     // 2. Fetch fresh total count from Azure
     const totalCount = await getBackendCartCount(sessionToken);
-    await setCartCountCookie(totalCount);
     revalidatePath('/cart');
 
     return { success: true, count: totalCount };
@@ -181,7 +193,6 @@ export async function removeCartItemAction(
 
     // 2. Fetch fresh total count from Azure
     const totalCount = await getBackendCartCount(sessionToken);
-    await setCartCountCookie(totalCount);
     revalidatePath('/cart');
 
     return { success: true, count: totalCount };
@@ -206,7 +217,6 @@ export async function clearCartAction(): Promise<CartActionResult> {
   }
 
   try {
-    await setCartCountCookie(0);
     revalidatePath('/cart');
     return { success: true, count: 0 };
   } catch (error) {

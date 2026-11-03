@@ -6,8 +6,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { DOTNET_API_BASE_URL } from '@/config';
 import { LoginSchema, RegisterSchema } from '@/schemas/auth';
-import { getBackendCartCount } from '@/services/serverCartService';
-import { setCartCountCookie, clearCartCookies } from '@/lib/cart';
+import { clearCartCookies } from '@/lib/cart';
 
 export interface AuthFieldErrors {
   name?: string;
@@ -160,14 +159,6 @@ export async function loginAction(
         path: '/',
         maxAge: 60 * 60 * 24 * 7,
       });
-    }
-
-    // Fetch accurate cart count from Azure backend for 0ms Navbar badge hydration
-    try {
-      const cartCount = await getBackendCartCount(data.token);
-      await setCartCountCookie(cartCount);
-    } catch (cartErr) {
-      console.warn('[AUTH] Could not pre-fetch cart count on login:', cartErr);
     }
 
     // Revalidate the entire layout tree to reflect the new user session instantly

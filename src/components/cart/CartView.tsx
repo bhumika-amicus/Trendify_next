@@ -9,7 +9,7 @@ import CartOrderSummary from './CartOrderSummary';
 import StateMessage from '@/components/common/StateMessage';
 import { updateCartQuantityAction, removeCartItemAction } from '@/actions/cart';
 import { calculateCartSummary } from '@/utils/cartCalculations';
-import { emitCartUpdate } from '@/utils/cartEvents';
+import { useCartActions } from '@/context/CartContext';
 
 interface CartViewProps {
   items: CartItem[];
@@ -19,6 +19,7 @@ type OptimisticAction = { type: 'UPDATE_QTY'; productId: number; quantity: numbe
 
 export default function CartView({ items }: CartViewProps) {
   const router = useRouter();
+  const { setCartCount } = useCartActions();
   const [isPending, startTransition] = useTransition();
   const [deletingProductId, setDeletingProductId] = useState<number | null>(null);
 
@@ -48,8 +49,8 @@ export default function CartView({ items }: CartViewProps) {
   const optimisticSummary = calculateCartSummary(optimisticItems);
 
   useEffect(() => {
-    emitCartUpdate(optimisticSummary.totalCount);
-  }, [optimisticSummary.totalCount]);
+    setCartCount(optimisticSummary.totalCount);
+  }, [optimisticSummary.totalCount, setCartCount]);
 
   const handleQuantityChange = async (productId: number, quantity: number) => {
     startTransition(() => {
@@ -67,7 +68,9 @@ export default function CartView({ items }: CartViewProps) {
       router.refresh();
       return;
     }
-    emitCartUpdate(res.count);
+    if (typeof res.count === 'number') {
+      setCartCount(res.count);
+    }
   };
 
   const handleRemove = async (productId: number, productName?: string) => {
@@ -87,7 +90,9 @@ export default function CartView({ items }: CartViewProps) {
         return;
       }
 
-      emitCartUpdate(res.count);
+      if (typeof res.count === 'number') {
+        setCartCount(res.count);
+      }
       router.refresh();
       toast.success(
         productName ? `${productName} removed from cart` : 'Item removed from cart',

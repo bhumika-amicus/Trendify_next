@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 import type { CartItem, AddressDto } from '@/types';
 import type { UserSession } from '@/lib/session';
 import { placeOrderAction } from '@/actions/order';
-import { emitCartUpdate } from '@/utils/cartEvents';
+import { useCartActions } from '@/context/CartContext';
 import { calculateCheckoutSummary } from '@/utils/cartCalculations';
 import CheckoutSteps, { type CheckoutStepNumber } from './CheckoutSteps';
 import CheckoutOrderSummary from './CheckoutOrderSummary';
@@ -38,6 +38,8 @@ export default function CheckoutView({
   initialStates = [],
   initialCities = [],
 }: CheckoutViewProps) {
+  const router = useRouter();
+  const { resetCart } = useCartActions();
   const [currentStep, setCurrentStep] = useState<CheckoutStepNumber>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -199,8 +201,6 @@ export default function CheckoutView({
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const router = useRouter();
-
   const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return;
@@ -238,7 +238,7 @@ export default function CheckoutView({
       }
 
       // 0ms Badge Update: Cart is now empty!
-      emitCartUpdate(0);
+      resetCart();
 
       toast.success('Order placed successfully!', { id: toastId, duration: 4000 });
       router.push('/orders');

@@ -12,7 +12,7 @@ import QuantitySelector from '@/components/cart/QuantitySelector';
 import toast from 'react-hot-toast';
 import { formatINR } from '@/utils/formatters';
 import { addToCartAction } from '@/actions/cart';
-import { emitCartUpdate } from '@/utils/cartEvents';
+import { useCartActions } from '@/context/CartContext';
 
 interface ProductCardProps {
   product: Product;
@@ -20,6 +20,7 @@ interface ProductCardProps {
 
 function ProductCard({ product }: ProductCardProps) {
   const router = useRouter();
+  const { setCartCount } = useCartActions();
   const [isAdding, setIsAdding] = useState(false);
   const [quantity, setQuantity] = useState(1);
 
@@ -54,7 +55,9 @@ function ProductCard({ product }: ProductCardProps) {
         toast.error(res.error || 'Failed to add item to cart.');
         return;
       }
-      emitCartUpdate(res.count);
+      if (typeof res.count === 'number') {
+        setCartCount(res.count);
+      }
       toast.success(`${product.name} added to cart!`);
       setQuantity(1);
     } finally {

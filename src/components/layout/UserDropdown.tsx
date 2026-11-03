@@ -7,6 +7,7 @@ import { User, ChevronDown, LayoutDashboard, Package, LogOut } from 'lucide-reac
 import toast from 'react-hot-toast';
 import { logoutAction } from '@/actions/auth';
 import { emitAuthUpdate } from '@/utils/authEvents';
+import { useCartActions } from '@/context/CartContext';
 
 interface UserDropdownProps {
   userName: string;
@@ -21,6 +22,7 @@ export default function UserDropdown({ userName, userEmail }: UserDropdownProps)
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
+  const { resetCart } = useCartActions();
 
   // Close dropdown on outside click or Escape key
   useEffect(() => {
@@ -53,6 +55,7 @@ export default function UserDropdown({ userName, userEmail }: UserDropdownProps)
 
   const handleLogout = async () => {
     setIsOpen(false);
+    resetCart();
     toast.success('Logged out successfully');
     emitAuthUpdate({ isLoggedIn: false });
     await logoutAction();

@@ -1,35 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { CART_UPDATED_EVENT } from '@/utils/cartEvents';
+import { useCartCount } from '@/context/CartContext';
 
 interface CartBadgeProps {
   className?: string;
 }
 
-function getCartCountFromCookie(): number {
-  if (typeof document === 'undefined') return 0;
-  const match = document.cookie.match(/(?:^|;\s*)trendify_cart_count=([^;]*)/);
-  return match ? parseInt(decodeURIComponent(match[1]), 10) || 0 : 0;
-}
-
+/**
+ * Isolated Cart Notification Pill.
+ * Subscribes to in-memory cart state; only this component re-renders when count changes.
+ */
 export default function CartBadge({ className }: CartBadgeProps) {
-  const [count, setCount] = useState<number>(0);
-
-  useEffect(() => {
-
-    setCount(getCartCountFromCookie());
-
-    const handleCartUpdate = (e: Event) => {
-      const detail = (e as CustomEvent<{ count?: number }>).detail;
-      if (typeof detail?.count === 'number') {
-        setCount(detail.count);
-      }
-    };
-
-    window.addEventListener(CART_UPDATED_EVENT, handleCartUpdate);
-    return () => window.removeEventListener(CART_UPDATED_EVENT, handleCartUpdate);
-  }, []);
+  const count = useCartCount();
 
   if (count <= 0) return null;
 

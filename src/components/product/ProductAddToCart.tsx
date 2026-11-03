@@ -8,7 +8,7 @@ import type { Product } from '@/types';
 import Button from '@/components/common/Button';
 import QuantitySelector from '@/components/cart/QuantitySelector';
 import { addToCartAction } from '@/actions/cart';
-import { emitCartUpdate } from '@/utils/cartEvents';
+import { useCartActions } from '@/context/CartContext';
 
 interface ProductAddToCartProps {
   product: Pick<Product, 'id' | 'name' | 'price'>;
@@ -16,6 +16,7 @@ interface ProductAddToCartProps {
 
 export default function ProductAddToCart({ product }: ProductAddToCartProps) {
   const router = useRouter();
+  const { setCartCount } = useCartActions();
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -52,7 +53,9 @@ export default function ProductAddToCart({ product }: ProductAddToCartProps) {
         toast.error(res.error || 'Failed to add item to cart.');
         return;
       }
-      emitCartUpdate(res.count);
+      if (typeof res.count === 'number') {
+        setCartCount(res.count);
+      }
       toast.success(`${product.name} added to cart!`);
       setIsSuccess(true);
       setQuantity(1);
