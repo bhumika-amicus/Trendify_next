@@ -51,6 +51,24 @@ export function useLocationCascade({
   const stateAbortRef = useRef<AbortController | null>(null);
   const cityAbortRef = useRef<AbortController | null>(null);
 
+  const loadCountries = useCallback(async () => {
+    setLoading((prev) => ({ ...prev, countries: true }));
+    setError((prev) => ({ ...prev, countries: null }));
+
+    try {
+      const data = await getCountries();
+      if (data && data.length > 0) {
+        setCountries(data);
+      }
+    } catch (err: unknown) {
+      if ((err as Error)?.name !== 'AbortError') {
+        setError((prev) => ({ ...prev, countries: 'Unable to load countries' }));
+      }
+    } finally {
+      setLoading((prev) => ({ ...prev, countries: false }));
+    }
+  }, []);
+
   // SSR fallback if countries list was empty
   useEffect(() => {
     let isSubscribed = true;
@@ -234,6 +252,7 @@ export function useLocationCascade({
     cities,
     loading,
     error,
+    loadCountries,
     loadStatesForCountry,
     loadCitiesForState,
     loadAddressLocations,

@@ -28,7 +28,7 @@ export default async function CheckoutPage() {
     getBackendCart(sessionToken),
     getCurrentUser(),
     getAddressesServer(sessionToken),
-    getCountries(),
+    getCountries().catch(() => []),
   ]);
 
   const items: CartItem[] = backendCart.map((item) => ({

@@ -20,16 +20,21 @@ export async function getCountries(signal?: AbortSignal): Promise<string[]> {
       next: { revalidate: 86400, tags: ['locations-countries'] },
     });
 
-    if (!response.ok) return [];
+    if (!response.ok) {
+      throw new Error(`Location API HTTP ${response.status}`);
+    }
 
     const result = (await response.json()) as ApiResponse<{ country: string }[]>;
-    if (result.error || !Array.isArray(result.data)) {
-      return [];
+    if (result.error || !Array.isArray(result.data) || result.data.length === 0) {
+      throw new Error(result.msg || 'Invalid API response format');
     }
 
     return result.data.map(({ country }) => country);
-  } catch (err) {
-    console.warn('[LOCATION_API] Failed to fetch countries:', err);
+  } catch (err: unknown) {
+    if ((err as Error)?.name !== 'AbortError') {
+      console.warn('[LOCATION_API] Failed to fetch countries:', err);
+      throw err;
+    }
     return [];
   }
 }

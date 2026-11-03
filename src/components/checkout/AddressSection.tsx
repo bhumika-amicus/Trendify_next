@@ -239,8 +239,12 @@ export default function AddressSection({
                 options={countries}
                 isLoading={loading.countries}
                 loadingText="Loading countries..."
-                placeholder="Select Country"
-                error={errors.country}
+                placeholder={
+                  locationError.countries
+                    ? 'Failed to load countries'
+                    : 'Select Country'
+                }
+                error={errors.country || locationError.countries || undefined}
               />
 
               <Select
