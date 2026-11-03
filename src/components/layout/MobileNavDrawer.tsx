@@ -13,7 +13,7 @@ import {
   ShoppingCart,
 } from 'lucide-react';
 import { logoutAction } from '@/actions/auth';
-import { useCartCount } from '@/hooks/useCartCount';
+import CartBadge from './CartBadge';
 import toast from 'react-hot-toast';
 import type { NavUser } from './NavBar';
 
@@ -33,7 +33,6 @@ export default function MobileNavDrawer({
   user,
 }: MobileNavDrawerProps) {
   const pathname = usePathname();
-  const cartCount = useCartCount();
 
   if (!isOpen) return null;
 
@@ -104,11 +103,7 @@ export default function MobileNavDrawer({
         <Link href="/cart" onClick={onClose} className={getLinkClass('/cart')}>
           <div className="relative">
             <ShoppingCart size={20} />
-            {cartCount > 0 ? (
-              <span className="absolute -top-1 -right-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand-orange px-1 text-[10px] font-bold text-white">
-                {cartCount}
-              </span>
-            ) : null}
+            <CartBadge className="absolute -top-1 -right-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand-orange px-1 text-[10px] font-bold text-white shadow-xs" />
           </div>
           <span>Shopping Cart</span>
         </Link>

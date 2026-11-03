@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { ShoppingCart, LogIn, Menu, X, Store, User } from 'lucide-react';
 import ProductSearch from '@/components/product/ProductSearch';
 import { useUserSession, type UserSessionData } from '@/hooks/useUserSession';
-import { useCartCount } from '@/hooks/useCartCount';
+import CartBadge from './CartBadge';
 import UserDropdown from './UserDropdown';
 import MobileNavDrawer from './MobileNavDrawer';
 
@@ -33,7 +33,6 @@ export default function NavBar({ initialUser }: NavBarProps = {}) {
   }
 
   const user = useUserSession(initialUser);
-  const cartCount = useCartCount();
 
   const isLinkActive = (path: string) => pathname.startsWith(path);
 
@@ -106,11 +105,7 @@ export default function NavBar({ initialUser }: NavBarProps = {}) {
             aria-label="Shopping cart"
           >
             <ShoppingCart size={23} />
-            {cartCount > 0 ? (
-              <span className="absolute -top-1 -right-1 w-4.5 h-4.5 bg-brand-orange text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm">
-                {cartCount}
-              </span>
-            ) : null}
+            <CartBadge />
           </Link>
         </nav>
 
@@ -144,11 +139,7 @@ export default function NavBar({ initialUser }: NavBarProps = {}) {
             onClick={() => setIsMobileMenuOpen(false)}
           >
             <ShoppingCart size={24} />
-            {cartCount > 0 ? (
-              <span className="absolute -top-1 -right-1 w-4.5 h-4.5 bg-brand-orange text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm">
-                {cartCount}
-              </span>
-            ) : null}
+            <CartBadge />
           </Link>
         </div>
       </div>
