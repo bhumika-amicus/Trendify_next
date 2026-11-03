@@ -6,7 +6,6 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { DOTNET_API_BASE_URL } from '@/config';
 import { LoginSchema, RegisterSchema } from '@/schemas/auth';
-import { clearCartCookies } from '@/lib/cart';
 
 export interface AuthFieldErrors {
   name?: string;
@@ -295,9 +294,6 @@ export async function logoutAction(): Promise<void> {
   cookieStore.delete('userEmail');
   cookieStore.delete('customerId');
   cookieStore.delete('role');
-
-  // Purge cart count cookies so shared devices do not leak cart data
-  await clearCartCookies();
 
   // Purge cached layout states (e.g. UserDropdown)
   revalidatePath('/', 'layout');

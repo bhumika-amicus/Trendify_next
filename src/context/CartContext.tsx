@@ -18,25 +18,14 @@ interface CartActionsContextType {
   refreshCartCount: () => Promise<void>;
 }
 
-// Split contexts: CartCountContext (for reading the count) and CartActionsContext (for mutating)
-// This guarantees components that only dispatch actions (e.g. 30 ProductCards) never re-render when count changes
 const CartCountContext = createContext<number>(0);
 const CartActionsContext = createContext<CartActionsContextType>({
-  setCartCount: () => {},
-  resetCart: () => {},
-  refreshCartCount: async () => {},
+  setCartCount: () => { },
+  resetCart: () => { },
+  refreshCartCount: async () => { },
 });
 
-/**
- * Unified In-Memory Cart Provider.
- *
- * Senior Architecture Standards:
- * 1. Single Source of Truth: In-memory React state for UI presentation + Cloud DB on server.
- * 2. Zero Cart Cookies: No client cookie synchronization issues or bloated HTTP headers.
- * 3. Race-Condition Proof: Uses an active request sequence counter so in-flight fetches cannot overwrite logout resets.
- * 4. Network Optimized: Runs on initial mount and only re-fetches when arriving from auth pages (/login, /register).
- * 5. Preserves Static SSG: Leaves RootLayout as pure static HTML.
- */
+
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cartCount, setCartCount] = useState<number>(0);
   const pathname = usePathname();

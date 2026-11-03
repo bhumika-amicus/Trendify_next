@@ -4,7 +4,6 @@ import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { PlaceOrderSchema } from '@/schemas/checkout';
-import { clearCartCookies } from '@/lib/cart';
 import { clearBackendCart } from '@/services/serverCartService';
 import {
   createAddressServer,
@@ -147,9 +146,8 @@ export async function placeOrderAction(
       };
     }
 
-    // 4. Success! Atomically purge both local HTTP count cookie and Azure database cart
+    // 4. Success! Clear backend cart in database
     await clearBackendCart(sessionToken);
-    await clearCartCookies();
 
     // 5. Revalidate Next.js router cache for /cart and /orders
     revalidatePath('/cart');
