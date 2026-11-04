@@ -3,7 +3,6 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import Breadcrumbs from '@/components/common/Breadcrumbs';
 import CheckoutView from '@/components/checkout/CheckoutView';
-import { getCurrentUser } from '@/lib/session';
 import { getAddressesServer } from '@/services/serverAddressService';
 import { getBackendCart } from '@/services/serverCartService';
 import { getCountries } from '@/services/locationService';
@@ -23,10 +22,9 @@ export default async function CheckoutPage() {
     redirect('/login?callbackUrl=/checkout');
   }
 
-  // Parallel server hydration: Authoritative Azure Cart, User Session, Saved Addresses & Countries
-  const [backendCart, user, savedAddresses, initialCountries] = await Promise.all([
+  // Parallel server hydration: Authoritative Azure Cart, Saved Addresses & Countries
+  const [backendCart, savedAddresses, initialCountries] = await Promise.all([
     getBackendCart(sessionToken),
-    getCurrentUser(),
     getAddressesServer(sessionToken),
     getCountries().catch(() => []),
   ]);
@@ -50,7 +48,6 @@ export default async function CheckoutPage() {
       <Breadcrumbs />
       <CheckoutView
         initialItems={items}
-        initialUser={user}
         initialAddresses={savedAddresses}
         initialCountries={initialCountries}
       />

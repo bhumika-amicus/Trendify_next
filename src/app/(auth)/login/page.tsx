@@ -27,7 +27,11 @@ function getAuthPromptMessage(url: string): string {
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const resolvedParams = await searchParams;
-  const callbackUrl = resolvedParams.callbackUrl || '/';
+  const rawCallbackUrl = resolvedParams.callbackUrl || '/';
+  const callbackUrl =
+    rawCallbackUrl === '/login' || rawCallbackUrl === '/register'
+      ? '/'
+      : rawCallbackUrl;
   const isRegistered = resolvedParams.registered === 'true';
 
   // Server-side check: If already logged in, redirect directly without rendering login form

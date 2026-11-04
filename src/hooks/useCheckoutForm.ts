@@ -2,7 +2,6 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import type { CartItem, AddressDto } from '@/types';
-import type { UserSession } from '@/lib/session';
 import {
   ShippingAddressSchema,
   SHIPPING_RATES,
@@ -12,18 +11,16 @@ import { calculateCheckoutSummary } from '@/utils/cartCalculations';
 
 export interface UseCheckoutFormProps {
   initialItems: CartItem[];
-  initialUser: UserSession | null;
   defaultAddress: AddressDto | null;
 }
 
 export function useCheckoutForm({
   initialItems,
-  initialUser,
   defaultAddress,
 }: UseCheckoutFormProps) {
   const [formData, setFormData] = useState<ShippingAddressFormData>({
-    fullName: initialUser?.name || '',
-    email: initialUser?.email || '',
+    fullName: '',
+    email: '',
     phone: '',
     address: defaultAddress?.addressLine1 || '',
     apartment: defaultAddress?.addressLine2 || '',

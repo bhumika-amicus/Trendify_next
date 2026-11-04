@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import type { CartItem, AddressDto } from '@/types';
-import type { UserSession } from '@/lib/session';
 import type { PaymentMethod } from '@/schemas/checkout';
 import type { StateOption } from '@/services/locationService';
 import { placeOrderAction } from '@/actions/order';
@@ -18,7 +17,6 @@ import ReviewStep from './ReviewStep';
 
 interface CheckoutViewProps {
   initialItems: CartItem[];
-  initialUser: UserSession | null;
   initialAddresses: AddressDto[];
   initialCountries: string[];
   initialStates?: StateOption[];
@@ -27,7 +25,6 @@ interface CheckoutViewProps {
 
 export default function CheckoutView({
   initialItems,
-  initialUser,
   initialAddresses,
   initialCountries,
   initialStates = [],
@@ -58,7 +55,6 @@ export default function CheckoutView({
     validate,
   } = useCheckoutForm({
     initialItems,
-    initialUser,
     defaultAddress: defaultAddr,
   });
 

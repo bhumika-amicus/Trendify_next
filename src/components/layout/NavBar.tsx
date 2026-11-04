@@ -5,23 +5,17 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ShoppingCart, LogIn, Menu, X, Store, User } from 'lucide-react';
 import ProductSearch from '@/components/product/ProductSearch';
-import { useUserSession, type UserSessionData } from '@/hooks/useUserSession';
+import { useAuth } from '@/context/AuthContext';
 import CartBadge from './CartBadge';
 import UserDropdown from './UserDropdown';
 import MobileNavDrawer from './MobileNavDrawer';
-
-export type NavUser = UserSessionData;
-
-interface NavBarProps {
-  initialUser?: NavUser;
-}
 
 /**
  * Universal Navigation Bar Component.
  * Orchestrates top branding, responsive search, desktop navigation,
  * user account dropdown, and mobile navigation drawer.
  */
-export default function NavBar({ initialUser }: NavBarProps = {}) {
+export default function NavBar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
 
@@ -32,9 +26,14 @@ export default function NavBar({ initialUser }: NavBarProps = {}) {
     setIsMobileMenuOpen(false);
   }
 
-  const user = useUserSession(initialUser);
+  const { isLoggedIn } = useAuth();
 
   const isLinkActive = (path: string) => pathname.startsWith(path);
+
+  const signInHref =
+    pathname && pathname !== '/login' && pathname !== '/register'
+      ? `/login?callbackUrl=${encodeURIComponent(pathname)}`
+      : '/login';
 
   return (
     <header className="relative w-full border-b border-border-subtle bg-white">
@@ -74,24 +73,26 @@ export default function NavBar({ initialUser }: NavBarProps = {}) {
         <nav className="ml-auto hidden items-center gap-6 md:flex">
           <Link
             href="/products"
-            className={`flex items-center gap-1.5 text-sm font-medium transition-colors hover:text-brand-orange ${isLinkActive('/products')
+            className={`flex items-center gap-1.5 text-sm font-medium transition-colors hover:text-brand-orange ${
+              isLinkActive('/products')
                 ? 'text-brand-orange underline underline-offset-4 decoration-2 font-semibold'
                 : 'text-gray-700'
-              }`}
+            }`}
           >
             <Store size={17} />
             <span>Products</span>
           </Link>
 
-          {user.isLoggedIn ? (
-            <UserDropdown userName={user.userName} userEmail={user.userEmail} />
+          {isLoggedIn ? (
+            <UserDropdown />
           ) : (
             <Link
-              href="/login"
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold transition-colors hover:text-brand-orange ${isLinkActive('/login')
+              href={signInHref}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold transition-colors hover:text-brand-orange ${
+                isLinkActive('/login')
                   ? 'text-brand-orange font-bold'
                   : 'text-gray-700'
-                }`}
+              }`}
             >
               <LogIn size={18} />
               <span>Sign In</span>
@@ -111,19 +112,19 @@ export default function NavBar({ initialUser }: NavBarProps = {}) {
 
         {/* Mobile Icons (Right) - Profile / Sign In & Cart */}
         <div className="flex items-center gap-4 md:hidden">
-          {user.isLoggedIn ? (
+          {isLoggedIn ? (
             <Link
               href="/dashboard"
               className="flex items-center text-gray-700 hover:text-brand-orange transition-colors focus-visible:outline-none"
               aria-label="My Dashboard"
-              title={`Logged in as ${user.userName || 'User'}`}
+              title="My Dashboard"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               <User size={22} className="text-brand-orange" />
             </Link>
           ) : (
             <Link
-              href="/login"
+              href={signInHref}
               className="flex items-center text-gray-700 hover:text-brand-orange transition-colors focus-visible:outline-none"
               aria-label="Sign In"
               onClick={() => setIsMobileMenuOpen(false)}
@@ -156,7 +157,6 @@ export default function NavBar({ initialUser }: NavBarProps = {}) {
       <MobileNavDrawer
         isOpen={isMobileMenuOpen}
         onClose={() => setIsMobileMenuOpen(false)}
-        user={user}
       />
     </header>
   );

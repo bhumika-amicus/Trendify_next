@@ -1,10 +1,13 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Button from '@/components/common/Button';
 import Input from '@/components/common/Input';
 import { loginAction } from '@/actions/auth';
+import { useAuth } from '@/context/AuthContext';
+import { useCartActions } from '@/context/CartContext';
 
 interface LoginFormProps {
   callbackUrl: string;
@@ -12,6 +15,18 @@ interface LoginFormProps {
 
 export default function LoginForm({ callbackUrl }: LoginFormProps) {
   const [state, formAction, isPending] = useActionState(loginAction, null);
+  const router = useRouter();
+  const { setLoggedIn } = useAuth();
+  const { refreshCartCount } = useCartActions();
+
+  useEffect(() => {
+    if (state?.success) {
+      setLoggedIn(true);
+      refreshCartCount();
+      const target = state.redirectTo || callbackUrl || '/';
+      router.push(target);
+    }
+  }, [state?.success, state?.redirectTo, callbackUrl, setLoggedIn, refreshCartCount, router]);
 
   return (
     <div className="space-y-6">

@@ -22,6 +22,7 @@ export interface AuthActionState {
     email?: string;
   };
   success?: boolean;
+  redirectTo?: string;
 }
 
 /**
@@ -56,7 +57,6 @@ export async function loginAction(
   }
 
   const { email, password, callbackUrl } = parsed.data;
-  let redirectTo: string | null = null;
 
   try {
     const upstreamUrl = `${DOTNET_API_BASE_URL}/api/auth/login`;
@@ -124,58 +124,19 @@ export async function loginAction(
       });
     }
 
-    cookieStore.set('userName', data.name || email.split('@')[0], {
-      httpOnly: false,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 60 * 60 * 24 * 7,
-    });
+    // Prevent redirect loop to auth pages
+    const targetUrl =
+      callbackUrl === '/login' || callbackUrl === '/register'
+        ? '/'
+        : callbackUrl;
 
-    cookieStore.set('userEmail', email, {
-      httpOnly: false,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 60 * 60 * 24 * 7,
-    });
-
-    if (data.customerId) {
-      cookieStore.set('customerId', String(data.customerId), {
-        httpOnly: false,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 60 * 60 * 24 * 7,
-      });
-    }
-
-    if (data.role) {
-      cookieStore.set('role', data.role, {
-        httpOnly: false,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 60 * 60 * 24 * 7,
-      });
-    }
-
-    // Revalidate the entire layout tree to reflect the new user session instantly
-    revalidatePath('/', 'layout');
-    redirectTo = callbackUrl;
+    return { success: true, redirectTo: targetUrl };
   } catch (error) {
     console.error('[AUTH] Network error in loginAction:', error);
     return {
       error: 'Authentication service is unreachable. Please check your connection and try again.',
     };
   }
-
-  // Next.js redirect MUST be called outside the try/catch block
-  if (redirectTo) {
-    redirect(redirectTo);
-  }
-
-  return { success: true };
 }
 
 /**
@@ -295,7 +256,17 @@ export async function logoutAction(): Promise<void> {
   cookieStore.delete('customerId');
   cookieStore.delete('role');
 
-  // Purge cached layout states (e.g. UserDropdown)
+  // Purge cached layout states
   revalidatePath('/', 'layout');
   redirect('/login');
+}
+
+/**
+ * Server Action to securely inspect if the user has an active session cookie.
+ * Does not expose or store any plaintext PII in client cookies.
+ */
+export async function getAuthSessionAction(): Promise<{ isLoggedIn: boolean }> {
+  const cookieStore = await cookies();
+  const sessionToken = cookieStore.get('session')?.value;
+  return { isLoggedIn: Boolean(sessionToken) };
 }

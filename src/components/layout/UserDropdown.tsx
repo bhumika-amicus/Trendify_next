@@ -6,23 +6,19 @@ import { usePathname } from 'next/navigation';
 import { User, ChevronDown, LayoutDashboard, Package, LogOut } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { logoutAction } from '@/actions/auth';
-import { emitAuthUpdate } from '@/utils/authEvents';
+import { useAuth } from '@/context/AuthContext';
 import { useCartActions } from '@/context/CartContext';
-
-interface UserDropdownProps {
-  userName: string;
-  userEmail?: string;
-}
 
 /**
  * Desktop User Account Dropdown Menu.
  * Handles open/close state, outside-click & Escape dismissal, and user actions.
  */
-export default function UserDropdown({ userName, userEmail }: UserDropdownProps) {
+export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const { resetCart } = useCartActions();
+  const { setLoggedIn } = useAuth();
 
   // Close dropdown on outside click or Escape key
   useEffect(() => {
@@ -55,9 +51,9 @@ export default function UserDropdown({ userName, userEmail }: UserDropdownProps)
 
   const handleLogout = async () => {
     setIsOpen(false);
+    setLoggedIn(false);
     resetCart();
     toast.success('Logged out successfully');
-    emitAuthUpdate({ isLoggedIn: false });
     await logoutAction();
   };
 
@@ -75,7 +71,7 @@ export default function UserDropdown({ userName, userEmail }: UserDropdownProps)
         title="Account menu"
       >
         <User size={14} className="text-brand-orange" />
-        <span className="capitalize max-w-28 truncate">{userName || 'User'}</span>
+        <span>My Account</span>
         <ChevronDown
           size={13}
           className={`text-gray-400 transition-transform duration-200 ${
@@ -92,15 +88,8 @@ export default function UserDropdown({ userName, userEmail }: UserDropdownProps)
         >
           {/* User Info Header */}
           <div className="px-3.5 py-2 border-b border-gray-100">
-            <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">
-              Signed in as
-            </p>
-            <p className="text-xs font-bold text-gray-900 truncate capitalize mt-0.5">
-              {userName || 'User'}
-            </p>
-            {userEmail ? (
-              <p className="text-[11px] text-gray-500 truncate mt-0.5">{userEmail}</p>
-            ) : null}
+            <p className="text-xs font-bold text-gray-900">My Account</p>
+            <p className="text-[11px] text-gray-500">Manage orders & account</p>
           </div>
 
           {/* Navigation Links */}
