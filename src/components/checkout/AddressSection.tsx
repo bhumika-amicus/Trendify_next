@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { MapPin, Plus, X, Pencil } from 'lucide-react';
 import Input from '@/components/common/Input';
 import Select from '@/components/common/Select';
@@ -16,12 +16,9 @@ interface AddressSectionProps {
   errors: Partial<Record<keyof ShippingAddressFormData, string>>;
   onChange: (field: keyof ShippingAddressFormData, value: string) => void;
   savedAddresses: AddressDto[];
-  selectedAddressId: number | null;
-  onSelectAddress: (address: AddressDto) => void;
-  onEditAddress?: (address: AddressDto) => void;
-  isAddingNewAddress: boolean;
-  formMode?: 'create' | 'edit';
-  onToggleAddNewAddress: (addingNew: boolean) => void;
+  onAddressSelectionChange: (addressId: number | null) => void;
+  onSelectSavedAddress: (address: AddressDto) => void;
+  onClearAddressFields: () => void;
   initialCountries?: string[];
   initialStates?: StateOption[];
   initialCities?: string[];
@@ -32,16 +29,26 @@ export default function AddressSection({
   errors,
   onChange,
   savedAddresses,
-  selectedAddressId,
-  onSelectAddress,
-  onEditAddress,
-  isAddingNewAddress,
-  formMode = 'create',
-  onToggleAddNewAddress,
+  onAddressSelectionChange,
+  onSelectSavedAddress,
+  onClearAddressFields,
   initialCountries = [],
   initialStates = [],
   initialCities = [],
 }: AddressSectionProps) {
+  const hasSavedAddresses = savedAddresses.length > 0;
+  const defaultAddr =
+    savedAddresses.find((a) => a.isDefault) || savedAddresses[0] || null;
+
+  // Local UI presentation state: whether we show saved cards or the address form
+  const [isAddingNewAddress, setIsAddingNewAddress] = useState<boolean>(
+    !hasSavedAddresses
+  );
+  const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
+  const [selectedAddressId, setSelectedAddressId] = useState<number | null>(
+    defaultAddr?.addressId ?? null
+  );
+
   const {
     countries,
     states,
@@ -60,14 +67,12 @@ export default function AddressSection({
 
   // Lazy-load locations on mount ONLY if the user has NO saved addresses
   const hasInitializedRef = useRef(false);
-  const hasSavedAddresses = savedAddresses.length > 0;
   const showAddressForm = !hasSavedAddresses || isAddingNewAddress;
 
   useEffect(() => {
     if (hasInitializedRef.current) return;
     hasInitializedRef.current = true;
 
-    // Only eager-fetch if there are no saved addresses and the form is shown on mount
     if (!hasSavedAddresses && formData.country) {
       void loadAddressLocations(formData.country, formData.state);
     }
@@ -87,17 +92,19 @@ export default function AddressSection({
   };
 
   const handleSelect = (addr: AddressDto) => {
-    onSelectAddress(addr);
+    setSelectedAddressId(addr.addressId);
+    setIsAddingNewAddress(false);
+    onAddressSelectionChange(addr.addressId);
+    onSelectSavedAddress(addr);
   };
 
-  // Event-driven edit: load states and cities atomically when the user clicks 'Edit'
   const handleEdit = (addr: AddressDto) => {
-    if (onEditAddress) {
-      onEditAddress(addr);
-    } else {
-      onSelectAddress(addr);
-      onToggleAddNewAddress(true);
-    }
+    setSelectedAddressId(addr.addressId);
+    setFormMode('edit');
+    setIsAddingNewAddress(true);
+    // When editing, send null as selectedAddressId so backend saves updated address as new or updated
+    onAddressSelectionChange(null);
+    onSelectSavedAddress(addr);
 
     if (addr.country) {
       void loadAddressLocations(addr.country, addr.state);
@@ -105,8 +112,19 @@ export default function AddressSection({
   };
 
   const handleToggleAddNew = (addingNew: boolean) => {
-    onToggleAddNewAddress(addingNew);
-    resetLocations();
+    setIsAddingNewAddress(addingNew);
+
+    if (addingNew) {
+      setFormMode('create');
+      setSelectedAddressId(null);
+      onAddressSelectionChange(null);
+      onClearAddressFields();
+      resetLocations();
+    } else if (defaultAddr) {
+      setSelectedAddressId(defaultAddr.addressId);
+      onAddressSelectionChange(defaultAddr.addressId);
+      onSelectSavedAddress(defaultAddr);
+    }
   };
 
   return (
