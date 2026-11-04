@@ -1,18 +1,18 @@
 import { serverApiFetch } from './serverApi';
 import type {
-  AddressDto,
-  CreateAddressRequest,
+  Address,
+  CreateAddressInput,
   CreateAddressResponse,
-  UpdateAddressRequest,
+  UpdateAddressInput,
 } from '@/types';
 
 export async function getAddressesServer(
   token?: string,
   signal?: AbortSignal
-): Promise<AddressDto[]> {
+): Promise<Address[]> {
   if (!token) return [];
 
-  const res = await serverApiFetch<AddressDto[]>('/api/v1/addresses', {
+  const res = await serverApiFetch<Address[]>('/api/v1/addresses', {
     method: 'GET',
     token,
     signal,
@@ -25,7 +25,7 @@ export async function getAddressesServer(
 export async function getDefaultAddressServer(
   token?: string,
   signal?: AbortSignal
-): Promise<AddressDto | null> {
+): Promise<Address | null> {
   const addresses = await getAddressesServer(token, signal);
   if (!addresses.length) return null;
   return addresses.find((a) => a.isDefault) || addresses[0] || null;
@@ -33,7 +33,7 @@ export async function getDefaultAddressServer(
 
 export async function createAddressServer(
   token: string,
-  address: CreateAddressRequest
+  address: CreateAddressInput
 ): Promise<CreateAddressResponse | null> {
   const res = await serverApiFetch<CreateAddressResponse>('/api/v1/addresses', {
     method: 'POST',
@@ -54,7 +54,7 @@ export async function createAddressServer(
 export async function updateAddressServer(
   token: string,
   addressId: number,
-  address: CreateAddressRequest | UpdateAddressRequest
+  address: UpdateAddressInput
 ): Promise<boolean> {
   const res = await serverApiFetch<void>(`/api/v1/addresses/${addressId}`, {
     method: 'PUT',

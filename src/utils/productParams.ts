@@ -1,4 +1,4 @@
-import { ProductSortBy, SortOrder, type ProductSearchParams } from '@/types';
+import type { ProductSortBy, SortOrder, ProductSearchParams } from '@/types';
 import { getValidInt, getValidFloat } from './urlHelpers';
 
 export interface ParsedProductParams {
@@ -62,16 +62,18 @@ export function parseProductSearchParams(
     maxPrice = undefined;
   }
 
-  // 2. Validate enum sorts
+  // 2. Validate sorts (string literal unions)
   const rawSortBy = urlParams.get('sortBy');
-  const isValidSortBy = (val: string | null): val is ProductSortBy =>
-    Object.values(ProductSortBy).some((v) => v === val);
-  const sortBy = isValidSortBy(rawSortBy) ? rawSortBy : undefined;
+  const sortBy: ProductSortBy | undefined =
+    rawSortBy === 'name' || rawSortBy === 'price' || rawSortBy === 'rating'
+      ? rawSortBy
+      : undefined;
 
   const rawSortOrder = urlParams.get('sortOrder');
-  const isValidSortOrder = (val: string | null): val is SortOrder =>
-    Object.values(SortOrder).some((v) => v === val);
-  const sortOrder = isValidSortOrder(rawSortOrder) ? rawSortOrder : undefined;
+  const sortOrder: SortOrder | undefined =
+    rawSortOrder === 'asc' || rawSortOrder === 'desc'
+      ? rawSortOrder
+      : undefined;
 
   // 3. Determine active filter presence
   const hasFacetFilters = Boolean(

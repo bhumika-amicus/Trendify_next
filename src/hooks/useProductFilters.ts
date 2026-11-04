@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { ProductSortBy, SortOrder } from '@/types';
+import type { ProductSortBy, SortOrder } from '@/types';
 import { parseProductSearchParams } from '@/utils/productParams';
 
 export function useProductFilters() {

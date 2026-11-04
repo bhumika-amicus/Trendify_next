@@ -5,16 +5,16 @@ import ContactInfoSection from './ContactInfoSection';
 import AddressSection from './AddressSection';
 import DeliverySpeedSection from './DeliverySpeedSection';
 import type { ShippingAddressFormData } from '@/schemas/checkout';
-import type { AddressDto } from '@/types';
+import type { Address } from '@/types';
 import type { StateOption } from '@/services/locationService';
 
 interface ShippingStepProps {
   formData: ShippingAddressFormData;
   errors: Partial<Record<keyof ShippingAddressFormData, string>>;
   onFieldChange: (field: keyof ShippingAddressFormData, value: string) => void;
-  savedAddresses: AddressDto[];
+  savedAddresses: Address[];
   onAddressSelectionChange: (addressId: number | null) => void;
-  onSelectSavedAddress: (address: AddressDto) => void;
+  onSelectSavedAddress: (address: Address) => void;
   onClearAddressFields: () => void;
   initialCountries?: string[];
   initialStates?: StateOption[];

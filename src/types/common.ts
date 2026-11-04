@@ -1,3 +1,6 @@
+/**
+ * Common shared entity types and generic utilities.
+ */
 
 export interface Category {
   categoryId: number;
@@ -9,7 +12,6 @@ export interface Brand {
   name: string;
 }
 
-
 export interface PaginationMetadata {
   page: number;
   pageSize: number;
@@ -17,6 +19,3 @@ export interface PaginationMetadata {
   totalPages: number;
 }
 
-export interface PaginatedResult<T> extends PaginationMetadata {
-  products: T[];
-}

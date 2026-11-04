@@ -2,7 +2,7 @@
 
 import { X } from 'lucide-react';
 import Button from '@/components/common/Button';
-import { ProductSortBy, SortOrder } from '@/types';
+import type { ProductSortBy, SortOrder } from '@/types';
 import { SORT_OPTIONS } from './filterConfig';
 import { FilterSectionHeader } from './FilterSectionHeader';
 

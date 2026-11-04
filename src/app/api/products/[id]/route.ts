@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidateTag, revalidatePath } from 'next/cache';
 import { DOTNET_API_BASE_URL } from '@/config';
-import { toClientProduct, toDotnetUpdatePayload } from '@/lib/productAdapter';
-import type { ProductDto, UpdateProductDto } from '@/types';
+import { toClientProduct, toDotnetProductPayload } from '@/lib/productAdapter';
+import type { ProductDto, ProductInput } from '@/types';
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -126,14 +126,14 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     }
 
     // 3. Send PUT to .NET API using reverse adapter
-    const updateDto: UpdateProductDto = {
+    const updateDto: ProductInput = {
       name,
       description,
       categoryId,
       brandId,
       rating,
     };
-    const updatePayload = toDotnetUpdatePayload(updateDto);
+    const updatePayload = toDotnetProductPayload(updateDto);
 
     const upstreamUrl = `${DOTNET_API_BASE_URL}/api/v1/Products/${id}`;
 

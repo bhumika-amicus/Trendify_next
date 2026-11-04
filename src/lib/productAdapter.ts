@@ -1,13 +1,21 @@
 import type {
   ProductDto,
-  CreateProductDto,
-  UpdateProductDto,
-  DotnetCreateProductPayload,
-  DotnetUpdateProductPayload,
+  ProductInput,
   Product,
   ProductSearchResultDto,
   ProductSearchResult,
 } from '@/types';
+
+/**
+ * Outbound payload expected by upstream .NET POST /api/v1/Products and PUT /api/v1/Products/{id}
+ */
+export interface DotnetProductPayload {
+  name: string;
+  description: string;
+  categoryId: number;
+  brandId: number;
+  rating: number;
+}
 
 /**
  * Transforms a .NET ProductDto into the Product shape used across the React app.
@@ -47,26 +55,11 @@ export function toClientSearchResult(
 }
 
 /**
- * Transforms an incoming client CreateProductDto into the payload shape expected by .NET API.
+ * Transforms an incoming client ProductInput into the payload shape expected by .NET API.
  */
-export function toDotnetCreatePayload(
-  dto: CreateProductDto
-): DotnetCreateProductPayload {
-  return {
-    name: dto.name.trim(),
-    description: dto.description ? String(dto.description).trim() : '',
-    categoryId: Number(dto.categoryId),
-    brandId: Number(dto.brandId),
-    rating: typeof dto.rating === 'number' && !isNaN(dto.rating) ? dto.rating : 0,
-  };
-}
-
-/**
- * Transforms an incoming client UpdateProductDto into the payload shape expected by .NET API.
- */
-export function toDotnetUpdatePayload(
-  dto: UpdateProductDto
-): DotnetUpdateProductPayload {
+export function toDotnetProductPayload(
+  dto: ProductInput
+): DotnetProductPayload {
   return {
     name: dto.name.trim(),
     description: dto.description ? String(dto.description).trim() : '',

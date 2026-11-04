@@ -4,14 +4,14 @@ import type {
   CheckoutResponse,
   MockPaymentRequest,
   MockPaymentResponse,
-  OrderSummaryItemDto,
+  OrderSummaryItem,
   OrderHistoryResponse,
 } from '@/types';
 
 export async function getRecentOrdersServer(
   token?: string,
   limit = 3
-): Promise<OrderSummaryItemDto[]> {
+): Promise<OrderSummaryItem[]> {
   if (!token) return [];
 
   const res = await serverApiFetch<OrderHistoryResponse>(

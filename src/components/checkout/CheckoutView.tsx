@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-import type { CartItem, AddressDto } from '@/types';
+import type { CartItem, Address } from '@/types';
 import type { PaymentMethod } from '@/schemas/checkout';
 import type { StateOption } from '@/services/locationService';
 import { placeOrderAction } from '@/actions/order';
@@ -17,7 +17,7 @@ import ReviewStep from './ReviewStep';
 
 interface CheckoutViewProps {
   initialItems: CartItem[];
-  initialAddresses: AddressDto[];
+  initialAddresses: Address[];
   initialCountries: string[];
   initialStates?: StateOption[];
   initialCities?: string[];

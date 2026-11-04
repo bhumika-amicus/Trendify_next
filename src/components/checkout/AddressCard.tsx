@@ -2,13 +2,13 @@
 
 import React from 'react';
 import { Pencil, MapPin, CheckCircle2, Circle, Trash2, Loader2 } from 'lucide-react';
-import type { AddressDto } from '@/types';
+import type { Address } from '@/types';
 
 interface AddressCardProps {
-  address: AddressDto;
+  address: Address;
   isSelected: boolean;
-  onSelect: (address: AddressDto) => void;
-  onEdit: (address: AddressDto) => void;
+  onSelect: (address: Address) => void;
+  onEdit: (address: Address) => void;
   onDelete?: (addressId: number) => void;
   isDeleting?: boolean;
 }

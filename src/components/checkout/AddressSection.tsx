@@ -7,7 +7,7 @@ import Select from '@/components/common/Select';
 import Button from '@/components/common/Button';
 import AddressCard from './AddressCard';
 import type { ShippingAddressFormData } from '@/schemas/checkout';
-import type { AddressDto } from '@/types';
+import type { Address } from '@/types';
 import type { StateOption } from '@/services/locationService';
 import { useLocationCascade } from '@/hooks/useLocationCascade';
 
@@ -15,9 +15,9 @@ interface AddressSectionProps {
   formData: ShippingAddressFormData;
   errors: Partial<Record<keyof ShippingAddressFormData, string>>;
   onChange: (field: keyof ShippingAddressFormData, value: string) => void;
-  savedAddresses: AddressDto[];
+  savedAddresses: Address[];
   onAddressSelectionChange: (addressId: number | null) => void;
-  onSelectSavedAddress: (address: AddressDto) => void;
+  onSelectSavedAddress: (address: Address) => void;
   onClearAddressFields: () => void;
   initialCountries?: string[];
   initialStates?: StateOption[];
@@ -91,14 +91,14 @@ export default function AddressSection({
     }
   };
 
-  const handleSelect = (addr: AddressDto) => {
+  const handleSelect = (addr: Address) => {
     setSelectedAddressId(addr.addressId);
     setIsAddingNewAddress(false);
     onAddressSelectionChange(addr.addressId);
     onSelectSavedAddress(addr);
   };
 
-  const handleEdit = (addr: AddressDto) => {
+  const handleEdit = (addr: Address) => {
     setSelectedAddressId(addr.addressId);
     setFormMode('edit');
     setIsAddingNewAddress(true);

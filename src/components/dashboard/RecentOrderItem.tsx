@@ -1,10 +1,10 @@
 import Button from '@/components/common/Button';
-import type { OrderSummaryItemDto } from '@/types';
+import type { OrderSummaryItem } from '@/types';
 import { formatINR, formatDate } from '@/utils/formatters';
 import OrderStatusBadge from './OrderStatusBadge';
 
 interface RecentOrderItemProps {
-  order: OrderSummaryItemDto;
+  order: OrderSummaryItem;
 }
 
 /**

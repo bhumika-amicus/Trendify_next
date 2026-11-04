@@ -19,10 +19,12 @@ export function CategoryFilter({
   onToggleCategory,
 }: CategoryFilterProps) {
   return (
-    <CheckboxFilterGroup
+    <CheckboxFilterGroup<Category>
       title="Category"
       section="category"
       items={categories}
+      getItemId={(c) => c.categoryId}
+      getItemName={(c) => c.name}
       selectedId={selectedCategoryId}
       isOpen={isOpen}
       onToggle={onToggle}

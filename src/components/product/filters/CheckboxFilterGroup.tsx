@@ -3,17 +3,12 @@
 import { FilterSectionHeader } from './FilterSectionHeader';
 import type { FilterSection } from './filterConfig';
 
-export interface FilterItem {
-  id?: number;
-  categoryId?: number;
-  brandId?: number;
-  name: string;
-}
-
-export interface CheckboxFilterGroupProps {
+export interface CheckboxFilterGroupProps<T> {
   title: string;
   section: FilterSection;
-  items: FilterItem[];
+  items: T[];
+  getItemId: (item: T) => number;
+  getItemName: (item: T) => string;
   selectedId?: number;
   isOpen: boolean;
   onToggle: () => void;
@@ -22,17 +17,19 @@ export interface CheckboxFilterGroupProps {
   emptyMessage?: string;
 }
 
-export function CheckboxFilterGroup({
+export function CheckboxFilterGroup<T>({
   title,
   section,
   items,
+  getItemId,
+  getItemName,
   selectedId,
   isOpen,
   onToggle,
   onSelect,
   hasTopMargin = true,
   emptyMessage = 'No items found.',
-}: CheckboxFilterGroupProps) {
+}: CheckboxFilterGroupProps<T>) {
   return (
     <>
       <FilterSectionHeader
@@ -47,7 +44,8 @@ export function CheckboxFilterGroup({
           <p className="text-sm text-gray-500 py-1 italic">{emptyMessage}</p>
         ) : (
           items.map((item) => {
-            const itemId = item.categoryId ?? item.brandId ?? item.id ?? 0;
+            const itemId = getItemId(item);
+            const itemName = getItemName(item);
             return (
               <label
                 key={itemId}
@@ -59,7 +57,7 @@ export function CheckboxFilterGroup({
                   checked={selectedId === itemId}
                   onChange={() => onSelect(itemId)}
                 />
-                <span className="truncate">{item.name}</span>
+                <span className="truncate">{itemName}</span>
               </label>
             );
           })

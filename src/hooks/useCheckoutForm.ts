@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
-import type { CartItem, AddressDto } from '@/types';
+import type { CartItem, Address } from '@/types';
 import {
   ShippingAddressSchema,
   SHIPPING_RATES,
@@ -11,7 +11,7 @@ import { calculateCheckoutSummary } from '@/utils/cartCalculations';
 
 export interface UseCheckoutFormProps {
   initialItems: CartItem[];
-  defaultAddress: AddressDto | null;
+  defaultAddress: Address | null;
 }
 
 export function useCheckoutForm({
@@ -71,7 +71,7 @@ export function useCheckoutForm({
   );
 
   // Atomically populate address fields when a saved address card is selected
-  const setAddressFromSaved = useCallback((addr: AddressDto) => {
+  const setAddressFromSaved = useCallback((addr: Address) => {
     setFormData((prev) => ({
       ...prev,
       address: addr.addressLine1,

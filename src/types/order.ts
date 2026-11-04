@@ -1,6 +1,7 @@
 import type { ShippingMethod, PaymentMethod } from '@/schemas/checkout';
+import type { PaginationMetadata } from './common';
 
-export interface AddressDto {
+export interface Address {
   addressId: number;
   customerId?: number;
   addressLine1: string;
@@ -12,27 +13,11 @@ export interface AddressDto {
   isDefault: boolean;
 }
 
-export interface CreateAddressRequest {
-  addressId?: number;
-  customerId?: number;
-  addressLine1: string;
-  addressLine2?: string | null;
-  city: string;
-  state: string;
-  postalCode: string;
-  country: string;
-  isDefault: boolean;
-}
+export type CreateAddressInput = Omit<Address, 'addressId' | 'customerId'>;
 
-export interface UpdateAddressRequest {
-  addressLine1: string;
-  addressLine2?: string | null;
-  city: string;
-  state: string;
-  postalCode: string;
-  country: string;
-  isDefault: boolean;
-}
+//Payload for updating an address. Any subset of user-editable fields.
+
+export type UpdateAddressInput = Partial<CreateAddressInput>;
 
 export interface CreateAddressResponse {
   addressId: number;
@@ -85,7 +70,7 @@ export interface MockPaymentResponse {
   message?: string;
 }
 
-export interface OrderSummaryItemDto {
+export interface OrderSummaryItem {
   orderId: number;
   customerId: number;
   subtotal: number;
@@ -99,53 +84,7 @@ export interface OrderSummaryItemDto {
   updatedBy?: number | null;
 }
 
-export interface OrderHistoryResponse {
-  orders: OrderSummaryItemDto[];
-  page: number;
-  pageSize: number;
-  totalRecords: number;
-  totalPages: number;
+export interface OrderHistoryResponse extends PaginationMetadata {
+  orders: OrderSummaryItem[];
 }
 
-export interface OrderItemDetail {
-  orderItemId: number;
-  productId: number;
-  productName: string;
-  quantity: number;
-  price: number;
-  itemSubtotal: number;
-}
-
-export interface OrderShippingDetail {
-  shippingName: string;
-  shippingAddress: string;
-  shippingCity: string;
-  shippingState: string;
-  shippingPostalCode: string;
-  shippingMethod: string;
-  shippingCharge: number;
-}
-
-export interface OrderPaymentDetail {
-  paymentId: number;
-  orderId: number;
-  paymentStatus: string;
-  paymentMethod: string | null;
-  amount: number;
-  transactionReference: string;
-  createdAt: string;
-}
-
-export interface OrderDetailDto {
-  orderId: number;
-  customerId: number;
-  subtotal: number;
-  shippingCharge: number;
-  tax: number;
-  totalAmount: number;
-  orderStatus: string;
-  createdAt: string;
-  items: OrderItemDetail[];
-  shipping: OrderShippingDetail;
-  payment: OrderPaymentDetail | null;
-}

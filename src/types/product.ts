@@ -1,8 +1,5 @@
-import type { PaginatedResult } from './common';
+import type { PaginationMetadata } from './common';
 
-/**
- * Domain entity representing a product in the frontend application.
- */
 export interface Product {
   id: number;
   name: string;
@@ -31,64 +28,20 @@ export interface ProductDto {
   rating: number;
 }
 
-/**
- * Client DTO for creating a new product.
- */
-export interface CreateProductDto {
+export interface ProductInput {
   name: string;
   description?: string;
-  price: number;
+  price?: number;
   categoryId: number;
   brandId: number;
   rating?: number;
-}
-
-/**
- * Client DTO for updating an existing product.
- */
-export interface UpdateProductDto {
-  name: string;
-  description?: string;
-  categoryId: number;
-  brandId: number;
-  rating?: number;
-}
-
-/**
- * Outbound payload expected by .NET POST /api/v1/Products
- */
-export interface DotnetCreateProductPayload {
-  name: string;
-  description: string;
-  categoryId: number;
-  brandId: number;
-  rating: number;
-}
-
-/**
- * Outbound payload expected by .NET PUT /api/v1/Products/{id}
- */
-export interface DotnetUpdateProductPayload {
-  name: string;
-  description: string;
-  categoryId: number;
-  brandId: number;
-  rating: number;
 }
 
 /**
  * Sorting keys and direction for products.
  */
-export enum ProductSortBy {
-  Name = 'name',
-  Price = 'price',
-  Rating = 'rating',
-}
-
-export enum SortOrder {
-  Asc = 'asc',
-  Desc = 'desc',
-}
+export type ProductSortBy = 'name' | 'price' | 'rating';
+export type SortOrder = 'asc' | 'desc';
 
 /**
  * Parameters for searching, filtering, and paginating products.
@@ -107,7 +60,13 @@ export interface ProductSearchParams {
 }
 
 /**
- * Aliases for paginated product results.
+ * Paginated product search results extending shared PaginationMetadata.
  */
-export type ProductSearchResult = PaginatedResult<Product>;
-export type ProductSearchResultDto = PaginatedResult<ProductDto>;
+export interface ProductSearchResult extends PaginationMetadata {
+  products: Product[];
+}
+
+export interface ProductSearchResultDto extends PaginationMetadata {
+  products: ProductDto[];
+}
+

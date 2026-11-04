@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidateTag, revalidatePath } from 'next/cache';
 import { DOTNET_API_BASE_URL } from '@/config';
-import { toClientSearchResult, toDotnetCreatePayload } from '@/lib/productAdapter';
-import type { ProductSearchResultDto, CreateProductDto } from '@/types';
+import { toClientSearchResult, toDotnetProductPayload } from '@/lib/productAdapter';
+import type { ProductSearchResultDto, ProductInput } from '@/types';
 
 /**
  * GET /api/products
@@ -141,7 +141,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 3.  Create Product Shell in .NET API using reverse adapter
-    const createDto: CreateProductDto = {
+    const createDto: ProductInput = {
       name,
       description,
       price,
@@ -149,7 +149,7 @@ export async function POST(request: NextRequest) {
       brandId,
       rating,
     };
-    const productPayload = toDotnetCreatePayload(createDto);
+    const productPayload = toDotnetProductPayload(createDto);
 
     const productResponse = await fetch(`${DOTNET_API_BASE_URL}/api/v1/Products`, {
       method: 'POST',

@@ -19,10 +19,12 @@ export function BrandFilter({
   onToggleBrand,
 }: BrandFilterProps) {
   return (
-    <CheckboxFilterGroup
+    <CheckboxFilterGroup<Brand>
       title="Brand"
       section="brand"
       items={brands}
+      getItemId={(b) => b.brandId}
+      getItemName={(b) => b.name}
       selectedId={selectedBrandId}
       isOpen={isOpen}
       onToggle={onToggle}

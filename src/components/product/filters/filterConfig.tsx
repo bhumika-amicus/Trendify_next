@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { ArrowRight } from 'lucide-react';
-import { ProductSortBy, SortOrder } from '@/types';
+import type { ProductSortBy, SortOrder } from '@/types';
 
 export type FilterSection = 'category' | 'brand' | 'price' | 'rating' | 'sort';
 
@@ -43,9 +43,9 @@ export interface SortOptionConfig {
 
 export const SORT_OPTIONS: SortOptionConfig[] = [
   {
-    type: ProductSortBy.Name,
+    type: 'name',
     label: 'Name',
-    defaultOrder: SortOrder.Asc,
+    defaultOrder: 'asc',
     directionGroupName: 'sort-direction-name',
     directions: [
       {
@@ -54,7 +54,7 @@ export const SORT_OPTIONS: SortOptionConfig[] = [
             A <ArrowRight size={14} className="inline mx-0.5" /> Z
           </>
         ),
-        order: SortOrder.Asc,
+        order: 'asc',
       },
       {
         label: (
@@ -62,14 +62,14 @@ export const SORT_OPTIONS: SortOptionConfig[] = [
             Z <ArrowRight size={14} className="inline mx-0.5" /> A
           </>
         ),
-        order: SortOrder.Desc,
+        order: 'desc',
       },
     ],
   },
   {
-    type: ProductSortBy.Price,
+    type: 'price',
     label: 'Price',
-    defaultOrder: SortOrder.Asc,
+    defaultOrder: 'asc',
     directionGroupName: 'sort-direction-price',
     directions: [
       {
@@ -78,7 +78,7 @@ export const SORT_OPTIONS: SortOptionConfig[] = [
             Low <ArrowRight size={14} className="inline mx-0.5" /> High
           </>
         ),
-        order: SortOrder.Asc,
+        order: 'asc',
       },
       {
         label: (
@@ -86,14 +86,14 @@ export const SORT_OPTIONS: SortOptionConfig[] = [
             High <ArrowRight size={14} className="inline mx-0.5" /> Low
           </>
         ),
-        order: SortOrder.Desc,
+        order: 'desc',
       },
     ],
   },
   {
-    type: ProductSortBy.Rating,
+    type: 'rating',
     label: 'Ratings',
-    defaultOrder: SortOrder.Desc,
+    defaultOrder: 'desc',
     directionGroupName: 'sort-direction-rating',
     directions: [
       {
@@ -102,7 +102,7 @@ export const SORT_OPTIONS: SortOptionConfig[] = [
             High <ArrowRight size={14} className="inline mx-0.5" /> Low
           </>
         ),
-        order: SortOrder.Desc,
+        order: 'desc',
       },
       {
         label: (
@@ -110,7 +110,7 @@ export const SORT_OPTIONS: SortOptionConfig[] = [
             Low <ArrowRight size={14} className="inline mx-0.5" /> High
           </>
         ),
-        order: SortOrder.Asc,
+        order: 'asc',
       },
     ],
   },
