@@ -1,13 +1,12 @@
-/**
- * Core Cart Entity and Order Summary types.
- */
+
 export interface CartItem {
+  cartItemId?: number;
   productId: number;
   productName: string;
   price: number;
-  imageUrl?: string;
   quantity: number;
   itemSubtotal: number;
+  imageUrl?: string;
 }
 
 export interface CartSummary {
@@ -16,13 +15,4 @@ export interface CartSummary {
   tax: number;
   finalTotal: number;
   totalCount: number;
-}
-
-export interface BackendCartItemDto {
-  cartItemId: number;
-  productId: number;
-  productName: string;
-  quantity: number;
-  price: number;
-  itemSubtotal: number;
 }

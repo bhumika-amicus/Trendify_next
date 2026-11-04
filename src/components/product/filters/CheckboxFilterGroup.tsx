@@ -4,7 +4,9 @@ import { FilterSectionHeader } from './FilterSectionHeader';
 import type { FilterSection } from './filterConfig';
 
 export interface FilterItem {
-  id: number;
+  id?: number;
+  categoryId?: number;
+  brandId?: number;
   name: string;
 }
 
@@ -44,20 +46,23 @@ export function CheckboxFilterGroup({
         {items.length === 0 ? (
           <p className="text-sm text-gray-500 py-1 italic">{emptyMessage}</p>
         ) : (
-          items.map((item) => (
-            <label
-              key={item.id}
-              className="mb-2 flex cursor-pointer items-center gap-1.5 rounded px-1 text-sm text-gray-600 transition-colors hover:text-gray-900"
-            >
-              <input
-                type="checkbox"
-                className="accent-brand-orange focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2"
-                checked={selectedId === item.id}
-                onChange={() => onSelect(item.id)}
-              />
-              <span className="truncate">{item.name}</span>
-            </label>
-          ))
+          items.map((item) => {
+            const itemId = item.categoryId ?? item.brandId ?? item.id ?? 0;
+            return (
+              <label
+                key={itemId}
+                className="mb-2 flex cursor-pointer items-center gap-1.5 rounded px-1 text-sm text-gray-600 transition-colors hover:text-gray-900"
+              >
+                <input
+                  type="checkbox"
+                  className="accent-brand-orange focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange focus-visible:ring-offset-2"
+                  checked={selectedId === itemId}
+                  onChange={() => onSelect(itemId)}
+                />
+                <span className="truncate">{item.name}</span>
+              </label>
+            );
+          })
         )}
       </section>
     </>

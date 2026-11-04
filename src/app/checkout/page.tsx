@@ -6,7 +6,6 @@ import CheckoutView from '@/components/checkout/CheckoutView';
 import { getAddressesServer } from '@/services/serverAddressService';
 import { getBackendCart } from '@/services/serverCartService';
 import { getCountries } from '@/services/locationService';
-import type { CartItem } from '@/types';
 
 export const metadata: Metadata = {
   title: 'Secure Checkout | Trendify',
@@ -23,20 +22,11 @@ export default async function CheckoutPage() {
   }
 
   // Parallel server hydration: Authoritative Azure Cart, Saved Addresses & Countries
-  const [backendCart, savedAddresses, initialCountries] = await Promise.all([
+  const [items, savedAddresses, initialCountries] = await Promise.all([
     getBackendCart(sessionToken),
     getAddressesServer(sessionToken),
     getCountries().catch(() => []),
   ]);
-
-  const items: CartItem[] = backendCart.map((item) => ({
-    productId: item.productId,
-    productName: item.productName,
-    price: item.price,
-    imageUrl: '',
-    quantity: item.quantity,
-    itemSubtotal: item.price * item.quantity,
-  }));
 
   // Empty cart guard: Instantly redirect before sending HTML to browser
   if (!items || items.length === 0) {

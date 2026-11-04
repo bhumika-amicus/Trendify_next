@@ -4,7 +4,6 @@ import { redirect } from 'next/navigation';
 import Breadcrumbs from '@/components/common/Breadcrumbs';
 import CartView from '@/components/cart/CartView';
 import { getBackendCart } from '@/services/serverCartService';
-import type { CartItem } from '@/types';
 
 export const metadata: Metadata = {
   title: 'Shopping Cart | Trendify',
@@ -20,15 +19,7 @@ export default async function CartPage() {
     redirect('/login?callbackUrl=/cart');
   }
 
-  const backendCart = await getBackendCart(sessionToken);
-  const items: CartItem[] = backendCart.map((item) => ({
-    productId: item.productId,
-    productName: item.productName,
-    price: item.price,
-    imageUrl: '',
-    quantity: item.quantity,
-    itemSubtotal: item.price * item.quantity,
-  }));
+  const items = await getBackendCart(sessionToken);
 
   return (
     <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto w-full min-h-[60vh]">

@@ -1,8 +1,8 @@
 import { serverApiFetch } from './serverApi';
-import type { BackendCartItemDto } from '@/types';
+import type { CartItem } from '@/types';
 
-export async function getBackendCart(token: string): Promise<BackendCartItemDto[]> {
-  const res = await serverApiFetch<BackendCartItemDto[]>('/api/v1/cart', {
+export async function getBackendCart(token: string): Promise<CartItem[]> {
+  const res = await serverApiFetch<CartItem[]>('/api/v1/cart', {
     method: 'GET',
     token,
     cache: 'no-store',

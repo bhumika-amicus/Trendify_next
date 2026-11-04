@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { DOTNET_API_BASE_URL } from '@/config';
-import type { CategoryDto, Category } from '@/types';
+import type { Category } from '@/types';
 
 export async function GET() {
   try {
@@ -21,13 +21,8 @@ export async function GET() {
       );
     }
 
-    const data: CategoryDto[] = await response.json();
-    const categories: Category[] = (data || []).map((c) => ({
-      id: c.categoryId,
-      name: c.name,
-    }));
-
-    return NextResponse.json(categories, { status: 200 });
+    const categories: Category[] = await response.json();
+    return NextResponse.json(Array.isArray(categories) ? categories : [], { status: 200 });
   } catch (error) {
     console.error('Error in GET /api/categories handler:', error);
     return NextResponse.json(

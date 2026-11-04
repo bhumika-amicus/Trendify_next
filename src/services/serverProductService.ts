@@ -9,9 +9,7 @@ import type {
   ProductDto,
   Product,
   Category,
-  CategoryDto,
   Brand,
-  BrandDto,
 } from '@/types';
 
 function isDynamicServerError(error: unknown): boolean {
@@ -139,11 +137,8 @@ export async function getCategoriesServer(): Promise<Category[]> {
       console.error(`[CATEGORIES] Upstream failure [${response.status}]`);
       return [];
     }
-    const data: CategoryDto[] = await response.json();
-    return (data || []).map((c) => ({
-      id: c.categoryId,
-      name: c.name,
-    }));
+    const data: Category[] = await response.json();
+    return Array.isArray(data) ? data : [];
   } catch (error) {
     if (isDynamicServerError(error)) {
       throw error;
@@ -169,11 +164,8 @@ export async function getBrandsServer(): Promise<Brand[]> {
       console.error(`[BRANDS] Upstream failure [${response.status}]`);
       return [];
     }
-    const data: BrandDto[] = await response.json();
-    return (data || []).map((b) => ({
-      id: b.brandId,
-      name: b.name,
-    }));
+    const data: Brand[] = await response.json();
+    return Array.isArray(data) ? data : [];
   } catch (error) {
     if (isDynamicServerError(error)) {
       throw error;
