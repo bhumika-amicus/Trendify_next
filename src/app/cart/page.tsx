@@ -12,11 +12,6 @@ export const metadata: Metadata = {
     'Review your cart items, quantities, subtotal, and proceed to secure checkout on Trendify.',
 };
 
-/**
- * Shopping Cart Page (React Server Component)
- * Enforces authentication, hydrates cart directly from the authoritative Azure .NET backend,
- * synchronizes the lightweight count cookie, and renders the interactive CartView.
- */
 export default async function CartPage() {
   const cookieStore = await cookies();
   const sessionToken = cookieStore.get('session')?.value;

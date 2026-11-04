@@ -25,12 +25,6 @@ export interface AuthActionState {
   redirectTo?: string;
 }
 
-/**
- * Server Action for User Login.
- * Validates inputs using Zod, calls the Azure upstream API,
- * establishes a session via httpOnly cookies, revalidates layout caches,
- * and redirects the user to callbackUrl or the homepage.
- */
 export async function loginAction(
   prevState: AuthActionState | null,
   formData: FormData
@@ -139,11 +133,6 @@ export async function loginAction(
   }
 }
 
-/**
- * Server Action for User Registration.
- * Validates inputs with Zod, calls Azure /api/auth/register with { name, email, password }
- * and on success redirects to /login?registered=true.
- */
 export async function registerAction(
   prevState: AuthActionState | null,
   formData: FormData
@@ -243,10 +232,6 @@ export async function registerAction(
   return { success: true };
 }
 
-/**
- * Server Action for User Logout.
- * Clears the session cookies, invalidates layout caches, and redirects to the login page.
- */
 export async function logoutAction(): Promise<void> {
   const cookieStore = await cookies();
   cookieStore.delete('session');
@@ -261,10 +246,7 @@ export async function logoutAction(): Promise<void> {
   redirect('/login');
 }
 
-/**
- * Server Action to securely inspect if the user has an active session cookie.
- * Does not expose or store any plaintext PII in client cookies.
- */
+
 export async function getAuthSessionAction(): Promise<{ isLoggedIn: boolean }> {
   const cookieStore = await cookies();
   const sessionToken = cookieStore.get('session')?.value;

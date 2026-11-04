@@ -2,18 +2,8 @@
 
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
-import {
-  AddToCartSchema,
-  UpdateCartQuantitySchema,
-  RemoveCartItemSchema,
-} from '@/schemas/cart';
-import {
-  addBackendCartItem,
-  updateBackendCartItem,
-  removeBackendCartItem,
-  clearBackendCart,
-  getBackendCartCount,
-} from '@/services/serverCartService';
+import { AddToCartSchema, UpdateCartQuantitySchema, RemoveCartItemSchema } from '@/schemas/cart';
+import { addBackendCartItem, updateBackendCartItem,  removeBackendCartItem, clearBackendCart,  getBackendCartCount} from '@/services/serverCartService';
 
 export interface CartActionResult {
   success: boolean;
@@ -23,10 +13,6 @@ export interface CartActionResult {
   error?: string;
 }
 
-/**
- * Server Action to fetch the authenticated user's current cart count
- * directly from the authoritative backend database.
- */
 export async function getCartCountAction(): Promise<number> {
   try {
     const cookieStore = await cookies();
@@ -40,14 +26,8 @@ export async function getCartCountAction(): Promise<number> {
   }
 }
 
-/**
- * Server Action to add an item to the cart.
- * Requires user authentication, syncs with Azure .NET backend,
- * updates the lightweight cart count cookie, and revalidates /cart.
- */
-export async function addToCartAction(
-  rawInput: unknown
-): Promise<CartActionResult> {
+
+export async function addToCartAction( rawInput: unknown ): Promise<CartActionResult> {
   const cookieStore = await cookies();
   const sessionToken = cookieStore.get('session')?.value;
 
@@ -58,9 +38,7 @@ export async function addToCartAction(
       error: 'Please log in to add items to your cart.',
     };
   }
-
   const parsed = AddToCartSchema.safeParse(rawInput);
-
   if (!parsed.success) {
     return {
       success: false,
@@ -98,10 +76,6 @@ export async function addToCartAction(
   }
 }
 
-/**
- * Server Action to update the quantity of an item in the cart.
- * Syncs with Azure .NET backend and updates the count cookie.
- */
 export async function updateCartQuantityAction(
   rawInput: unknown
 ): Promise<CartActionResult> {
@@ -155,10 +129,6 @@ export async function updateCartQuantityAction(
   }
 }
 
-/**
- * Server Action to remove an item completely from the cart.
- * Syncs with Azure .NET backend and updates the count cookie.
- */
 export async function removeCartItemAction(
   rawInput: unknown
 ): Promise<CartActionResult> {
@@ -205,9 +175,7 @@ export async function removeCartItemAction(
   }
 }
 
-/**
- * Server Action to clear the entire cart.
- */
+
 export async function clearCartAction(): Promise<CartActionResult> {
   const cookieStore = await cookies();
   const sessionToken = cookieStore.get('session')?.value;
