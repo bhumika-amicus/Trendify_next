@@ -88,3 +88,41 @@ export interface OrderHistoryResponse extends PaginationMetadata {
   orders: OrderSummaryItem[];
 }
 
+export interface OrderItemDetail {
+  orderItemId: number;
+  productId: number;
+  productName: string;
+  quantity: number;
+  price: number;
+  itemSubtotal: number;
+}
+
+export interface OrderShippingDetail {
+  shippingName?: string;
+  shippingAddress?: string;
+  shippingCity?: string;
+  shippingState?: string;
+  shippingPostalCode?: string;
+  shippingMethod?: string;
+  shippingCharge?: number;
+}
+
+export interface OrderPaymentDetail {
+  paymentId?: number;
+  orderId?: number;
+  paymentMethod?: string | null;
+  paymentStatus?: string | null;
+  amount?: number;
+  transactionReference?: string | null;
+}
+
+export interface OrderDetail extends OrderSummaryItem {
+  items: OrderItemDetail[];
+  shipping?: OrderShippingDetail | null;
+  payment?: OrderPaymentDetail | null;
+}
+
+export type OrderFilterStatus = 'all' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+
+export type OrderBadgeStatus = 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
+
