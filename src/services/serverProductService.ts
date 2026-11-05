@@ -1,7 +1,7 @@
 
 import { cache } from 'react';
 import { DOTNET_API_BASE_URL } from '@/config';
-import { toClientSearchResult, toClientProduct } from '@/lib/productAdapter';
+import { toClientSearchResult, toClientProduct } from '@/utils/productAdapter';
 import type {
   ProductSearchParams,
   ProductSearchResult,

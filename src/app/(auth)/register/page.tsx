@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { getCurrentUser } from '@/lib/session';
+import { getCurrentUser } from '@/utils/session';
 import RegisterForm from './RegisterForm';
 
 export const metadata = {

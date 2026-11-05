@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { getCurrentUser } from '@/lib/session';
+import { getCurrentUser } from '@/utils/session';
 import LoginForm from './LoginForm';
 
 interface LoginPageProps {

@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
-import { getCurrentUser } from '@/lib/session';
+import { getCurrentUser } from '@/utils/session';
 import DefaultAddressSection from '@/components/dashboard/DefaultAddressSection';
 import AddressSkeleton from '@/components/dashboard/AddressSkeleton';
 import RecentOrdersSection from '@/components/dashboard/RecentOrdersSection';

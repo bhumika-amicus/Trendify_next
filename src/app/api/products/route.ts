@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidateTag, revalidatePath } from 'next/cache';
 import { DOTNET_API_BASE_URL } from '@/config';
-import { toClientSearchResult, toDotnetProductPayload } from '@/lib/productAdapter';
+import { toClientSearchResult, toDotnetProductPayload } from '@/utils/productAdapter';
 import type { ProductSearchResultDto, ProductInput } from '@/types';
 
 /**
