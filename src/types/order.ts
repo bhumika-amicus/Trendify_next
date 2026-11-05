@@ -15,8 +15,6 @@ export interface Address {
 
 export type CreateAddressInput = Omit<Address, 'addressId' | 'customerId'>;
 
-//Payload for updating an address. Any subset of user-editable fields.
-
 export type UpdateAddressInput = Partial<CreateAddressInput>;
 
 export interface CreateAddressResponse {
@@ -123,6 +121,4 @@ export interface OrderDetail extends OrderSummaryItem {
 }
 
 export type OrderFilterStatus = 'all' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-
-export type OrderBadgeStatus = 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
 

@@ -134,7 +134,8 @@ export default function CheckoutView({
       resetCart();
 
       toast.success('Order placed successfully!', { id: toastId, duration: 4000 });
-      router.push('/orders');
+      const targetUrl = res.orderId ? `/orders?orderId=${res.orderId}` : '/orders';
+      router.push(targetUrl);
     } catch (err) {
       console.error('Failed to submit order:', err);
       toast.error('Something went wrong while placing your order. Please try again.', {

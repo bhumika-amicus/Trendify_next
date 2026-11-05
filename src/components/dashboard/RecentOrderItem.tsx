@@ -1,7 +1,7 @@
 import Button from '@/components/common/Button';
 import type { OrderSummaryItem } from '@/types';
 import { formatINR, formatDate } from '@/utils/formatters';
-import OrderStatusBadge from './OrderStatusBadge';
+import OrderStatusBadge from '@/components/orders/OrderStatusBadge';
 
 interface RecentOrderItemProps {
   order: OrderSummaryItem;
@@ -10,6 +10,7 @@ interface RecentOrderItemProps {
 /**
  * Presentation Component:
  * Renders an individual order row in the Recent Orders section.
+ * Deep-links to /orders?orderId=... to auto-expand details on the orders page.
  */
 export default function RecentOrderItem({ order }: RecentOrderItemProps) {
   const formattedOrderId = `ORD-2026-${order.orderId.toString().padStart(3, '0')}`;
@@ -36,7 +37,11 @@ export default function RecentOrderItem({ order }: RecentOrderItemProps) {
           </p>
         </div>
 
-        <Button href="/orders" variant="secondary" size="sm">
+        <Button
+          href={`/orders?orderId=${order.orderId}`}
+          variant="secondary"
+          size="sm"
+        >
           Details
         </Button>
       </div>

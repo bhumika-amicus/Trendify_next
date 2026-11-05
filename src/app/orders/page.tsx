@@ -1,53 +1,109 @@
-import Link from 'next/link';
-import { Package, ArrowLeft } from 'lucide-react';
+import { redirect } from 'next/navigation';
+import { getCurrentUser } from '@/utils/session';
+import {
+  getOrderHistoryServer,
+  getOrderDetailServer,
+} from '@/services/serverOrderService';
+import Breadcrumbs from '@/components/common/Breadcrumbs';
+import StateMessage from '@/components/common/StateMessage';
+import OrderFilterTabs from '@/components/orders/OrderFilterTabs';
+import OrderListView from '@/components/orders/OrderListView';
 
 export const metadata = {
   title: 'My Orders | Trendify',
-  description: 'View your recent order history and order tracking on Trendify.',
+  description: 'Track delivery progress, inspect items, and reorder from your purchase history on Trendify.',
 };
 
-export default function OrdersPage() {
+interface OrdersPageProps {
+  searchParams: Promise<{
+    status?: string;
+    orderId?: string;
+  }>;
+}
+
+export default async function OrdersPage({ searchParams }: OrdersPageProps) {
+  const user = await getCurrentUser();
+  if (!user) {
+    redirect('/login?callbackUrl=/orders');
+  }
+
+  const { status, orderId } = await searchParams;
+
+  // Strict positive-integer validation
+  const numOrderId = Number(orderId);
+  const parsedOrderId =
+    Number.isInteger(numOrderId) && numOrderId > 0 ? numOrderId : undefined;
+
+  // Concurrently prefetch order history and targeted order details on the server
+  const [historyResult, targetedDetailResult] = await Promise.all([
+    getOrderHistoryServer(user.token, { status }),
+    parsedOrderId
+      ? getOrderDetailServer(user.token, parsedOrderId)
+      : Promise.resolve(null),
+  ]);
+
+  const initialDetail = targetedDetailResult?.success ? targetedDetailResult.order ?? null : null;
+  const initialDetailError =
+    targetedDetailResult && !targetedDetailResult.success
+      ? targetedDetailResult.error ?? 'Unable to load order details.'
+      : null;
+
+  // Safe retry link preserving active status filter
+  const retryHref = status
+    ? `/orders?${new URLSearchParams({ status }).toString()}`
+    : '/orders';
+
   return (
-    <div className="max-w-4xl mx-auto px-4 py-12 sm:px-6 lg:px-8 w-full">
-      <div className="flex items-center gap-3 mb-8">
-        <Link
-          href="/"
-          className="text-gray-500 hover:text-brand-orange transition-colors flex items-center gap-1 text-sm"
-        >
-          <ArrowLeft size={16} /> Back to Shopping
-        </Link>
+    <div className="mx-auto min-h-[60vh] w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      <Breadcrumbs />
+
+      <div className="mb-6">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
+          My <span className="text-brand-orange">Orders</span>
+        </h1>
+        <p className="mt-1 text-sm text-gray-500">
+          Track delivery progress, inspect ordered items, and reorder from your past purchases.
+        </p>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 sm:p-10">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-full bg-brand-orange/10 flex items-center justify-center text-brand-orange">
-            <Package size={22} />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Your Orders</h1>
-            <p className="text-sm text-gray-500">
-              Track, return, or buy items again.
-            </p>
-          </div>
-        </div>
+      <OrderFilterTabs activeStatus={status} />
 
-        <div className="mt-8 border-t border-gray-100 pt-6">
-          <div className="rounded-lg bg-gray-50 p-6 text-center border border-dashed border-gray-200">
-            <p className="text-gray-600 font-medium">
-              You currently have 0 open orders.
-            </p>
-            <p className="text-xs text-gray-400 mt-1">
-              (This is a protected page guarded by Next.js Middleware)
-            </p>
-            <Link
-              href="/products"
-              className="inline-block mt-4 px-6 py-2.5 bg-brand-orange text-white rounded-md text-sm font-semibold hover:bg-brand-orange/90 transition-colors shadow-sm"
-            >
-              Start Shopping
-            </Link>
-          </div>
-        </div>
-      </div>
+      {/* Backend Error State */}
+      {historyResult.error && (
+        <StateMessage
+          variant="error"
+          title="Failed to load orders"
+          message={historyResult.error}
+          buttonText="Retry"
+          actionHref={retryHref}
+          className="my-8"
+        />
+      )}
+
+      {/* Empty State */}
+      {!historyResult.error && historyResult.orders.length === 0 && (
+        <StateMessage
+          variant="empty"
+          title="No orders yet"
+          message={
+            status && status !== 'all'
+              ? `You have no ${status.toLowerCase()} orders at the moment.`
+              : 'Looks like you have not placed any orders yet. Start shopping to explore our latest arrivals!'
+          }
+          buttonText={status && status !== 'all' ? 'View All Orders' : 'Start Shopping'}
+          actionHref={status && status !== 'all' ? '/orders' : '/products'}
+          className="my-8"
+        />
+      )}
+
+      {!historyResult.error && historyResult.orders.length > 0 && (
+        <OrderListView
+          orders={historyResult.orders}
+          initialOrderId={parsedOrderId}
+          initialDetail={initialDetail}
+          initialDetailError={initialDetailError}
+        />
+      )}
     </div>
   );
 }

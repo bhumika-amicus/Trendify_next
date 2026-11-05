@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { PlaceOrderSchema } from '@/schemas/checkout';
-import { clearBackendCart } from '@/services/serverCartService';
+import { clearBackendCart, getBackendCartCount } from '@/services/serverCartService';
 import {
   createAddressServer,
   getAddressesServer,
@@ -12,7 +12,10 @@ import {
 import {
   createCheckoutServer,
   processMockPaymentServer,
+  getOrderDetailServer,
+  reorderOrderServer,
 } from '@/services/serverOrderService';
+import type { OrderDetail } from '@/types';
 
 const OrderActionPayloadSchema = PlaceOrderSchema.extend({
   selectedAddressId: z.number().nullable().optional(),
@@ -167,6 +170,116 @@ export async function placeOrderAction(
     return {
       success: false,
       error: 'An unexpected error occurred while placing your order.',
+    };
+  }
+}
+
+export interface ReorderActionResult {
+  success: boolean;
+  requireAuth?: boolean;
+  count?: number;
+  message?: string;
+  error?: string;
+}
+
+export async function reorderAction(
+  orderId: number
+): Promise<ReorderActionResult> {
+  const cookieStore = await cookies();
+  const sessionToken = cookieStore.get('session')?.value;
+
+  if (!sessionToken) {
+    return {
+      success: false,
+      requireAuth: true,
+      error: 'Please log in to reorder items.',
+    };
+  }
+
+  if (typeof orderId !== 'number' || orderId <= 0 || isNaN(orderId)) {
+    return {
+      success: false,
+      error: 'Invalid order reference.',
+    };
+  }
+
+  try {
+    const res = await reorderOrderServer(sessionToken, orderId);
+
+    if (!res.success) {
+      return {
+        success: false,
+        error: res.error || 'Failed to reorder items. Some products may be unavailable.',
+      };
+    }
+
+    // Invalidate cart path cache on the server
+    revalidatePath('/cart');
+
+    // Retrieve fresh backend cart badge count
+    const totalCount = await getBackendCartCount(sessionToken);
+
+    return {
+      success: true,
+      count: totalCount,
+      message: res.message || 'Items from order added to cart successfully.',
+    };
+  } catch (error) {
+    console.error(`[ORDER] Failed to reorder items for order #${orderId}:`, error);
+    return {
+      success: false,
+      error: 'Failed to reorder items. Please try again.',
+    };
+  }
+}
+
+export interface FetchOrderDetailResult {
+  success: boolean;
+  requireAuth?: boolean;
+  order?: OrderDetail | null;
+  error?: string;
+}
+
+export async function fetchOrderDetailAction(
+  orderId: number
+): Promise<FetchOrderDetailResult> {
+  const cookieStore = await cookies();
+  const sessionToken = cookieStore.get('session')?.value;
+
+  if (!sessionToken) {
+    return {
+      success: false,
+      requireAuth: true,
+      error: 'Please log in to view order details.',
+    };
+  }
+
+  if (typeof orderId !== 'number' || orderId <= 0 || isNaN(orderId)) {
+    return {
+      success: false,
+      error: 'Invalid order reference.',
+    };
+  }
+
+  try {
+    const res = await getOrderDetailServer(sessionToken, orderId);
+
+    if (!res.success || !res.order) {
+      return {
+        success: false,
+        error: res.error || 'Order details could not be found.',
+      };
+    }
+
+    return {
+      success: true,
+      order: res.order,
+    };
+  } catch (error) {
+    console.error(`[ORDER] Failed to fetch order details for order #${orderId}:`, error);
+    return {
+      success: false,
+      error: 'Failed to load order details.',
     };
   }
 }
