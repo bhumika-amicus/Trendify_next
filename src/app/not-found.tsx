@@ -13,7 +13,7 @@ export default function NotFound() {
       </h1>
 
       <p className="text-lg text-gray-600 max-w-md mx-auto mb-10">
-       Oops! The page you're looking for doesn't exist or may have been moved.
+        Oops! The page you&apos;re looking for doesn&apos;t exist or may have been moved.
       </p>
 
       <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-sm sm:max-w-none mx-auto">

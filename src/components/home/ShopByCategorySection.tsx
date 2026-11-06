@@ -1,25 +1,16 @@
 import { getCategoriesServer } from '@/services/serverProductService';
 import ShopByCategory from '@/components/product/ShopByCategory';
 import StateMessage from '@/components/common/StateMessage';
-import type { Category } from '@/types';
 
 /**
- * Async Server Component for Shop By Category.
+ * Async Server Component for Shop by Category section.
  * Fetches categories on the server and streams independently inside a Suspense boundary.
- * Renders unified StateMessage on failure.
+ * Renders an inline error state if the service is down, or an empty state if no categories exist.
  */
 export default async function ShopByCategorySection() {
-  let categories: Category[] | null = null;
-  let hasError = false;
+  const categories = await getCategoriesServer();
 
-  try {
-    categories = await getCategoriesServer();
-  } catch (error) {
-    console.error('[CATEGORIES] Failed to load:', error);
-    hasError = true;
-  }
-
-  if (hasError || !categories) {
+  if (categories === null) {
     return (
       <section className="mx-auto max-w-350 px-12 pt-2 pb-12 max-[650px]:px-4.5 max-[650px]:pt-1 max-[650px]:pb-8">
         <div className="section-heading mb-6!">
@@ -37,5 +28,24 @@ export default async function ShopByCategorySection() {
     );
   }
 
+  if (categories.length === 0) {
+    return (
+      <section className="mx-auto max-w-350 px-12 pt-2 pb-12 max-[650px]:px-4.5 max-[650px]:pt-1 max-[650px]:pb-8">
+        <div className="section-heading mb-6!">
+          <h2>Shop by Category</h2>
+        </div>
+        <StateMessage
+          title="No categories available"
+          message="No categories are available at the moment. Please check back later."
+          buttonText="Browse Products"
+          actionHref="/products"
+          variant="empty"
+          compact
+        />
+      </section>
+    );
+  }
+
+  // 3. Success -> Render category grid
   return <ShopByCategory categories={categories} />;
 }

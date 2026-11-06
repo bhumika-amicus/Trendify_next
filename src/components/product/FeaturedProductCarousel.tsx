@@ -13,7 +13,6 @@ import 'swiper/css/pagination';
 import type { Product } from '@/types';
 import Button from '../common/Button';
 import ProductCard from './ProductCard';
-import StateMessage from '../common/StateMessage';
 
 interface FeaturedProductCarouselProps {
   products: Product[];
@@ -23,27 +22,6 @@ export default function FeaturedProductCarousel({
   products,
 }: FeaturedProductCarouselProps) {
   const swiperRef = useRef<SwiperInstance | null>(null);
-
-  if (products.length === 0) {
-    return (
-      <section
-        id="products"
-        className="w-full max-w-full overflow-hidden px-11 py-16 max-[650px]:px-4.5"
-      >
-        <div className="section-heading mb-6!">
-          <h2>Featured Products</h2>
-        </div>
-        <StateMessage
-          title="No products available."
-          message="The store is currently empty. Please check back later!"
-          buttonText="Browse Catalog"
-          actionHref="/products"
-          variant="empty"
-          compact
-        />
-      </section>
-    );
-  }
 
   return (
     <section

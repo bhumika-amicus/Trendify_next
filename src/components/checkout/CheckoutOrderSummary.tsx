@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { ShoppingBag, ArrowRight, ShieldCheck } from 'lucide-react';
+import { ShoppingBag, ArrowRight } from 'lucide-react';
 import type { CartItem } from '@/types';
 import Button from '@/components/common/Button';
 import { formatINR } from '@/utils/formatters';

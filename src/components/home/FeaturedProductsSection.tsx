@@ -1,26 +1,18 @@
-import { getProductsServer } from '@/services/serverProductService';
+import { getFeaturedProductsServer } from '@/services/serverProductService';
 import FeaturedProductCarousel from '@/components/product/FeaturedProductCarousel';
 import StateMessage from '@/components/common/StateMessage';
-import type { Product } from '@/types';
 
 /**
  * Async Server Component for Featured Products.
  * Fetches products on the server and streams independently inside a Suspense boundary.
- * Renders unified StateMessage on failure or empty catalog.
+ * Renders an inline error state if the service is down, or empty state if no products exist.
  */
 export default async function FeaturedProductsSection() {
-  let products: Product[] | null = null;
-  let hasError = false;
 
-  try {
-    const result = await getProductsServer({ pageSize: 8 });
-    products = result.products;
-  } catch (error) {
-    console.error('[FEATURED PRODUCTS] Failed to load:', error);
-    hasError = true;
-  }
+  const products = await getFeaturedProductsServer(8);
 
-  if (hasError || !products) {
+  // 1. Upstream failure -> Section-level error state with Retry
+  if (products === null) {
     return (
       <section className="w-full max-w-full overflow-hidden px-11 py-16 max-[650px]:px-4.5">
         <div className="section-heading mb-6!">
@@ -38,5 +30,25 @@ export default async function FeaturedProductsSection() {
     );
   }
 
+  // 2. Empty catalog -> Section-level empty state
+  if (products.length === 0) {
+    return (
+      <section className="w-full max-w-full overflow-hidden px-11 py-16 max-[650px]:px-4.5">
+        <div className="section-heading mb-6!">
+          <h2>Featured Products</h2>
+        </div>
+        <StateMessage
+          title="No featured products"
+          message="Check back soon for new arrivals."
+          buttonText="Browse Products"
+          actionHref="/products"
+          variant="empty"
+          compact
+        />
+      </section>
+    );
+  }
+
+  // 3. Success -> Render the carousel
   return <FeaturedProductCarousel products={products} />;
 }

@@ -1,6 +1,5 @@
-
 import { cache } from 'react';
-import { DOTNET_API_BASE_URL } from '@/config';
+import { serverApiFetch } from './serverApi';
 import { toClientSearchResult, toClientProduct } from '@/utils/productAdapter';
 import type {
   ProductSearchParams,
@@ -12,73 +11,72 @@ import type {
   Brand,
 } from '@/types';
 
-function isDynamicServerError(error: unknown): boolean {
-  return (
-    typeof error === 'object' &&
-    error !== null &&
-    'digest' in error &&
-    error.digest === 'DYNAMIC_SERVER_USAGE'
-  );
-}
-
+/**
+ * Fetches paginated and filtered product search results from the .NET API.
+ * Throws an error on upstream failure so that route-level Error Boundaries (error.tsx) can catch it.
+ */
 export async function getProductsServer(
   params: ProductSearchParams = {}
 ): Promise<ProductSearchResult> {
-  try {
-    const parsedPage = Math.max(1, Number(params.page) || 1);
-    const parsedPageSize = Math.min(
-      100,
-      Math.max(1, Number(params.pageSize) || 12)
-    );
+  const parsedPage = Math.max(1, Number(params.page) || 1);
+  const parsedPageSize = Math.min(
+    100,
+    Math.max(1, Number(params.pageSize) || 12)
+  );
 
-    const upstreamParams = new URLSearchParams();
-    upstreamParams.set('Page', String(parsedPage));
-    upstreamParams.set('PageSize', String(parsedPageSize));
+  const queryParams = new URLSearchParams();
+  queryParams.set('Page', String(parsedPage));
+  queryParams.set('PageSize', String(parsedPageSize));
 
-    const search = params.search?.trim();
-    if (search) upstreamParams.set('Search', search);
-    if (params.categoryId !== undefined) upstreamParams.set('CategoryId', String(params.categoryId));
-    if (params.brandId !== undefined) upstreamParams.set('BrandId', String(params.brandId));
-    if (params.minPrice !== undefined) upstreamParams.set('MinPrice', String(params.minPrice));
-    if (params.maxPrice !== undefined) upstreamParams.set('MaxPrice', String(params.maxPrice));
-    if (params.minRating !== undefined) upstreamParams.set('MinRating', String(params.minRating));
-    if (params.sortBy) upstreamParams.set('SortBy', params.sortBy);
-    if (params.sortOrder) upstreamParams.set('SortOrder', params.sortOrder);
+  const search = params.search?.trim();
+  if (search) queryParams.set('Search', search);
+  if (params.categoryId !== undefined) queryParams.set('CategoryId', String(params.categoryId));
+  if (params.brandId !== undefined) queryParams.set('BrandId', String(params.brandId));
+  if (params.minPrice !== undefined) queryParams.set('MinPrice', String(params.minPrice));
+  if (params.maxPrice !== undefined) queryParams.set('MaxPrice', String(params.maxPrice));
+  if (params.minRating !== undefined) queryParams.set('MinRating', String(params.minRating));
+  if (params.sortBy) queryParams.set('SortBy', params.sortBy);
+  if (params.sortOrder) queryParams.set('SortOrder', params.sortOrder);
 
-    const upstreamUrl = `${DOTNET_API_BASE_URL}/api/v1/Products/search?${upstreamParams.toString()}`;
+  const res = await serverApiFetch<ProductSearchResultDto>(
+    `/api/v1/Products/search?${queryParams.toString()}`,
+    { next: { revalidate: 60, tags: ['products'] } }
+  );
 
-    const response = await fetch(upstreamUrl, {
-      method: 'GET',
-      headers: {
-        Accept: 'application/json',
-      },
-      // Revalidate product search/listings every 60 seconds (ISR) with semantic tag invalidation
-      next: { revalidate: 60, tags: ['products'] },
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(
-        `Upstream error in getProductsServer [${response.status}]: ${errorText}`
-      );
-      throw new Error('Failed to load products from upstream service.');
-    }
-
-    const data: ProductSearchResultDto = await response.json();
-    return toClientSearchResult(data);
-  } catch (error) {
-    if (isDynamicServerError(error)) {
-      throw error;
-    }
-    console.error('Error in getProductsServer:', error);
-    throw new Error('The product service is currently unavailable. Please try again.');
+  if (!res.ok || !res.data) {
+    throw new Error(res.error || 'Failed to load products from upstream service.');
   }
+
+  return toClientSearchResult(res.data);
 }
 
 /**
- * Fetches a single product by ID from the upstream .NET API for Server Components.
- * Returns Product if found, null if 404, or throws if upstream crashes so error.tsx catches it.
- * Memoized per request lifecycle using React.cache() so generateMetadata and the page share one fetch.
+ * Fetches featured products for homepage widgets.
+ * Returns Product[] on success, or null on upstream failure so the widget
+ * can render an inline fallback without crashing the entire page.
+ */
+export async function getFeaturedProductsServer(
+  pageSize = 8
+): Promise<Product[] | null> {
+  const res = await serverApiFetch<ProductSearchResultDto>(
+    `/api/v1/Products/search?Page=1&PageSize=${pageSize}`,
+    { next: { revalidate: 60, tags: ['products'] } }
+  );
+
+  if (!res.ok || !res.data) {
+    console.error('[FEATURED PRODUCTS] Upstream failure:', res.error);
+    return null;
+  }
+
+  return toClientSearchResult(res.data).products;
+}
+
+/**
+ * Fetches a single product by ID from the upstream .NET API.
+ * - Returns Product if found
+ * - Returns null on 404 (handled by notFound() in page.tsx)
+ * - Throws on 500 / network error (handled by error.tsx)
+ * Memoized per request lifecycle using React.cache() so generateMetadata and page share one fetch.
  */
 export const getProductByIdServer = cache(
   async (id: number): Promise<Product | null> => {
@@ -86,91 +84,54 @@ export const getProductByIdServer = cache(
       return null;
     }
 
-    try {
-      const upstreamUrl = `${DOTNET_API_BASE_URL}/api/v1/Products/${id}`;
+    const res = await serverApiFetch<ProductDto>(`/api/v1/Products/${id}`, {
+      next: { revalidate: 60, tags: ['products', `product-${id}`] },
+    });
 
-      const response = await fetch(upstreamUrl, {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-        },
-        next: { revalidate: 60, tags: ['products', `product-${id}`] },
-      });
-
-      if (response.status === 404) {
-        return null;
-      }
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(
-          `Upstream error in getProductByIdServer for ID ${id} [${response.status}]: ${errorText}`
-        );
-        return null;
-      }
-
-      const data: ProductDto = await response.json();
-      return toClientProduct(data);
-    } catch (error) {
-      if (isDynamicServerError(error)) {
-        throw error;
-      }
-      console.error(`Error in getProductByIdServer for ID ${id}:`, error);
+    if (res.status === 404) {
       return null;
     }
+
+    if (!res.ok || !res.data) {
+      throw new Error(res.error || `Failed to load product details for ID ${id}`);
+    }
+
+    return toClientProduct(res.data);
   }
 );
 
 /**
- * Server-side helper to fetch categories for Server Layouts or Server Components.
+ * Fetches categories for layouts, navigation, and sidebar filters.
+ * - Returns Category[] on success (empty array if store has 0 categories)
+ * - Returns null on upstream failure (500 or offline)
  */
-export async function getCategoriesServer(): Promise<Category[]> {
-  try {
-    const upstreamUrl = `${DOTNET_API_BASE_URL}/api/Categories?api-version=1`;
-    const response = await fetch(upstreamUrl, {
-      method: 'GET',
-      headers: { Accept: 'application/json' },
-      next: { revalidate: 300, tags: ['categories'] },
-    });
+export async function getCategoriesServer(): Promise<Category[] | null> {
+  const res = await serverApiFetch<Category[]>('/api/Categories?api-version=1', {
+    next: { revalidate: 300, tags: ['categories'] },
+  });
 
-    if (!response.ok) {
-      console.error(`[CATEGORIES] Upstream failure [${response.status}]`);
-      return [];
-    }
-    const data: Category[] = await response.json();
-    return Array.isArray(data) ? data : [];
-  } catch (error) {
-    if (isDynamicServerError(error)) {
-      throw error;
-    }
-    console.error('Error in getCategoriesServer:', error);
-    return [];
+  if (!res.ok) {
+    console.error('[CATEGORIES] Upstream failure:', res.error);
+    return null;
   }
+
+  return Array.isArray(res.data) ? res.data : [];
 }
 
 /**
- * Server-side helper to fetch brands for Server Layouts or Server Components.
+ * Fetches brands for filter sidebars and product forms.
+ * - Returns Brand[] on success (empty array if 0 brands exist)
+ * - Returns null on upstream failure
  */
-export async function getBrandsServer(): Promise<Brand[]> {
-  try {
-    const upstreamUrl = `${DOTNET_API_BASE_URL}/api/Brands?api-version=1`;
-    const response = await fetch(upstreamUrl, {
-      method: 'GET',
-      headers: { Accept: 'application/json' },
-      next: { revalidate: 300, tags: ['brands'] },
-    });
+export async function getBrandsServer(): Promise<Brand[] | null> {
+  const res = await serverApiFetch<Brand[]>('/api/Brands?api-version=1', {
+    next: { revalidate: 300, tags: ['brands'] },
+  });
 
-    if (!response.ok) {
-      console.error(`[BRANDS] Upstream failure [${response.status}]`);
-      return [];
-    }
-    const data: Brand[] = await response.json();
-    return Array.isArray(data) ? data : [];
-  } catch (error) {
-    if (isDynamicServerError(error)) {
-      throw error;
-    }
-    console.error('Error in getBrandsServer:', error);
-    return [];
+  if (!res.ok) {
+    console.error('[BRANDS] Upstream failure:', res.error);
+    return null;
   }
+
+  return Array.isArray(res.data) ? res.data : [];
 }

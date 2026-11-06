@@ -15,5 +15,10 @@ export default async function FilterSidebarSection() {
     getBrandsServer(),
   ]);
 
-  return <FilterSidebar categories={categories} brands={brands} />;
+  return (
+    <FilterSidebar
+      categories={categories ?? []}
+      brands={brands ?? []}
+    />
+  );
 }
