@@ -8,7 +8,11 @@ export async function getBackendCart(token: string): Promise<CartItem[]> {
     cache: 'no-store',
   });
 
-  return Array.isArray(res.data) ? res.data : [];
+  if (!res.ok || !res.data) {
+    throw new Error(res.error || 'Failed to retrieve shopping cart.');
+  }
+
+  return res.data;
 }
 
 export async function getBackendCartCount(token: string): Promise<number> {

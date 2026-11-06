@@ -19,7 +19,7 @@ export default function ProductDetailError({
     <div className="mx-auto min-h-[50vh] w-full max-w-7xl px-4 py-12 sm:px-6 md:px-10">
       <StateMessage
         title="Unable to load product"
-        message={error.message || 'The product service is temporarily unavailable.'}
+        message="We encountered an issue retrieving this product. Please try again or explore other items."
         variant="error"
       >
         <div className="mt-4 flex flex-wrap items-center justify-center gap-3">

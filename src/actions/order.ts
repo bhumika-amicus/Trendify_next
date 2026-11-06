@@ -71,7 +71,7 @@ export async function placeOrderAction(
 
     // 1. Verify address ownership or create new address in backend database
     if (resolvedAddressId) {
-      const userAddresses = await getAddressesServer(sessionToken);
+      const userAddresses = (await getAddressesServer(sessionToken)) ?? [];
       const isOwner = userAddresses.some((a) => a.addressId === resolvedAddressId);
       if (!isOwner) {
         return {

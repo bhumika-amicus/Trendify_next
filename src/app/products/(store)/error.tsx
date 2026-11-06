@@ -19,10 +19,7 @@ export default function StoreError({
     <div className="w-full py-8">
       <StateMessage
         title="Unable to load products"
-        message={
-          error.message ||
-          'Our catalog service is currently experiencing technical difficulties. Please try again.'
-        }
+        message="Our catalog service is currently experiencing technical difficulties. Please try again."
         variant="error"
       >
         <div className="mt-6 flex flex-wrap items-center justify-center gap-3">

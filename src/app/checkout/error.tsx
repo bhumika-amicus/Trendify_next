@@ -19,10 +19,7 @@ export default function CheckoutError({
     <div className="mx-auto min-h-[55vh] w-full max-w-4xl px-4 py-16 sm:px-6 md:px-8 flex items-center justify-center">
       <StateMessage
         title="Unable to Load Checkout"
-        message={
-          error.message ||
-          'We were unable to prepare your checkout session. Your cart items are safe. Please try refreshing or return to your cart.'
-        }
+        message="We were unable to prepare your checkout session. Your cart items are safe. Please try refreshing or return to your cart."
         variant="error"
         buttonText="Try Again"
         onAction={reset}

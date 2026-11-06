@@ -38,7 +38,7 @@ export default async function CheckoutPage() {
       <Breadcrumbs />
       <CheckoutView
         initialItems={items}
-        initialAddresses={savedAddresses}
+        initialAddresses={savedAddresses ?? []}
         initialCountries={initialCountries}
       />
     </div>

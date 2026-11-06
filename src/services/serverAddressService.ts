@@ -9,7 +9,7 @@ import type {
 export async function getAddressesServer(
   token?: string,
   signal?: AbortSignal
-): Promise<Address[]> {
+): Promise<Address[] | null> {
   if (!token) return [];
 
   const res = await serverApiFetch<Address[]>('/api/v1/addresses', {
@@ -19,16 +19,30 @@ export async function getAddressesServer(
     cache: 'no-store',
   });
 
+  if (!res.ok) {
+    console.error('[ADDRESS_API] getAddressesServer failed:', res.error);
+    return null;
+  }
+
   return Array.isArray(res.data) ? res.data : [];
 }
 
 export async function getDefaultAddressServer(
   token?: string,
   signal?: AbortSignal
-): Promise<Address | null> {
+): Promise<{ address: Address | null; error?: string }> {
   const addresses = await getAddressesServer(token, signal);
-  if (!addresses.length) return null;
-  return addresses.find((a) => a.isDefault) || addresses[0] || null;
+
+  if (addresses === null) {
+    return { address: null, error: 'Failed to retrieve shipping address from server.' };
+  }
+
+  if (!addresses.length) {
+    return { address: null };
+  }
+
+  const defaultAddr = addresses.find((a) => a.isDefault) || addresses[0] || null;
+  return { address: defaultAddr };
 }
 
 export async function createAddressServer(

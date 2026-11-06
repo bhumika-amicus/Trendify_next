@@ -169,7 +169,7 @@ export async function reorderOrderServer(
 export async function getRecentOrdersServer(
   token?: string,
   limit = 3
-): Promise<OrderSummaryItem[]> {
+): Promise<OrderSummaryItem[] | null> {
   if (!token) return [];
 
   const res = await serverApiFetch<OrderHistoryResponse>(
@@ -180,6 +180,11 @@ export async function getRecentOrdersServer(
       cache: 'no-store',
     }
   );
+
+  if (!res.ok) {
+    console.error('[ORDER_API] getRecentOrdersServer failed:', res.error);
+    return null;
+  }
 
   return Array.isArray(res.data?.orders) ? res.data.orders : [];
 }

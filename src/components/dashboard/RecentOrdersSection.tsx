@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Package, ArrowRight, PackageOpen } from 'lucide-react';
 import { getRecentOrdersServer } from '@/services/serverOrderService';
 import RecentOrderItem from './RecentOrderItem';
+import StateMessage from '@/components/common/StateMessage';
 
 interface RecentOrdersSectionProps {
   token?: string;
@@ -10,10 +11,32 @@ interface RecentOrdersSectionProps {
 /**
  * Async Server Component:
  * Fetches and displays recent orders for the customer.
- * Uses simulated latency to demonstrate independent Suspense streaming.
+ * Streams independently inside a Suspense boundary.
+ * Renders an inline error state on failure, or an empty state if no orders exist.
  */
 export default async function RecentOrdersSection({ token }: RecentOrdersSectionProps) {
   const orders = await getRecentOrdersServer(token, 3);
+
+  // 1. Upstream failure -> Section-level error state with Retry
+  if (orders === null) {
+    return (
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 sm:p-8 space-y-6">
+        <div className="flex items-center justify-between pb-4 border-b border-gray-100">
+          <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider flex items-center gap-1.5">
+            <Package size={16} className="text-brand-orange" /> Recent Orders
+          </h3>
+        </div>
+        <StateMessage
+          title="Unable to load recent orders"
+          message="We're having trouble connecting to our servers right now. Please try again."
+          buttonText="Retry"
+          actionHref="/dashboard"
+          variant="error"
+          compact
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 sm:p-8 space-y-6">
