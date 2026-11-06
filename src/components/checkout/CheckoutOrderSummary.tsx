@@ -136,7 +136,6 @@ export default function CheckoutOrderSummary({
               isLoading={isSubmitting}
               className="w-full uppercase tracking-wider py-3 flex items-center justify-center gap-2 text-sm shadow-sm"
             >
-              <ShieldCheck size={18} />
               <span>PLACE ORDER</span>
             </Button>
           )}

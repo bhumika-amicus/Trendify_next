@@ -143,7 +143,7 @@ function OrderCard({
         <div className="flex items-center gap-2.5 sm:gap-3 shrink-0 self-end sm:self-center">
           {/* VIEW / HIDE DETAILS button (Uses outline variant to preserve clear visual hierarchy against the orange badge) */}
           <Button
-            variant="outline"
+            variant="secondary"
             size="sm"
             onClick={handleToggleExpand}
             aria-expanded={isExpanded}
