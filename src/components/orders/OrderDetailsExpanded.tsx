@@ -1,7 +1,7 @@
-import { Package, MapPin, CreditCard, Receipt, RotateCcw } from 'lucide-react';
+import { Package, MapPin, CreditCard, Receipt } from 'lucide-react';
 import type { OrderDetail } from '@/types';
 import { formatINR } from '@/utils/formatters';
-import Button from '@/components/common/Button';
+import StateMessage from '@/components/common/StateMessage';
 import OrderDetailsSkeleton from './OrderDetailsSkeleton';
 
 interface OrderDetailsExpandedProps {
@@ -24,28 +24,28 @@ export default function OrderDetailsExpanded({
   if (error) {
     return (
       <div className="mt-4 pt-4 border-t border-gray-100">
-        <div className="rounded-lg bg-red-50/70 border border-red-100 p-4 text-center space-y-2.5">
-          <p className="text-xs font-semibold text-red-700">{error}</p>
-          {onRetry && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onRetry}
-              className="inline-flex items-center gap-1.5 text-xs text-red-700 border-red-200 hover:bg-red-50"
-            >
-              <RotateCcw size={12} />
-              <span>Retry</span>
-            </Button>
-          )}
-        </div>
+        <StateMessage
+          variant="error"
+          compact
+          title="Failed to load details"
+          message={error}
+          buttonText={onRetry ? 'Retry' : undefined}
+          buttonVariant="outline"
+          onAction={onRetry}
+        />
       </div>
     );
   }
 
   if (!orderDetail) {
     return (
-      <div className="mt-4 pt-4 border-t border-gray-100 text-sm text-gray-500 text-center py-4">
-        Unable to load order details.
+      <div className="mt-4 pt-4 border-t border-gray-100">
+        <StateMessage
+          variant="info"
+          compact
+          title="No Details Available"
+          message="Unable to load order details for this item."
+        />
       </div>
     );
   }
