@@ -1,6 +1,7 @@
 import { Package, MapPin, CreditCard, Receipt, RotateCcw } from 'lucide-react';
 import type { OrderDetail } from '@/types';
 import { formatINR } from '@/utils/formatters';
+import Button from '@/components/common/Button';
 import OrderDetailsSkeleton from './OrderDetailsSkeleton';
 
 interface OrderDetailsExpandedProps {
@@ -26,14 +27,15 @@ export default function OrderDetailsExpanded({
         <div className="rounded-lg bg-red-50/70 border border-red-100 p-4 text-center space-y-2.5">
           <p className="text-xs font-semibold text-red-700">{error}</p>
           {onRetry && (
-            <button
-              type="button"
+            <Button
+              variant="outline"
+              size="sm"
               onClick={onRetry}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-red-700 hover:text-red-800 bg-white border border-red-200 rounded-md shadow-2xs hover:bg-red-50 transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-red-500 focus-visible:outline-offset-2"
+              className="inline-flex items-center gap-1.5 text-xs text-red-700 border-red-200 hover:bg-red-50"
             >
               <RotateCcw size={12} />
               <span>Retry</span>
-            </button>
+            </Button>
           )}
         </div>
       </div>

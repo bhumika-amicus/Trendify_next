@@ -4,14 +4,12 @@ import { useState, memo } from 'react';
 import { ChevronUp, ChevronDown } from 'lucide-react';
 import type { Category, Brand } from '@/types';
 import { useProductFilters } from '@/hooks/useProductFilters';
-import {
-  CategoryFilter,
-  BrandFilter,
-  PriceFilter,
-  RatingFilter,
-  SortFilter,
-  type FilterSection,
-} from './filters';
+import CategoryFilter from './filters/CategoryFilter';
+import BrandFilter from './filters/BrandFilter';
+import PriceFilter from './filters/PriceFilter';
+import RatingFilter from './filters/RatingFilter';
+import SortFilter from './filters/SortFilter';
+import type { FilterSection } from './filters/filterConfig';
 
 export interface FilterSidebarProps {
   categories?: Category[];

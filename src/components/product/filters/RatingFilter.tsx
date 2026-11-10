@@ -2,7 +2,7 @@
 
 import { Star } from 'lucide-react';
 import { RATING_OPTIONS } from './filterConfig';
-import { FilterSectionHeader } from './FilterSectionHeader';
+import FilterSectionHeader from './FilterSectionHeader';
 
 interface RatingFilterProps {
   minRating?: number;
@@ -11,7 +11,7 @@ interface RatingFilterProps {
   onToggleMinRating: (rating: number) => void;
 }
 
-export function RatingFilter({
+export default function RatingFilter({
   minRating,
   isOpen,
   onToggle,

@@ -11,7 +11,7 @@ interface FilterSectionHeaderProps {
   hasTopMargin?: boolean;
 }
 
-export function FilterSectionHeader({
+export default function FilterSectionHeader({
   title,
   section,
   isOpen,

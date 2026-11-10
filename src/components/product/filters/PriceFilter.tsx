@@ -1,7 +1,7 @@
 'use client';
 
 import { PRICE_RANGES } from './filterConfig';
-import { FilterSectionHeader } from './FilterSectionHeader';
+import FilterSectionHeader from './FilterSectionHeader';
 
 interface PriceFilterProps {
   minPrice?: number;
@@ -11,7 +11,7 @@ interface PriceFilterProps {
   onTogglePriceRange: (min?: number, max?: number) => void;
 }
 
-export function PriceFilter({
+export default function PriceFilter({
   minPrice,
   maxPrice,
   isOpen,

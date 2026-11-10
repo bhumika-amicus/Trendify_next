@@ -59,13 +59,6 @@ export async function generateMetadata({
     description:
       product.description ||
       `Buy ${product.name} at Trendify for ${formatINR(product.price)}. Fast delivery and guaranteed authenticity.`,
-    openGraph: {
-      title: product.name,
-      description:
-        product.description ||
-        `Buy ${product.name} at Trendify for ${formatINR(product.price)}.`,
-      images: product.imageUrl ? [{ url: product.imageUrl }] : [],
-    },
   };
 }
 

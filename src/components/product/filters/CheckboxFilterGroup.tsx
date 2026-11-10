@@ -1,6 +1,6 @@
 'use client';
 
-import { FilterSectionHeader } from './FilterSectionHeader';
+import FilterSectionHeader from './FilterSectionHeader';
 import type { FilterSection } from './filterConfig';
 
 export interface CheckboxFilterGroupProps<T> {
@@ -17,7 +17,7 @@ export interface CheckboxFilterGroupProps<T> {
   emptyMessage?: string;
 }
 
-export function CheckboxFilterGroup<T>({
+export default function CheckboxFilterGroup<T>({
   title,
   section,
   items,

@@ -1,7 +1,7 @@
 'use client';
 
 import type { Category } from '@/types';
-import { CheckboxFilterGroup } from './CheckboxFilterGroup';
+import CheckboxFilterGroup from './CheckboxFilterGroup';
 
 interface CategoryFilterProps {
   categories: Category[];
@@ -11,7 +11,7 @@ interface CategoryFilterProps {
   onToggleCategory: (id: number) => void;
 }
 
-export function CategoryFilter({
+export default function CategoryFilter({
   categories,
   selectedCategoryId,
   isOpen,

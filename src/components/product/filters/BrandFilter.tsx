@@ -1,7 +1,7 @@
 'use client';
 
 import type { Brand } from '@/types';
-import { CheckboxFilterGroup } from './CheckboxFilterGroup';
+import CheckboxFilterGroup from './CheckboxFilterGroup';
 
 interface BrandFilterProps {
   brands: Brand[];
@@ -11,7 +11,7 @@ interface BrandFilterProps {
   onToggleBrand: (id: number) => void;
 }
 
-export function BrandFilter({
+export default function BrandFilter({
   brands,
   selectedBrandId,
   isOpen,

@@ -4,7 +4,7 @@ import { X } from 'lucide-react';
 import Button from '@/components/common/Button';
 import type { ProductSortBy, SortOrder } from '@/types';
 import { SORT_OPTIONS } from './filterConfig';
-import { FilterSectionHeader } from './FilterSectionHeader';
+import FilterSectionHeader from './FilterSectionHeader';
 
 interface SortFilterProps {
   sortBy?: ProductSortBy;
@@ -15,7 +15,7 @@ interface SortFilterProps {
   onClearSort: () => void;
 }
 
-export function SortFilter({
+export default function SortFilter({
   sortBy,
   sortOrder,
   isOpen,
