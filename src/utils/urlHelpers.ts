@@ -29,3 +29,23 @@ export function getValidFloat(
   }
   return undefined;
 }
+
+// Constructs a clean pathname ,  Automatically strips out undefined, null, and empty string parameters.
+
+export function buildUrl(
+  basePath: string,
+  params?: Record<string, string | number | undefined | null>
+): string {
+  if (!params) return basePath;
+
+  const searchParams = new URLSearchParams();
+
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== null && String(value).trim() !== '') {
+      searchParams.set(key, String(value));
+    }
+  }
+
+  const queryString = searchParams.toString();
+  return queryString ? `${basePath}?${queryString}` : basePath;
+}

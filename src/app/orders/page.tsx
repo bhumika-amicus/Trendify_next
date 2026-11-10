@@ -9,6 +9,7 @@ import Breadcrumbs from '@/components/common/Breadcrumbs';
 import StateMessage from '@/components/common/StateMessage';
 import OrderFilterTabs from '@/components/orders/OrderFilterTabs';
 import OrderListView from '@/components/orders/OrderListView';
+import { buildUrl } from '@/utils/urlHelpers';
 
 export const metadata: Metadata = {
   title: 'My Orders',
@@ -49,10 +50,8 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
       ? targetedDetailResult.error ?? 'Unable to load order details.'
       : null;
 
-  // Safe retry link preserving active status filter
-  const retryHref = status
-    ? `/orders?${new URLSearchParams({ status }).toString()}`
-    : '/orders';
+
+  const retryHref = buildUrl('/orders', { status });
 
   return (
     <div className="mx-auto min-h-[60vh] w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
