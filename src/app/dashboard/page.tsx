@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/utils/session';
@@ -6,8 +7,8 @@ import AddressSkeleton from '@/components/dashboard/AddressSkeleton';
 import RecentOrdersSection from '@/components/dashboard/RecentOrdersSection';
 import RecentOrdersSkeleton from '@/components/dashboard/RecentOrdersSkeleton';
 
-export const metadata = {
-  title: 'Dashboard | Trendify',
+export const metadata: Metadata = {
+  title: 'Customer Dashboard',
   description: 'Manage your account, view saved addresses, and track recent orders on Trendify.',
 };
 

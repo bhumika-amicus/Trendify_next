@@ -9,7 +9,7 @@ import EmptyCartToast from '@/components/common/EmptyCartToast';
 import { parseProductSearchParams } from '@/utils/productParams';
 
 export const metadata: Metadata = {
-  title: 'Products | Trendify',
+  title: 'Products',
   description:
     'Browse our complete catalog of electronics, lifestyle, and fashion products with instant filtering and search.',
 };

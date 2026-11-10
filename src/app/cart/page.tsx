@@ -6,7 +6,7 @@ import CartView from '@/components/cart/CartView';
 import { getBackendCart } from '@/services/serverCartService';
 
 export const metadata: Metadata = {
-  title: 'Shopping Cart | Trendify',
+  title: 'Shopping Cart',
   description:
     'Review your cart items, quantities, subtotal, and proceed to secure checkout on Trendify.',
 };

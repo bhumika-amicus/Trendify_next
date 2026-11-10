@@ -11,6 +11,7 @@ import RatingStars from '@/components/common/RatingStars';
 import QuantitySelector from '@/components/cart/QuantitySelector';
 import toast from 'react-hot-toast';
 import { formatINR } from '@/utils/formatters';
+import { shimmerBlurDataUrl } from '@/utils/shimmer';
 import { addToCartAction } from '@/actions/cart';
 import { useCartActions } from '@/context/CartContext';
 
@@ -83,6 +84,8 @@ function ProductCard({ product }: ProductCardProps) {
           src={product.imageUrl || '/placeholder.jpg'}
           alt={product.name}
           fill
+          placeholder="blur"
+          blurDataURL={shimmerBlurDataUrl(300, 200)}
           className="object-contain p-2 transition-transform duration-300 group-hover:scale-105"
           sizes="(max-width: 650px) 100vw, (max-width: 1024px) 33vw, 25vw"
         />

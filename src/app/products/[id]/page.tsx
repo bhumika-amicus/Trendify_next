@@ -10,6 +10,7 @@ import Breadcrumbs from '@/components/common/Breadcrumbs';
 import RatingStars from '@/components/common/RatingStars';
 import ProductAddToCart from '@/components/product/ProductAddToCart';
 import { formatINR } from '@/utils/formatters';
+import { shimmerBlurDataUrl } from '@/utils/shimmer';
 
 // Enable Incremental Static Regeneration (ISR) with a 60-second window
 export const revalidate = 60;
@@ -42,22 +43,29 @@ export async function generateMetadata({
 
   if (!productId || isNaN(productId) || productId <= 0) {
     return {
-      title: 'Product Not Found | Trendify',
+      title: 'Product Not Found',
     };
   }
 
   const product = await getProductByIdServer(productId);
   if (!product) {
     return {
-      title: 'Product Not Found | Trendify',
+      title: 'Product Not Found',
     };
   }
 
   return {
-    title: `${product.name} | Trendify`,
+    title: product.name,
     description:
       product.description ||
       `Buy ${product.name} at Trendify for ${formatINR(product.price)}. Fast delivery and guaranteed authenticity.`,
+    openGraph: {
+      title: product.name,
+      description:
+        product.description ||
+        `Buy ${product.name} at Trendify for ${formatINR(product.price)}.`,
+      images: product.imageUrl ? [{ url: product.imageUrl }] : [],
+    },
   };
 }
 
@@ -106,6 +114,8 @@ export default async function ProductDetailPage({
               alt={product.name}
               width={400}
               height={400}
+              placeholder="blur"
+              blurDataURL={shimmerBlurDataUrl(400, 400)}
               className="max-h-100 w-full object-contain mix-blend-multiply"
               priority
               unoptimized={isExternalImage}

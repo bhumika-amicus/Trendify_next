@@ -15,7 +15,7 @@ export async function proxy(request: NextRequest) {
 
   let newSessionToken: string | null = null;
   let newRefreshToken: string | null = null;
-
+  let shouldClearCookies = false;
 
   // If the short-lived access token has expired, but refreshToken exists, silently exchange it for a fresh access token.
   if (!sessionToken && refreshToken) {
@@ -37,10 +37,17 @@ export async function proxy(request: NextRequest) {
           newSessionToken = refreshData.token;
           newRefreshToken = refreshData.refreshToken || null;
           console.log(`[AUTH] Silently refreshed session token for ${pathname}`);
+        } else {
+          shouldClearCookies = true;
         }
+      } else {
+        // Backend rejected refresh token (expired, revoked, or blocked)
+        shouldClearCookies = true;
       }
     } catch (err) {
       console.warn('[AUTH] Background session refresh failed:', err);
+      // Evict stale cookies on network failure to prevent hammering the backend
+      shouldClearCookies = true;
     }
   }
 
@@ -58,10 +65,20 @@ export async function proxy(request: NextRequest) {
     // Build redirect URL preserving the original path and search query
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('callbackUrl', `${pathname}${search}`);
-    return NextResponse.redirect(loginUrl);
+    const redirectResponse = NextResponse.redirect(loginUrl);
+    if (shouldClearCookies) {
+      redirectResponse.cookies.delete('session');
+      redirectResponse.cookies.delete('refreshToken');
+    }
+    return redirectResponse;
   }
 
   const response = NextResponse.next();
+
+  if (shouldClearCookies) {
+    response.cookies.delete('session');
+    response.cookies.delete('refreshToken');
+  }
 
   // If a new session token was issued, set updated cookies on the outgoing response
   if (newSessionToken) {

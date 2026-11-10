@@ -1,9 +1,10 @@
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/utils/session';
 import RegisterForm from './RegisterForm';
 
-export const metadata = {
-  title: 'Create Account | Trendify',
+export const metadata: Metadata = {
+  title: 'Create Account',
   description: 'Create a new Trendify account to track orders and enjoy fast checkout.',
 };
 

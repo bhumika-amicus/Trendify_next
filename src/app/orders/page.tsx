@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/utils/session';
 import {
@@ -9,8 +10,8 @@ import StateMessage from '@/components/common/StateMessage';
 import OrderFilterTabs from '@/components/orders/OrderFilterTabs';
 import OrderListView from '@/components/orders/OrderListView';
 
-export const metadata = {
-  title: 'My Orders | Trendify',
+export const metadata: Metadata = {
+  title: 'My Orders',
   description: 'Track delivery progress, inspect items, and reorder from your purchase history on Trendify.',
 };
 
@@ -88,7 +89,7 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
           message={
             status && status !== 'all'
               ? `You have no ${status.toLowerCase()} orders at the moment.`
-              : 'Looks like you have not placed any orders yet. Start shopping to explore our latest arrivals!'
+              : 'No orders yet. Start shopping!'
           }
           buttonText={status && status !== 'all' ? 'View All Orders' : 'Start Shopping'}
           actionHref={status && status !== 'all' ? '/orders' : '/products'}

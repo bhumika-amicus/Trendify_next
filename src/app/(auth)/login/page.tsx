@@ -1,6 +1,13 @@
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/utils/session';
 import LoginForm from './LoginForm';
+
+export const metadata: Metadata = {
+  title: 'Sign In',
+  description:
+    'Sign in to your Trendify account to track orders, manage your cart, and access exclusive member deals.',
+};
 
 interface LoginPageProps {
   searchParams: Promise<{

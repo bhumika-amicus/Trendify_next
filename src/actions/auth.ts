@@ -80,8 +80,18 @@ export async function loginAction(
         };
       }
 
-      if (response.status === 401 || response.status === 403) {
+      if (response.status === 401) {
         return { error: 'Invalid email or password.', values: { email } };
+      }
+
+      if (response.status === 403) {
+        return {
+          error:
+            data?.message ||
+            data?.error ||
+            'Access denied by server. Please try again later or contact support if the issue persists.',
+          values: { email },
+        };
       }
 
       return {
@@ -190,6 +200,19 @@ export async function registerAction(
         return {
           error:
             'Our registration service is temporarily unavailable. Please try again later.',
+        };
+      }
+
+      if (response.status === 403) {
+        return {
+          error:
+            data?.message ||
+            data?.error ||
+            'Access denied by server security. Please try again later.',
+          values: {
+            name,
+            email,
+          },
         };
       }
 

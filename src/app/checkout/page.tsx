@@ -8,7 +8,7 @@ import { getBackendCart } from '@/services/serverCartService';
 import { getCountries } from '@/services/locationService';
 
 export const metadata: Metadata = {
-  title: 'Secure Checkout | Trendify',
+  title: 'Secure Checkout',
   description:
     'Complete your purchase securely. Enter shipping address, choose delivery speed, and finalize your order on Trendify.',
 };

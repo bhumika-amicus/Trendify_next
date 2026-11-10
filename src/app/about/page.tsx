@@ -5,7 +5,7 @@ import AboutCard from '@/components/about/AboutCard';
 import { whoWeAreCards, whatWeStandForCards } from '@/data/aboutData';
 
 export const metadata: Metadata = {
-  title: 'About Trendify | E-Commerce',
+  title: 'About Us',
   description:
     'Pioneering access to top quality products worldwide. Learn about Trendify, who we are, and what we stand for.',
 };
