@@ -26,6 +26,20 @@ export type ServerApiResponse<T> =
     };
 
 /**
+ * Custom error carrying an HTTP status code.
+ * Allows Route Handlers to forward upstream status codes (400, 404, 502)
+ * while letting Server Components bubble up to Next.js Error Boundaries.
+ */
+export class ApiError extends Error {
+  status: number;
+  constructor(message: string, status = 500) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+  }
+}
+
+/**
  * Checks whether an error belongs to Next.js framework control flow.
  * These errors (like DYNAMIC_SERVER_USAGE or NEXT_REDIRECT) must propagate
  * instead of being converted into API failures.

@@ -1,5 +1,5 @@
 import { cache } from 'react';
-import { serverApiFetch } from './serverApi';
+import { serverApiFetch, ApiError } from './serverApi';
 import { toClientSearchResult, toClientProduct } from '@/utils/productAdapter';
 import type {
   ProductSearchParams,
@@ -44,7 +44,10 @@ export async function getProductsServer(
   );
 
   if (!res.ok || !res.data) {
-    throw new Error(res.error || 'Failed to load products from upstream service.');
+    throw new ApiError(
+      res.error || 'Failed to load products from upstream service.',
+      res.status || 500
+    );
   }
 
   return toClientSearchResult(res.data);
@@ -93,7 +96,10 @@ export const getProductByIdServer = cache(
     }
 
     if (!res.ok || !res.data) {
-      throw new Error(res.error || `Failed to load product details for ID ${id}`);
+      throw new ApiError(
+        res.error || `Failed to load product details for ID ${id}`,
+        res.status || 500
+      );
     }
 
     return toClientProduct(res.data);
