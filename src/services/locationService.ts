@@ -3,6 +3,14 @@ export interface StateOption {
   state_code: string;
 }
 
+/**
+ * Runtime type guard for DOM and fetch AbortErrors.
+ * Replaces unsafe (err as Error) type assertions.
+ */
+export function isAbortError(err: unknown): boolean {
+  return err instanceof Error && err.name === 'AbortError';
+}
+
 interface ApiResponse<T> {
   data: T;
   error?: boolean;
@@ -31,7 +39,7 @@ export async function getCountries(signal?: AbortSignal): Promise<string[]> {
 
     return result.data.map(({ country }) => country);
   } catch (err: unknown) {
-    if ((err as Error)?.name !== 'AbortError') {
+    if (!isAbortError(err)) {
       console.warn('[LOCATION_API] Failed to fetch countries:', err);
       throw err;
     }
@@ -68,7 +76,7 @@ export async function getStates(
     stateCache.set(country, result.data.states);
     return result.data.states;
   } catch (err: unknown) {
-    if ((err as Error)?.name !== 'AbortError') {
+    if (!isAbortError(err)) {
       console.warn(`[LOCATION_API] Failed to fetch states for ${country}:`, err);
       throw err;
     }
@@ -107,7 +115,7 @@ export async function getCities(
     cityCache.set(cacheKey, result.data);
     return result.data;
   } catch (err: unknown) {
-    if ((err as Error)?.name !== 'AbortError') {
+    if (!isAbortError(err)) {
       console.warn(`[LOCATION_API] Failed to fetch cities for ${country}/${state}:`, err);
       throw err;
     }

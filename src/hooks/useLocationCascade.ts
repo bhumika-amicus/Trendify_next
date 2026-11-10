@@ -5,6 +5,7 @@ import {
   getCountries,
   getStates,
   getCities,
+  isAbortError,
   type StateOption,
 } from '@/services/locationService';
 
@@ -61,7 +62,7 @@ export function useLocationCascade({
         setCountries(data);
       }
     } catch (err: unknown) {
-      if ((err as Error)?.name !== 'AbortError') {
+      if (!isAbortError(err)) {
         setError((prev) => ({ ...prev, countries: 'Unable to load countries' }));
       }
     } finally {
@@ -81,7 +82,7 @@ export function useLocationCascade({
           }
         })
         .catch((err: unknown) => {
-          if (isSubscribed && (err as Error)?.name !== 'AbortError') {
+          if (isSubscribed && !isAbortError(err)) {
             setError((prev) => ({ ...prev, countries: 'Unable to load countries' }));
           }
         })
@@ -122,7 +123,7 @@ export function useLocationCascade({
         setStates(data);
       }
     } catch (err: unknown) {
-      if ((err as Error)?.name !== 'AbortError') {
+      if (!isAbortError(err)) {
         setError((prev) => ({ ...prev, states: 'Unable to load states' }));
       }
     } finally {
@@ -155,7 +156,7 @@ export function useLocationCascade({
         setCities(data);
       }
     } catch (err: unknown) {
-      if ((err as Error)?.name !== 'AbortError') {
+      if (!isAbortError(err)) {
         setError((prev) => ({ ...prev, cities: 'Unable to load cities' }));
       }
     } finally {
@@ -197,7 +198,7 @@ export function useLocationCascade({
         }
       })
       .catch((err: unknown) => {
-        if ((err as Error)?.name !== 'AbortError') {
+        if (!isAbortError(err)) {
           setError((prev) => ({ ...prev, states: 'Unable to load states' }));
         }
       })
@@ -216,7 +217,7 @@ export function useLocationCascade({
           setCities(citiesData);
         }
       } catch (err: unknown) {
-        if ((err as Error)?.name !== 'AbortError') {
+        if (!isAbortError(err)) {
           setError((prev) => ({ ...prev, cities: 'Unable to load cities' }));
         }
       } finally {

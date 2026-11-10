@@ -40,7 +40,7 @@ export default function AddressSection({
     savedAddresses.find((a) => a.isDefault) || savedAddresses[0] || null;
 
   // Local UI presentation state: whether we show saved cards or the address form
-  const [isAddingNewAddress, setIsAddingNewAddress] = useState<boolean>(
+  const [isAddingNewAddress, setIsAddingNewAddress] = useState(
     !hasSavedAddresses
   );
   const [formMode, setFormMode] = useState<'create' | 'edit'>('create');

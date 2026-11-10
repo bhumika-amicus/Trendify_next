@@ -27,7 +27,7 @@ const CartActionsContext = createContext<CartActionsContextType>({
 
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const [cartCount, setCartCount] = useState<number>(0);
+  const [cartCount, setCartCount] = useState(0);
   const pathname = usePathname();
   const prevPathRef = useRef<string | null>(null);
 

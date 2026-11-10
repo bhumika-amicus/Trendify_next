@@ -13,17 +13,17 @@ export interface ServerApiOptions extends Omit<RequestInit, 'body'> {
  */
 export type ServerApiResponse<T> =
   | {
-      ok: true;
-      status: number;
-      data: T | null;
-      error?: undefined;
-    }
+    ok: true;
+    status: number;
+    data: T | null;
+    error?: undefined;
+  }
   | {
-      ok: false;
-      status: number;
-      data: T | null;
-      error: string;
-    };
+    ok: false;
+    status: number;
+    data: T | null;
+    error?: string;
+  };
 
 /**
  * Custom error carrying an HTTP status code.
@@ -39,17 +39,25 @@ export class ApiError extends Error {
   }
 }
 
+function isRecord(val: unknown): val is Record<string, unknown> {
+  return typeof val === 'object' && val !== null && !Array.isArray(val);
+}
+
+function hasDigest(err: unknown): err is { digest: unknown } {
+  return typeof err === 'object' && err !== null && 'digest' in err;
+}
+
 /**
  * Checks whether an error belongs to Next.js framework control flow.
  * These errors (like DYNAMIC_SERVER_USAGE or NEXT_REDIRECT) must propagate
  * instead of being converted into API failures.
  */
 function isNextControlFlowError(error: unknown): boolean {
-  if (typeof error !== 'object' || error === null || !('digest' in error)) {
+  if (!hasDigest(error)) {
     return false;
   }
 
-  const digest = (error as { digest?: unknown }).digest;
+  const { digest } = error;
 
   return (
     typeof digest === 'string' &&
@@ -58,39 +66,23 @@ function isNextControlFlowError(error: unknown): boolean {
 }
 
 /**
- * Safely extracts a human-readable message from ASP.NET Core ProblemDetails
- * or ModelState validation dictionaries: { errors: { FieldName: ["message"] } }.
+ * Safely extracts a message if the backend explicitly returned one.
+ * If no backend message exists or the server returned 5xx, returns undefined
+ * so the calling service can supply its own contextual domain fallback.
  */
-function extractErrorMessage(data: unknown, status: number): string {
-  if (typeof data === 'object' && data !== null) {
-    const errorData = data as Record<string, unknown>;
+function extractBackendMessage(data: unknown, status: number): string | undefined {
+  if (status >= 500) {
+    return undefined;
+  }
 
-    const message =
-      (typeof errorData.detail === 'string' && errorData.detail) ||
-      (typeof errorData.message === 'string' && errorData.message) ||
-      (typeof errorData.title === 'string' && errorData.title);
-
-    if (message) {
-      return message;
-    }
-
-    // ASP.NET Core ModelState validation dictionary
-    if (
-      typeof errorData.errors === 'object' &&
-      errorData.errors !== null &&
-      !Array.isArray(errorData.errors)
-    ) {
-      const errorList = Object.values(errorData.errors as Record<string, unknown>)
-        .flatMap((value) => (Array.isArray(value) ? value : [value]))
-        .filter((value): value is string => typeof value === 'string');
-
-      if (errorList.length > 0) {
-        return errorList.join(', ');
-      }
+  if (isRecord(data)) {
+    const msg = data.message || data.detail || data.title;
+    if (typeof msg === 'string' && msg.trim()) {
+      return msg.trim();
     }
   }
 
-  return `Upstream service returned error status ${status}.`;
+  return undefined;
 }
 
 /**
@@ -111,17 +103,6 @@ async function parseResponseBody(response: Response): Promise<unknown> {
   }
 }
 
-/**
- * Generic server-side HTTP helper for communicating with the .NET backend.
- *
- * Responsibilities:
- * - Construct normalized URLs.
- * - Manage standard headers (Accept, Authorization, Content-Type).
- * - Serialize JSON bodies while preserving FormData / URLSearchParams.
- * - Parse JSON and handle empty/text bodies gracefully.
- * - Preserve Next.js dynamic rendering control flow errors.
- * - Support Next.js caching options (revalidate, tags) via standard RequestInit.
- */
 export async function serverApiFetch<T>(
   endpoint: string,
   options: ServerApiOptions = {}
@@ -181,11 +162,17 @@ export async function serverApiFetch<T>(
     const responseData = await parseResponseBody(response);
 
     if (!response.ok) {
+      if (response.status >= 500) {
+        console.error(
+          `[SERVER_API_5XX] Upstream failure on ${normalizedPath} [${response.status}]:`,
+          responseData
+        );
+      }
       return {
         ok: false,
         status: response.status,
-        data: (typeof responseData === 'object' && responseData !== null ? responseData : null) as T | null,
-        error: extractErrorMessage(responseData, response.status),
+        data: (isRecord(responseData) ? responseData : null) as T | null,
+        error: extractBackendMessage(responseData, response.status),
       };
     }
 

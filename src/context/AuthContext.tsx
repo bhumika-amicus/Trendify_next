@@ -26,7 +26,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
  * Synchronizes with the secure httpOnly session cookie on cold boot and auth route transitions.
  */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const pathname = usePathname();
   const prevPathRef = useRef<string | null>(null);
 
