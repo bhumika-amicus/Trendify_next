@@ -14,11 +14,21 @@ jest.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(),
 }));
 
+interface MockImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
+  priority?: boolean;
+  fill?: boolean;
+  blurDataURL?: string;
+  placeholder?: string;
+}
+
 jest.mock('next/image', () => ({
   __esModule: true,
-  default: (props: any) => {
-
-    const { priority, fill, blurDataURL, placeholder, ...rest } = props;
-    return React.createElement('img', { ...rest, alt: props.alt || '' });
+  default: (props: MockImageProps) => {
+    const cleanProps = { ...props };
+    delete cleanProps.priority;
+    delete cleanProps.fill;
+    delete cleanProps.blurDataURL;
+    delete cleanProps.placeholder;
+    return React.createElement('img', { ...cleanProps, alt: cleanProps.alt || '' });
   },
 }));

@@ -1,6 +1,7 @@
 import React from 'react';
 import Button from '@/components/common/Button';
 import { formatINR } from '@/utils/formatters';
+import { TAX_RATE } from '@/utils/cartCalculations';
 import type { CartSummary } from '@/types';
 
 export interface CartOrderSummaryProps {
@@ -41,7 +42,7 @@ export default function CartOrderSummary({
             </div>
 
             <div className="flex justify-between">
-              <span>Tax (8%):</span>
+              <span>Tax ({Math.round(TAX_RATE * 100)}%):</span>
               <span className="font-medium text-gray-900">
                 {formatINR(tax)}
               </span>
