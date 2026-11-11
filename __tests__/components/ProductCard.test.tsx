@@ -33,15 +33,6 @@ jest.mock('@/actions/cart', () => ({
   addToCartAction: jest.fn(),
 }));
 
-// 4. Mock toast notifications
-jest.mock('react-hot-toast', () => ({
-  __esModule: true,
-  default: {
-    success: jest.fn(),
-    error: jest.fn(),
-  },
-}));
-
 const mockProduct: Product = {
   id: 101,
   name: 'Wireless Noise-Canceling Headphones',

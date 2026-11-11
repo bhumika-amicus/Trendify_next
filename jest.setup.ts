@@ -32,3 +32,13 @@ jest.mock('next/image', () => ({
     return React.createElement('img', { ...cleanProps, alt: cleanProps.alt || '' });
   },
 }));
+
+jest.mock('react-hot-toast', () => ({
+  __esModule: true,
+  default: {
+    success: jest.fn(),
+    error: jest.fn(),
+    loading: jest.fn(),
+    dismiss: jest.fn(),
+  },
+}));

@@ -1,112 +1,182 @@
-import { addToCartAction } from '@/actions/cart';
+import {
+  addToCartAction,
+  getCartCountAction,
+  updateCartQuantityAction,
+  removeCartItemAction,
+  clearCartAction,
+} from '@/actions/cart';
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import * as serverCartService from '@/services/serverCartService';
 
 // 1. Mock Next.js Server Primitives
-jest.mock('next/headers', () => ({
-  cookies: jest.fn(),
-}));
+jest.mock('next/headers', () => ({ cookies: jest.fn() }));
+jest.mock('next/cache', () => ({ revalidatePath: jest.fn() }));
 
-jest.mock('next/cache', () => ({
-  revalidatePath: jest.fn(),
-}));
-
-// 2. Mock external backend cart service calls
+// 2. Mock external backend cart service
 jest.mock('@/services/serverCartService', () => ({
   addBackendCartItem: jest.fn(),
+  updateBackendCartItem: jest.fn(),
+  removeBackendCartItem: jest.fn(),
+  clearBackendCart: jest.fn(),
   getBackendCartCount: jest.fn(),
 }));
 
-describe('addToCartAction Server Action', () => {
+// Clean Helper Utilities (Eliminates repeated cookie boilerplate)
+const mockLoggedIn = (token = 'mock-session-token') =>
+  (cookies as jest.Mock).mockResolvedValue({ get: () => ({ value: token }) });
+
+const mockLoggedOut = () =>
+  (cookies as jest.Mock).mockResolvedValue({ get: () => undefined });
+
+describe('Cart Server Actions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  // Test 1: Invalid Case - Missing Authentication
-  it('returns requireAuth: true when user has no session cookie', async () => {
-    (cookies as jest.Mock).mockResolvedValue({
-      get: jest.fn().mockReturnValue(undefined),
+  describe('addToCartAction', () => {
+    it('returns requireAuth: true when user is logged out', async () => {
+      mockLoggedOut();
+
+      const result = await addToCartAction({ productId: 101, quantity: 1 });
+
+      expect(result).toEqual({
+        success: false,
+        requireAuth: true,
+        error: 'Please log in to add items to your cart.',
+      });
+      expect(serverCartService.addBackendCartItem).not.toHaveBeenCalled();
     });
 
-    const result = await addToCartAction({ productId: 101, quantity: 1 });
+    test.each([
+      [{ productId: 101, quantity: 0 }, 'Quantity must be at least 1.'],
+      [{ productId: 101, quantity: 150 }, 'Quantity cannot exceed 99.'],
+      [{ productId: -5, quantity: 1 }, 'Product ID must be positive.'],
+    ])('rejects invalid payload %p with "%s"', async (payload, expectedError) => {
+      mockLoggedIn();
+      const result = await addToCartAction(payload);
 
-    expect(result).toEqual({
-      success: false,
-      requireAuth: true,
-      error: 'Please log in to add items to your cart.',
+      expect(result).toEqual({ success: false, error: expectedError });
+      expect(serverCartService.addBackendCartItem).not.toHaveBeenCalled();
     });
-    // Ensure backend service was NEVER contacted
-    expect(serverCartService.addBackendCartItem).not.toHaveBeenCalled();
+
+    it('successfully adds item, syncs with backend, and triggers revalidation', async () => {
+      mockLoggedIn();
+      (serverCartService.addBackendCartItem as jest.Mock).mockResolvedValue({ success: true });
+      (serverCartService.getBackendCartCount as jest.Mock).mockResolvedValue(5);
+
+      const result = await addToCartAction({ productId: 101, quantity: 2 });
+
+      expect(result).toEqual({
+        success: true,
+        count: 5,
+        message: 'Product added to cart successfully.',
+      });
+      expect(serverCartService.addBackendCartItem).toHaveBeenCalledWith(
+        'mock-session-token',
+        101,
+        2
+      );
+      expect(revalidatePath).toHaveBeenCalledWith('/cart');
+    });
   });
 
-  // Test 2: Invalid Case - Schema Validation Error (Quantity < 1)
-  it('rejects payload when quantity is zero or negative', async () => {
-    (cookies as jest.Mock).mockResolvedValue({
-      get: jest.fn().mockReturnValue({ value: 'mock-session-token' }),
+  describe('getCartCountAction', () => {
+    it('returns 0 when session cookie is missing', async () => {
+      mockLoggedOut();
+      const count = await getCartCountAction();
+
+      expect(count).toBe(0);
+      expect(serverCartService.getBackendCartCount).not.toHaveBeenCalled();
     });
 
-    const result = await addToCartAction({ productId: 101, quantity: 0 });
+    it('returns fresh count from backend service when authenticated', async () => {
+      mockLoggedIn();
+      (serverCartService.getBackendCartCount as jest.Mock).mockResolvedValue(7);
 
-    expect(result.success).toBe(false);
-    expect(result.error).toBe('Quantity must be at least 1.');
-    expect(serverCartService.addBackendCartItem).not.toHaveBeenCalled();
+      const count = await getCartCountAction();
+
+      expect(count).toBe(7);
+      expect(serverCartService.getBackendCartCount).toHaveBeenCalledWith('mock-session-token');
+    });
   });
 
-  // Test 3: Invalid Case - Schema Validation Error (Quantity > 99)
-  it('rejects payload when quantity exceeds maximum limit of 99', async () => {
-    (cookies as jest.Mock).mockResolvedValue({
-      get: jest.fn().mockReturnValue({ value: 'mock-session-token' }),
+  describe('updateCartQuantityAction', () => {
+    it('returns requireAuth: true when unauthenticated', async () => {
+      mockLoggedOut();
+      const result = await updateCartQuantityAction({ productId: 1, quantity: 3 });
+
+      expect(result.requireAuth).toBe(true);
+      expect(result.success).toBe(false);
     });
 
-    const result = await addToCartAction({ productId: 101, quantity: 150 });
+    it('updates item quantity when quantity is positive', async () => {
+      mockLoggedIn();
+      (serverCartService.updateBackendCartItem as jest.Mock).mockResolvedValue({ success: true });
+      (serverCartService.getBackendCartCount as jest.Mock).mockResolvedValue(4);
 
-    expect(result.success).toBe(false);
-    expect(result.error).toBe('Quantity cannot exceed 99.');
-    expect(serverCartService.addBackendCartItem).not.toHaveBeenCalled();
+      const result = await updateCartQuantityAction({ productId: 1, quantity: 4 });
+
+      expect(result).toEqual({ success: true, count: 4 });
+      expect(serverCartService.updateBackendCartItem).toHaveBeenCalledWith(
+        'mock-session-token',
+        1,
+        4
+      );
+      expect(revalidatePath).toHaveBeenCalledWith('/cart');
+    });
+
+    it('removes item from backend when quantity is set to 0', async () => {
+      mockLoggedIn();
+      (serverCartService.removeBackendCartItem as jest.Mock).mockResolvedValue({ success: true });
+      (serverCartService.getBackendCartCount as jest.Mock).mockResolvedValue(2);
+
+      const result = await updateCartQuantityAction({ productId: 1, quantity: 0 });
+
+      expect(result).toEqual({ success: true, count: 2 });
+      expect(serverCartService.removeBackendCartItem).toHaveBeenCalledWith(
+        'mock-session-token',
+        1
+      );
+      expect(revalidatePath).toHaveBeenCalledWith('/cart');
+    });
   });
 
-  // Test 4: Invalid Case - Schema Validation Error (Invalid Product ID)
-  it('rejects payload when productId is not a positive integer', async () => {
-    (cookies as jest.Mock).mockResolvedValue({
-      get: jest.fn().mockReturnValue({ value: 'mock-session-token' }),
+  describe('removeCartItemAction', () => {
+    it('returns requireAuth: true when unauthenticated', async () => {
+      mockLoggedOut();
+      const result = await removeCartItemAction({ productId: 1 });
+
+      expect(result.requireAuth).toBe(true);
+      expect(result.success).toBe(false);
     });
 
-    const result = await addToCartAction({ productId: -5, quantity: 1 });
+    it('removes item, refreshes count, and calls revalidatePath', async () => {
+      mockLoggedIn();
+      (serverCartService.removeBackendCartItem as jest.Mock).mockResolvedValue({ success: true });
+      (serverCartService.getBackendCartCount as jest.Mock).mockResolvedValue(1);
 
-    expect(result.success).toBe(false);
-    expect(result.error).toBe('Product ID must be positive.');
-    expect(serverCartService.addBackendCartItem).not.toHaveBeenCalled();
+      const result = await removeCartItemAction({ productId: 1 });
+
+      expect(result).toEqual({ success: true, count: 1 });
+      expect(serverCartService.removeBackendCartItem).toHaveBeenCalledWith(
+        'mock-session-token',
+        1
+      );
+      expect(revalidatePath).toHaveBeenCalledWith('/cart');
+    });
   });
 
-  // Test 5: Valid Case - Successful Add to Cart (Happy Path)
-  it('successfully adds item, syncs with backend, triggers revalidatePath, and returns fresh count', async () => {
-    (cookies as jest.Mock).mockResolvedValue({
-      get: jest.fn().mockReturnValue({ value: 'mock-session-token' }),
+  describe('clearCartAction', () => {
+    it('clears backend cart and triggers revalidatePath', async () => {
+      mockLoggedIn();
+      (serverCartService.clearBackendCart as jest.Mock).mockResolvedValue({ success: true });
+
+      const result = await clearCartAction();
+
+      expect(result).toEqual({ success: true, count: 0 });
+      expect(serverCartService.clearBackendCart).toHaveBeenCalledWith('mock-session-token');
+      expect(revalidatePath).toHaveBeenCalledWith('/cart');
     });
-
-    (serverCartService.addBackendCartItem as jest.Mock).mockResolvedValue({
-      success: true,
-    });
-    (serverCartService.getBackendCartCount as jest.Mock).mockResolvedValue(5);
-
-    const result = await addToCartAction({ productId: 101, quantity: 2 });
-
-    expect(result).toEqual({
-      success: true,
-      count: 5,
-      message: 'Product added to cart successfully.',
-    });
-
-    // Verify correct parameters forwarded to backend service
-    expect(serverCartService.addBackendCartItem).toHaveBeenCalledWith(
-      'mock-session-token',
-      101,
-      2
-    );
-
-    // Verify Next.js cache revalidation was triggered for the cart path
-    expect(revalidatePath).toHaveBeenCalledWith('/cart');
   });
 });
-
