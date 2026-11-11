@@ -3,10 +3,6 @@ export interface StateOption {
   state_code: string;
 }
 
-/**
- * Runtime type guard for DOM and fetch AbortErrors.
- * Replaces unsafe (err as Error) type assertions.
- */
 export function isAbortError(err: unknown): boolean {
   return err instanceof Error && err.name === 'AbortError';
 }
