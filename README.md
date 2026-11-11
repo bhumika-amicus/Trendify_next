@@ -288,3 +288,117 @@ ISR utilizes the **Stale-While-Revalidate** caching pattern:
 | **Data Freshness** | Always live (at the cost of latency and spinners). | Near real-time via 60-second ISR background revalidation. |
 
 
+
+---
+
+## Assignment 15: Automated Testing (Jest + React Testing Library)
+
+This project features an automated testing suite built with **Jest**, **React Testing Library (RTL)**, and **TypeScript**, covering Client Components, Server Actions (`'use server'`), Route Handlers (`app/api`), and calculation utilities.
+
+### 1. Test Suite Architecture
+
+Testing in Next.js App Router requires different testing strategies depending on the architectural layer:
+
+| Layer | Target Files | Environment | Testing Tool | Strategy & Key Assertions |
+| :--- | :--- | :--- | :--- | :--- |
+| **Client UI** | `ProductCard.tsx`, `CartView.tsx` | `jsdom` | React Testing Library + `userEvent` | Accessible queries (`getByRole`, `getByText`), quantity steppers, Add to Cart interaction, and auth redirection. |
+| **Server Actions** | `actions/cart.ts` | `node`/`jsdom` | Jest (async function testing) | Zod schema validation (parameterized with `test.each`), session cookie checks, backend service sync, and `revalidatePath('/cart')`. |
+| **Route Handlers** | `api/categories/route.ts`, `api/products/route.ts` | `node` (`@jest-environment node`) | Pure Node.js Web API testing | Direct invocation of `GET`/`POST`, HTTP status codes (`200`, `401`, `400`, `502`, `500`), and search/pagination query parameter extraction. |
+| **Business Logic** | `utils/cartCalculations.ts` | `node` | Unit assertions | Subtotal, 18% GST tax precision, ₹100 standard shipping boundary, and defensive array fallback. |
+
+---
+
+### 2. Running Tests & Generating Coverage
+
+```bash
+# Run all 33 unit and component tests:
+npm test
+
+# Run tests in watch mode during development:
+npm run test:watch
+
+# Generate the full Istanbul code coverage report:
+npm run test:coverage
+```
+
+---
+
+### 3. Test Execution Results (33 Passing Tests)
+
+```text
+PASS  __tests__/api/categories.test.ts
+PASS  __tests__/api/products.test.ts
+PASS  __tests__/utils/cartCalculations.test.ts
+PASS  __tests__/actions/cart.test.ts
+PASS  __tests__/components/ProductCard.test.tsx
+PASS  __tests__/components/CartView.test.tsx
+
+Test Suites: 6 passed, 6 total
+Tests:       33 passed, 33 total
+Snapshots:   0 total
+Time:        5.082 s
+Ran all test suites.
+```
+
+---
+
+### 4. Code Coverage Report
+
+Running `npm run test:coverage` yields the following verified coverage metrics:
+
+```text
+------------------------|---------|----------|---------|---------|----------------------------------------------------------------------------------
+File                    | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                                                                
+------------------------|---------|----------|---------|---------|----------------------------------------------------------------------------------
+All files               |   73.46 |     54.8 |   66.66 |   73.46 |                                                                                  
+ src                    |     100 |      100 |     100 |     100 |                                                                                  
+  config.ts             |     100 |      100 |     100 |     100 |                                                                                  
+ src/actions            |   75.63 |    65.71 |     100 |   75.63 |                                                                                  
+  cart.ts               |   75.63 |    65.71 |     100 |   75.63 | 24-26,55-59,71-76,96-100,109-110,114-115,124-129,149-153,161-162,170-175,191-196 
+ src/app/api/categories |     100 |      100 |     100 |     100 |                                                                                  
+  route.ts              |     100 |      100 |     100 |     100 |                                                                                  
+ src/app/api/products   |   26.79 |    22.22 |     100 |   26.79 |                                                                                  
+  route.ts              |   26.79 |    22.22 |     100 |   26.79 | 22-30,58-59,62-67,69-74,76-81,83-128,131-208                                     
+ src/components/cart    |   86.11 |    64.44 |   66.66 |   86.11 |                                                                                  
+  CartItemRow.tsx       |   99.09 |    72.72 |     100 |   99.09 | 27                                                                               
+  CartOrderSummary.tsx  |     100 |       50 |     100 |     100 | 30-40                                                                            
+  CartView.tsx          |    93.2 |    68.18 |     100 |    93.2 | 44,67,84-91,102                                                                  
+  QuantitySelector.tsx  |   60.54 |       50 |    37.5 |   60.54 | 24-44,47-74,77-80,87-91                                                          
+ src/components/common  |   99.31 |    66.66 |     100 |   99.31 |                                                                                  
+  Button.tsx            |     100 |      100 |     100 |     100 |                                                                                  
+  Card.tsx              |   97.67 |       50 |     100 |   97.67 | 33                                                                               
+  RatingStars.tsx       |   98.24 |       40 |     100 |   98.24 | 51                                                                               
+  StateMessage.tsx      |     100 |    33.33 |     100 |     100 | 48-78                                                                            
+ src/components/product |    92.3 |    33.33 |     100 |    92.3 |                                                                                  
+  ProductCard.tsx       |    92.3 |    33.33 |     100 |    92.3 | 32-35,38-41,52,56                                                                
+ src/schemas            |     100 |      100 |     100 |     100 |                                                                                  
+  cart.ts               |     100 |      100 |     100 |     100 |                                                                                  
+ src/services           |   27.27 |      100 |       0 |   27.27 |                                                                                  
+  serverApi.ts          |   27.27 |      100 |       0 |   27.27 | 36-39,42-44,46-48,55-66,73-86,92-104,107-209                                     
+ src/utils              |   74.49 |    46.93 |   66.66 |   74.49 |                                                                                  
+  cartCalculations.ts   |     100 |    55.55 |     100 |     100 | 9-13,33-42                                                                       
+  formatters.ts         |   56.66 |      100 |      50 |   56.66 | 18-30                                                                            
+  productAdapter.ts     |      50 |      100 |       0 |      50 | 25-37,44-55,61-70                                                                
+  productParams.ts      |   87.28 |    14.28 |     100 |   87.28 | 29-30,32-39,61-63,69,75                                                          
+  shimmer.ts            |   95.65 |       75 |     100 |   95.65 | 18                                                                               
+  urlHelpers.ts         |   52.94 |    58.33 |   66.66 |   52.94 | 14-15,25-26,28-31,36-51                                                          
+------------------------|---------|----------|---------|---------|----------------------------------------------------------------------------------
+```
+
+---
+
+### 5. Key Highlights & Architectural Decisions
+
+1. **Accessible Screen Queries (`getByRole`, `getByText`)**:
+   - Tests assert on semantic HTML elements (`heading`, `button`, `spinbutton`, `link`) and accessible names rather than implementation details or CSS selectors.
+2. **Real Schema Validation with `test.each`**:
+   - Validation testing uses real Zod schemas (`AddToCartSchema.safeParse`) to verify invalid quantities (`0`, `150`) and negative product IDs (`-5`) without mocking business logic.
+3. **Server Action & Guard Testing**:
+   - Simulates Next.js 15/16 asynchronous `cookies()` (`await cookies()`) and verifies that unauthenticated access is immediately halted (`requireAuth: true`) without calling upstream services.
+   - Tests that cache invalidation triggers (`revalidatePath('/cart')`) are fired upon mutation.
+4. **Node Environment for Route Handlers**:
+   - Route Handlers run under `/** @jest-environment node */` to utilize native Web API `Request` and `Response` objects without JSDOM browser emulation overhead.
+5. **Code Fixes & Polish**:
+   - Rectified an 8% vs 18% tax discrepancy in `CartOrderSummary.tsx`.
+   - Added defensive array guards in `cartCalculations.ts` to prevent runtime crashes when items are uninitialized.
+   - Resolved all ESLint warnings in test setup files for clean `npm run lint` execution.
