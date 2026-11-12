@@ -7,9 +7,7 @@ import React, {
   useEffect,
   useCallback,
   useMemo,
-  useRef,
 } from 'react';
-import { usePathname } from 'next/navigation';
 import { getAuthSessionAction } from '@/actions/auth';
 
 interface AuthContextValue {
@@ -23,12 +21,10 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 /**
  * Lightweight, secure client-side authentication provider.
  * Maintains login status in memory, eliminating plaintext cookies.
- * Synchronizes with the secure httpOnly session cookie on cold boot and auth route transitions.
+ * Synchronizes with the secure httpOnly session cookie on cold boot.
  */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const pathname = usePathname();
-  const prevPathRef = useRef<string | null>(null);
 
   const setLoggedIn = useCallback((value: boolean) => {
     setIsLoggedIn(value);
@@ -43,21 +39,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Cold boot & auth route transition listener
   useEffect(() => {
-    if (prevPathRef.current === null) {
-      prevPathRef.current = pathname;
-      refreshAuth();
-      return;
-    }
+    let cancelled = false;
+    getAuthSessionAction()
+      .then((session) => {
+        if (!cancelled) {
+          setIsLoggedIn(session.isLoggedIn);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setIsLoggedIn(false);
+        }
+      });
 
-    const previousPath = prevPathRef.current;
-    prevPathRef.current = pathname;
-
-    if (previousPath === '/login' || previousPath === '/register') {
-      refreshAuth();
-    }
-  }, [pathname, refreshAuth]);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const value = useMemo(
     () => ({ isLoggedIn, setLoggedIn, refreshAuth }),

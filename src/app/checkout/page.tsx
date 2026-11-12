@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
-import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { getCurrentUser } from '@/utils/session';
 import Breadcrumbs from '@/components/common/Breadcrumbs';
 import CheckoutView from '@/components/checkout/CheckoutView';
 import { getAddressesServer } from '@/services/serverAddressService';
@@ -14,17 +14,15 @@ export const metadata: Metadata = {
 };
 
 export default async function CheckoutPage() {
-  const cookieStore = await cookies();
-  const sessionToken = cookieStore.get('session')?.value;
-
-  if (!sessionToken) {
+  const user = await getCurrentUser();
+  if (!user) {
     redirect('/login?callbackUrl=/checkout');
   }
 
   // Parallel server hydration: Authoritative Azure Cart, Saved Addresses & Countries
   const [items, savedAddresses, initialCountries] = await Promise.all([
-    getBackendCart(sessionToken),
-    getAddressesServer(sessionToken),
+    getBackendCart(user.token),
+    getAddressesServer(user.token),
     getCountries().catch(() => []),
   ]);
 

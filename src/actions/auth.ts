@@ -259,10 +259,6 @@ export async function logoutAction(): Promise<void> {
   const cookieStore = await cookies();
   cookieStore.delete('session');
   cookieStore.delete('refreshToken');
-  cookieStore.delete('userName');
-  cookieStore.delete('userEmail');
-  cookieStore.delete('customerId');
-  cookieStore.delete('role');
 
   // Purge cached layout states
   revalidatePath('/', 'layout');
