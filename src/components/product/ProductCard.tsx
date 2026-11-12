@@ -1,70 +1,22 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 import type { Product } from '@/types';
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
 import RatingStars from '@/components/common/RatingStars';
 import QuantitySelector from '@/components/cart/QuantitySelector';
-import toast from 'react-hot-toast';
 import { formatINR } from '@/utils/formatters';
 import { shimmerBlurDataUrl } from '@/utils/shimmer';
-import { addToCartAction } from '@/actions/cart';
-import { useCartActions } from '@/context/CartContext';
+import { useAddToCart } from '@/hooks/useAddToCart';
 
 interface ProductCardProps {
   product: Product;
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
-  const router = useRouter();
-  const { setCartCount } = useCartActions();
-  const [isAdding, setIsAdding] = useState(false);
-  const [quantity, setQuantity] = useState(1);
-
-  const handleAddToCart = async () => {
-    if (isAdding) return;
-
-    if (quantity > 99) {
-      toast.error('Maximum quantity limit is 99 items.');
-      setQuantity(99);
-      return;
-    }
-
-    if (quantity < 1) {
-      toast.error('Please select at least 1 item.');
-      setQuantity(1);
-      return;
-    }
-
-    setIsAdding(true);
-    try {
-      const res = await addToCartAction({ productId: product.id, quantity });
-      if (!res.success) {
-        if (res.requireAuth) {
-          toast.error('Please log in to add items to your cart.');
-          const currentPath =
-            typeof window !== 'undefined'
-              ? `${window.location.pathname}${window.location.search}`
-              : '/products';
-          router.push(`/login?callbackUrl=${encodeURIComponent(currentPath)}`);
-          return;
-        }
-        toast.error(res.error || 'Failed to add item to cart.');
-        return;
-      }
-      if (typeof res.count === 'number') {
-        setCartCount(res.count);
-      }
-      toast.success(`${product.name} added to cart!`);
-      setQuantity(1);
-    } finally {
-      setIsAdding(false);
-    }
-  };
+  const { quantity, setQuantity, isAdding, handleAddToCart } = useAddToCart(product);
 
   const formattedTotalPrice = formatINR(product.price * quantity);
 

@@ -109,12 +109,3 @@ export function useCartCount(): number {
 export function useCartActions(): CartActionsContextType {
   return useContext(CartActionsContext);
 }
-
-/**
- * Combined hook for convenience.
- */
-export function useCart() {
-  const cartCount = useCartCount();
-  const actions = useCartActions();
-  return { cartCount, ...actions };
-}

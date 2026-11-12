@@ -9,7 +9,6 @@ export function useProductFilters() {
   const pathname = usePathname();
   const rawSearchParams = useSearchParams();
 
-  // Create a mutable searchParams instance
   const searchParams = new URLSearchParams(rawSearchParams?.toString() || '');
 
   const setSearchParams = (
@@ -21,9 +20,7 @@ export function useProductFilters() {
     router.push(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
   };
 
-  // Parse and validate URL query parameters via shared utility
   const {
-    searchTerm,
     categoryId,
     brandId,
     minPrice,
@@ -31,21 +28,8 @@ export function useProductFilters() {
     minRating,
     sortBy,
     sortOrder,
-    page,
     hasFacetFilters,
-    hasActiveFilters,
-    apiParams,
   } = parseProductSearchParams(searchParams);
-
-  // 4. Stable URL update operations
-  const updatePage = (nextPage: number) => {
-    if (nextPage < 1) return;
-    setSearchParams((currentParams) => {
-      const nextParams = new URLSearchParams(currentParams);
-      nextParams.set('page', String(nextPage));
-      return nextParams;
-    });
-  };
 
   const clearAllFilters = () => {
     setSearchParams((currentParams) => {
@@ -60,10 +44,6 @@ export function useProductFilters() {
       nextParams.delete('page');
       return nextParams;
     });
-  };
-
-  const resetAllFilters = () => {
-    setSearchParams(() => new URLSearchParams());
   };
 
   const toggleParam = (key: string, value: string | number) => {
@@ -128,7 +108,6 @@ export function useProductFilters() {
   };
 
   return {
-    searchTerm,
     categoryId,
     brandId,
     minPrice,
@@ -136,14 +115,8 @@ export function useProductFilters() {
     minRating,
     sortBy,
     sortOrder,
-    page,
-    hasActiveFilters,
     hasFacetFilters,
-    filterKey: searchParams.toString(),
-    apiParams,
-    updatePage,
     clearAllFilters,
-    resetAllFilters,
     toggleCategory,
     toggleBrand,
     togglePriceRange,
