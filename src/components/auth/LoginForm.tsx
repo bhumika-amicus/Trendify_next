@@ -49,7 +49,7 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
           type="email"
           label="Email Address"
           required
-          defaultValue={state?.values?.email ?? 'deshmukh@example.com'}
+          defaultValue={state?.values?.email ?? ''}
           autoComplete="email"
           placeholder="you@example.com"
           error={state?.fieldErrors?.email}
@@ -62,7 +62,6 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
           type="password"
           label="Password"
           required
-          defaultValue="Amicus"
           autoComplete="current-password"
           placeholder="••••••••"
           error={state?.fieldErrors?.password}
