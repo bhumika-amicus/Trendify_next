@@ -38,7 +38,7 @@ export default function NavBar() {
   return (
     <header className="relative w-full border-b border-border-subtle bg-white">
       {/* Main header row */}
-      <div className="mx-auto flex w-full max-w-360 items-center justify-between px-4.5 py-3 sm:px-6 md:h-17.5 md:px-10 md:py-0">
+      <div className="mx-auto flex w-full max-w-360 items-center justify-between gap-4 px-4.5 py-3 sm:px-6 md:h-17.5 md:gap-6 md:px-10 md:py-0">
         {/* Mobile Menu Toggle (Left) */}
         <button
           type="button"
@@ -62,7 +62,7 @@ export default function NavBar() {
         </Link>
 
         {/* Desktop Search (Hidden on Mobile) */}
-        <div className="mx-8 hidden flex-1 max-w-2xl md:block">
+        <div className="hidden min-w-0 flex-1 max-w-2xl md:block">
           <ProductSearch
             variant="header"
             placeholder="Search for products, brands and more"
@@ -70,10 +70,10 @@ export default function NavBar() {
         </div>
 
         {/* Desktop Navigation */}
-        <nav className="ml-auto hidden items-center gap-6 md:flex">
+        <nav className="ml-auto hidden shrink-0 items-center gap-4 lg:gap-6 md:flex">
           <Link
             href="/products"
-            className={`flex items-center gap-1.5 text-sm font-medium transition-colors hover:text-brand-orange ${
+            className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap text-sm font-medium transition-colors hover:text-brand-orange ${
               isLinkActive('/products')
                 ? 'text-brand-orange underline underline-offset-4 decoration-2 font-semibold'
                 : 'text-gray-700'
@@ -88,7 +88,7 @@ export default function NavBar() {
           ) : (
             <Link
               href={signInHref}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold transition-colors hover:text-brand-orange ${
+              className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap px-3 py-1.5 text-sm font-semibold transition-colors hover:text-brand-orange ${
                 isLinkActive('/login')
                   ? 'text-brand-orange font-bold'
                   : 'text-gray-700'
@@ -102,7 +102,7 @@ export default function NavBar() {
           {/* Cart Icon with Floating Notification Pill */}
           <Link
             href="/cart"
-            className="relative flex items-center justify-center p-1.5 text-gray-700 hover:text-brand-orange transition-colors"
+            className="relative flex shrink-0 items-center justify-center p-1.5 text-gray-700 hover:text-brand-orange transition-colors"
             aria-label="Shopping cart"
           >
             <ShoppingCart size={23} />

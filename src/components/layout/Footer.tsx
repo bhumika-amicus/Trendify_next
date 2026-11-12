@@ -9,22 +9,6 @@ const footerColumns = [
       { text: 'Home', href: '/' },
     ],
   },
-  {
-    title: 'CUSTOMER CARE',
-    links: [
-      { text: 'Help Center', href: '#' },
-      { text: 'Track Orders', href: '#' },
-      { text: 'Returns & Refunds', href: '#' },
-    ],
-  },
-  {
-    title: 'POLICIES',
-    links: [
-      { text: 'Privacy Policy', href: '#' },
-      { text: 'Terms of Service', href: '#' },
-      { text: 'Shipping Policy', href: '#' },
-    ],
-  },
 ];
 
 /**
@@ -34,7 +18,7 @@ const footerColumns = [
 export default function Footer() {
   return (
     <footer className="mt-auto border-t border-border-subtle bg-surface-subtle px-6 py-10 text-text-main md:px-12 md:py-14">
-      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_2fr]">
+      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 sm:grid-cols-[1fr_2fr] md:gap-12">
         {footerColumns.map((column) => (
           <div key={column.title} className="flex flex-col">
             <h4 className="m-0 mb-5 text-sm font-bold uppercase tracking-wider text-text-main">

@@ -67,7 +67,7 @@ export default function UserDropdown() {
         onClick={() => setIsOpen((prev) => !prev)}
         aria-expanded={isOpen}
         aria-haspopup="menu"
-        className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-orange-50 hover:text-brand-orange rounded-full text-xs font-semibold text-gray-800 transition-colors border-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange"
+        className="flex items-center gap-1.5 whitespace-nowrap px-3 py-1.5 bg-gray-100 hover:bg-orange-50 hover:text-brand-orange rounded-full text-xs font-semibold text-gray-800 transition-colors border-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-orange"
         title="Account menu"
       >
         <User size={14} className="text-brand-orange" />

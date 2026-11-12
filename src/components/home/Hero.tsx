@@ -1,14 +1,16 @@
 import Image from 'next/image';
+import heroImg from '../../../public/hero.png';
 import ProductSearch from '@/components/product/ProductSearch';
 
 export default function Hero() {
   return (
-    <section className="relative w-full overflow-hidden aspect-auto min-h-100 md:aspect-15/4 md:min-h-0">
+    <section className="relative w-full overflow-hidden bg-neutral-900 aspect-auto min-h-100 md:aspect-15/4 md:min-h-0">
       <Image
-        src="/hero.png"
+        src={heroImg}
         alt="Discover top products"
         fill
         priority
+        placeholder="blur"
         sizes="100vw"
         className="object-cover object-center"
       />
