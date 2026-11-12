@@ -11,6 +11,17 @@ interface RouteContext {
 }
 
 /**
+ * Purges tag-based data caches and affected HTML route caches after product mutations.
+ */
+function invalidateProductCaches(id: string) {
+  revalidateTag('products', 'max');
+  revalidateTag(`product-${id}`, 'max');
+  revalidatePath(`/products/${id}`);
+  revalidatePath('/products');
+  revalidatePath('/');
+}
+
+/**
  * GET /api/products/[id]
  * Delegates to getProductByIdServer with shared caching and tag invalidation.
  * Returns clean Product model or 404 Not Found.
@@ -155,10 +166,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       );
     }
 
-    // Invalidate product cache tags and HTML page cache across the application
-    revalidateTag('products', 'max');
-    revalidateTag(`product-${id}`, 'max');
-    revalidatePath(`/products/${id}`);
+    invalidateProductCaches(id);
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
@@ -230,10 +238,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
       );
     }
 
-    // Invalidate product cache tags and HTML page cache across the application
-    revalidateTag('products', 'max');
-    revalidateTag(`product-${id}`, 'max');
-    revalidatePath(`/products/${id}`);
+    invalidateProductCaches(id);
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
