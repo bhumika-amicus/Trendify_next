@@ -34,10 +34,11 @@ This project provides Route Handlers in Next.js serving as a Backend-For-Fronten
 
 ### 2. Upstream Configuration & Environment Variables
 
-The upstream .NET API base URL is configured in `.env.local` without the `NEXT_PUBLIC_` prefix so it stays private to server-side Route Handlers only:
+The upstream .NET API base URL is configured in `.env.local` (or Vercel Environment Variables) without the `NEXT_PUBLIC_` prefix so it stays private to server-side modules only (see [.env.example](.env.example)):
 
 ```env
 DOTNET_API_BASE_URL=https://training-ecom1-a9a2cmbsefdvgwha.centralindia-01.azurewebsites.net
+NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
 ---
@@ -147,7 +148,7 @@ Think of Server Components as code that runs **behind the scenes on the server**
 4. **Great for Search Engines (SEO)**: Google and other crawlers see the full page content immediately.
 
 **Which parts are Server Components in our app:**
-- **Product Listing Page (`src/app/products/page.tsx`)**: Reads URL search parameters, queries the backend API for products, categories, and brands, and renders the layout.
+- **Product Listing Page (`src/app/products/(store)/page.tsx`)**: Reads URL search parameters, queries the backend API for products, and renders the responsive catalog grid and pagination (while `FilterSidebarSection` inside `src/app/products/(store)/layout.tsx` streams categories and brands independently via `<Suspense>`).
 - **Product Details Page (`src/app/products/[id]/page.tsx`)**: Fetches the single product by ID, handles 404 Not Found if the product does not exist, and creates the SEO page title and description.
 - **Product Grid (`src/components/product/ProductGrid.tsx`)**: Organizes products into a responsive 4-column layout on the server.
 
@@ -175,18 +176,18 @@ All product-related routes live cohesively inside `src/app/products/`:
 ```text
 src/app/
 └── products/
-    ├── (catalog)/             <-- Route group for catalog listing (ignored in URL)
+    ├── (store)/             <-- Route group for catalog listing (ignored in URL)
     │   ├── layout.tsx         <-- Injects FilterSidebar + 2-column layout ONLY for /products
     │   ├── page.tsx           <-- Serves URL: /products
     │   └── loading.tsx        <-- Catalog loading skeleton
-    └── [id]/                  <-- Sibling to (catalog)
+    └── [id]/                  <-- Sibling to (store)
         ├── page.tsx           <-- Serves URL: /products/[id] (Full-width clean detail view)
         └── loading.tsx        <-- Detail page loading skeleton
 ```
 
-- **How it works**: By wrapping the catalog listing in an internal route group `(catalog)`, the sidebar layout applies strictly to `/products`.
-- **Clean Detail Pages**: Because `[id]` is a sibling to `(catalog)` and not a child of it, the product details page (`/products/[id]`) does not inherit the catalog sidebar and displays as a clean, full-width product view.
-- **Zero URL Impact**: Route groups with parentheses `(catalog)` do not affect the public URLs (`/products` and `/products/123`).
+- **How it works**: By wrapping the catalog listing in an internal route group `(store)`, the sidebar layout applies strictly to `/products`.
+- **Clean Detail Pages**: Because `[id]` is a sibling to `(store)` and not a child of it, the product details page (`/products/[id]`) does not inherit the catalog sidebar and displays as a clean, full-width product view.
+- **Zero URL Impact**: Route groups with parentheses `(store)` do not affect the public URLs (`/products` and `/products/123`).
 
 ---
 
@@ -201,16 +202,16 @@ This assignment implements Static Site Generation (SSG) and Incremental Static R
 #### A. Server-Side Data Fetching for Featured Products on Home Page (`/`)
 - Converted `src/app/page.tsx` into an `async` Server Component.
 - Eliminated client-side `useFetch` state and spinners on the landing page.
-- Fetches featured products (`getProductsServer({ pageSize: 8 })`) and categories (`getCategoriesServer()`) simultaneously on the server using `Promise.all`.
+- `src/app/page.tsx` streams `FeaturedProductsSection` and `ShopByCategorySection` concurrently inside `<Suspense>` boundaries (`FeaturedProductsSkeleton`, `ShopByCategorySkeleton`) with graceful inline fallbacks.
 - Configured with `export const revalidate = 60` for 60-second ISR caching.
 
 #### B. Static Site Generation (SSG) for Product Listing (`/products`)
-- Configured `src/app/products/(catalog)/page.tsx` with `export const dynamic = 'force-static'` and `export const revalidate = 60`.
+- Uses dynamic URL `searchParams` rendering in `src/app/products/(store)/page.tsx` paired with 60s/300s tagged server `fetch` caches (`'products'`, `'categories'`, `'brands'`) and `<Suspense>` sidebar streaming in `layout.tsx` (originally prototyped as SSG with `force-static` for Assignment 6).
 - Wrapped dynamic content in React `<Suspense fallback={<CatalogLoading />}>` so the page shell and initial catalog are pre-rendered into static HTML at build time (`○ /products 1m`).
 - Served directly from cache on first request with instant Time to First Byte (TTFB).
 
 #### C. Incremental Static Regeneration (ISR) with 60s Revalidation on Product Details (`/products/[id]`)
-- Implemented `generateStaticParams()` in `src/app/products/[id]/page.tsx` to pre-render the top 30 products into static HTML at build time (`● /products/[id]`).
+- Implemented `generateStaticParams()` in `src/app/products/[id]/page.tsx` to pre-render up to 50 products into static HTML at build time (`● /products/[id]`).
 - Configured `export const revalidate = 60` on the route segment and `next: { revalidate: 60 }` on the upstream fetch call.
 - Memoized product fetches with `React.cache()` to share upstream responses between `generateMetadata()` and the page component, preventing duplicate HTTP requests during page generation.
 
@@ -402,3 +403,21 @@ All files               |   73.46 |     54.8 |   66.66 |   73.46 |
    - Rectified an 8% vs 18% tax discrepancy in `CartOrderSummary.tsx`.
    - Added defensive array guards in `cartCalculations.ts` to prevent runtime crashes when items are uninitialized.
    - Resolved all ESLint warnings in test setup files for clean `npm run lint` execution.
+
+---
+
+## Architecture Refactor & Vercel Deployment Guide
+
+### 1. Project Organization & Production Error Handling
+- **Routing-Only `src/app/` + Domain-Grouped `src/components/`**: App Router segments under `src/app/` stay strictly routing-focused, while UI modules are grouped by domain (`about/`, `auth/`, `cart/`, `checkout/`, `common/`, `dashboard/`, `home/`, `layout/`, `orders/`, `product/`).
+- **Shared Route Error Recovery (`src/components/common/RouteErrorFallback.tsx`)**: All route `error.tsx` boundaries delegate to a single fallback component that runs `router.refresh()` + `reset()` inside `startTransition`, ensuring retrying a failed Server Component re-executes the server fetch instead of replaying a cached client error.
+- **Root Crash Fallback (`src/app/global-error.tsx`)**: Imports `./globals.css` directly (since `RootLayout` is replaced on root crashes) and uses a native `<a href="/">` hard reload to recover cleanly.
+- **Session Refresh Proxy (`src/proxy.ts`)**: Protects `/cart`, `/checkout`, `/orders`, and `/dashboard` and silently exchanges expired short-lived `session` tokens using the `httpOnly` `refreshToken` cookie.
+
+### 2. Deploying to Vercel via GitHub
+1. **Import Repository**: Connect `Trendify_next` in Vercel (**Framework Preset**: `Next.js`, **Root Directory**: `./`, default `npm install` & `next build`). Every push to `main` triggers an automatic Production deployment, and branches/PRs generate Preview deployments.
+2. **Environment Variables** (Vercel **Project Settings → Environment Variables**):
+   - `DOTNET_API_BASE_URL` — Server-only upstream `.NET` backend URL (never prefix with `NEXT_PUBLIC_`).
+   - `NEXT_PUBLIC_APP_URL` — Your live Vercel production URL (e.g., `https://<project>.vercel.app`) for `metadataBase` OpenGraph/canonical tags. Redeploy after adding/updating `NEXT_PUBLIC_*` variables.
+   - Do **not** manually set `NODE_ENV=production` during the Vercel build step so `devDependencies` (`@tailwindcss/turbopack`, `typescript`) install cleanly.
+3. **Function Region**: Set **Settings → Functions → Function Regions** to **Mumbai (`bom1`)** to minimize latency to the Azure backend in `centralindia-01`.
