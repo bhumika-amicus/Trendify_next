@@ -28,6 +28,8 @@ export async function proxy(request: NextRequest) {
         },
         body: JSON.stringify({ refreshToken }),
         cache: 'no-store',
+        // Keep proxy snappy so a cold/stalled backend never blocks every page navigation
+        signal: AbortSignal.timeout(5000),
       });
 
       if (refreshResponse.ok) {
@@ -73,7 +75,22 @@ export async function proxy(request: NextRequest) {
     return redirectResponse;
   }
 
-  const response = NextResponse.next();
+  // Forward newly refreshed tokens into the *current* request headers so downstream
+  // Server Components (await cookies()) immediately see the new session on first hit.
+  let response: NextResponse;
+  if (newSessionToken) {
+    request.cookies.set('session', newSessionToken);
+    if (newRefreshToken) {
+      request.cookies.set('refreshToken', newRefreshToken);
+    }
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set('cookie', request.cookies.toString());
+    response = NextResponse.next({
+      request: { headers: requestHeaders },
+    });
+  } else {
+    response = NextResponse.next();
+  }
 
   if (shouldClearCookies) {
     response.cookies.delete('session');

@@ -1,6 +1,12 @@
+import dynamic from 'next/dynamic';
 import { getFeaturedProductsServer } from '@/services/serverProductService';
-import FeaturedProductCarousel from './FeaturedProductCarousel';
+import FeaturedProductsSkeleton from './FeaturedProductsSkeleton';
 import StateMessage from '@/components/common/StateMessage';
+
+// Code-split Swiper + CSS chunks out of the initial `/` bundle while still SSR-rendering product HTML
+const FeaturedProductCarousel = dynamic(() => import('./FeaturedProductCarousel'), {
+  loading: () => <FeaturedProductsSkeleton />,
+});
 
 /**
  * Async Server Component for Featured Products.

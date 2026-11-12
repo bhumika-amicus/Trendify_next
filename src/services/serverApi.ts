@@ -124,9 +124,16 @@ export async function serverApiFetch<T>(
     headers.set('Content-Type', 'application/json');
   }
 
+  const timeoutSignal = AbortSignal.timeout(8500);
+  const combinedSignal = rest.signal
+    ? AbortSignal.any([rest.signal, timeoutSignal])
+    : timeoutSignal;
+
   const fetchOptions: RequestInit = {
     ...rest,
     headers,
+    // Fail fast before Vercel's serverless timeout so error boundaries / fallbacks handle slow upstreams
+    signal: combinedSignal,
     ...(hasJsonBody ? { body: JSON.stringify(body) } : {}),
   };
 
