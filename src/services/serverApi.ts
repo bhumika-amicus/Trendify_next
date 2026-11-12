@@ -6,10 +6,10 @@ export interface ServerApiOptions extends Omit<RequestInit, 'body'> {
 }
 
 /**
- * Backward-compatible discriminated union:
- * - When ok === true: data is T | null, and error is undefined.
- * - When ok === false: error is guaranteed string, and data holds parsed response (T | null).
- * - Full type narrowing when checking res.ok, with 100% compatibility for existing callers.
+ * Discriminated union for upstream API results:
+ * - When ok === true: data holds parsed JSON (T | null), error is undefined.
+ * - When ok === false: error holds a safe backend message for < 500 responses,
+ *   or undefined on 5xx so calling services supply their own contextual fallback.
  */
 export type ServerApiResponse<T> =
   | {
@@ -119,28 +119,15 @@ export async function serverApiFetch<T>(
     headers.set('Authorization', `Bearer ${token}`);
   }
 
-  const isFormData = body instanceof FormData;
-  const isUrlSearchParams = body instanceof URLSearchParams;
-
-  const isJsonBody =
-    body !== undefined &&
-    body !== null &&
-    !isFormData &&
-    !isUrlSearchParams &&
-    typeof body !== 'string';
-
-  if (isJsonBody && !headers.has('Content-Type')) {
+  const hasJsonBody = body !== undefined && body !== null;
+  if (hasJsonBody && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json');
   }
-
-  const requestBody = isJsonBody
-    ? JSON.stringify(body)
-    : (body as BodyInit | null | undefined);
 
   const fetchOptions: RequestInit = {
     ...rest,
     headers,
-    ...(body !== undefined ? { body: requestBody } : {}),
+    ...(hasJsonBody ? { body: JSON.stringify(body) } : {}),
   };
 
   const normalizedPath = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;

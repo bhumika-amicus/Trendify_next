@@ -4,8 +4,8 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { DOTNET_API_BASE_URL } from '@/config';
 import { LoginSchema, RegisterSchema } from '@/schemas/auth';
+import { serverApiFetch } from '@/services/serverApi';
 
 export interface AuthFieldErrors {
   name?: string;
@@ -23,6 +23,13 @@ export interface AuthActionState {
   };
   success?: boolean;
   redirectTo?: string;
+}
+
+interface AuthUpstreamResponse {
+  token?: string;
+  refreshToken?: string;
+  message?: string;
+  error?: string;
 }
 
 export async function loginAction(
@@ -52,95 +59,86 @@ export async function loginAction(
 
   const { email, password, callbackUrl } = parsed.data;
 
-  try {
-    const upstreamUrl = `${DOTNET_API_BASE_URL}/api/auth/login`;
+  const res = await serverApiFetch<AuthUpstreamResponse>('/api/auth/login', {
+    method: 'POST',
+    body: { email, password },
+    cache: 'no-store',
+  });
 
-    const response = await fetch(upstreamUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
-      cache: 'no-store',
-    });
-
-    const data = await response.json().catch(() => null);
-
-    if (!response.ok) {
-      console.error(
-        `[AUTH] Login failed with upstream status [${response.status}]:`,
-        data?.message || data?.error || 'No error body'
-      );
-
-      if (response.status >= 500) {
-        return {
-          error:
-            'Our authentication service is temporarily unavailable. Please try again later.',
-        };
-      }
-
-      if (response.status === 401) {
-        return { error: 'Invalid email or password.', values: { email } };
-      }
-
-      if (response.status === 403) {
-        return {
-          error:
-            data?.message ||
-            data?.error ||
-            'Access denied by server. Please try again later or contact support if the issue persists.',
-          values: { email },
-        };
-      }
-
+  if (!res.ok) {
+    if (res.status === 0) {
       return {
-        error:
-          data?.error ||
-          data?.message ||
-          'Authentication failed. Please check credentials.',
+        error: 'Authentication service is unreachable. Please check your connection and try again.',
       };
     }
 
-    if (!data || !data.token) {
-      console.error('[AUTH] Login response missing token:', data);
-      return { error: 'Invalid response from authentication server.' };
+    const backendMsg = res.data?.message || res.data?.error || res.error;
+    console.error(
+      `[AUTH] Login failed with upstream status [${res.status}]:`,
+      backendMsg || 'No error body'
+    );
+
+    if (res.status >= 500) {
+      return {
+        error: 'Our authentication service is temporarily unavailable. Please try again later.',
+      };
     }
 
-    // Set secure session cookies
-    const cookieStore = await cookies();
+    if (res.status === 401) {
+      return { error: 'Invalid email or password.', values: { email } };
+    }
 
-    cookieStore.set('session', data.token, {
+    if (res.status === 403) {
+      return {
+        error:
+          backendMsg ||
+          'Access denied by server. Please try again later or contact support if the issue persists.',
+        values: { email },
+      };
+    }
+
+    return {
+      error:
+        res.data?.error ||
+        res.data?.message ||
+        res.error ||
+        'Authentication failed. Please check credentials.',
+    };
+  }
+
+  if (!res.data?.token) {
+    console.error('[AUTH] Login response missing token:', res.data);
+    return { error: 'Invalid response from authentication server.' };
+  }
+
+  // Set secure session cookies
+  const cookieStore = await cookies();
+
+  cookieStore.set('session', res.data.token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 60 * 60 * 2,
+  });
+
+  if (res.data.refreshToken) {
+    cookieStore.set('refreshToken', res.data.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
-      maxAge: 60 * 60 * 2,
+      maxAge: 60 * 60 * 24 * 7,
     });
-
-    if (data.refreshToken) {
-      cookieStore.set('refreshToken', data.refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 60 * 60 * 24 * 7,
-      });
-    }
-
-    // Prevent redirect loop to auth pages
-    const targetUrl =
-      callbackUrl === '/login' || callbackUrl === '/register'
-        ? '/'
-        : callbackUrl;
-
-    return { success: true, redirectTo: targetUrl };
-  } catch (error) {
-    console.error('[AUTH] Network error in loginAction:', error);
-    return {
-      error: 'Authentication service is unreachable. Please check your connection and try again.',
-    };
   }
+
+  // Prevent redirect loop to auth pages
+  const targetUrl =
+    callbackUrl === '/login' || callbackUrl === '/register'
+      ? '/'
+      : callbackUrl;
+
+  return { success: true, redirectTo: targetUrl };
 }
 
 export async function registerAction(
@@ -173,86 +171,60 @@ export async function registerAction(
   }
 
   const { name, email, password } = parsed.data;
-  let redirectTo: string | null = null;
 
-  try {
-    const upstreamUrl = `${DOTNET_API_BASE_URL}/api/auth/register`;
+  const res = await serverApiFetch<AuthUpstreamResponse>('/api/auth/register', {
+    method: 'POST',
+    body: { name, email, password },
+    cache: 'no-store',
+  });
 
-    const response = await fetch(upstreamUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      body: JSON.stringify({ name, email, password }),
-      cache: 'no-store',
-    });
-
-    const data = await response.json().catch(() => null);
-
-    if (!response.ok) {
-      console.error(
-        `[AUTH] Registration failed with upstream status [${response.status}]:`,
-        data?.message || data?.error || 'No error body'
-      );
-
-      if (response.status >= 500) {
-        return {
-          error:
-            'Our registration service is temporarily unavailable. Please try again later.',
-        };
-      }
-
-      if (response.status === 403) {
-        return {
-          error:
-            data?.message ||
-            data?.error ||
-            'Access denied by server security. Please try again later.',
-          values: {
-            name,
-            email,
-          },
-        };
-      }
-
-      if (response.status === 400) {
-        const errorMsg =
-          data?.message ||
-          data?.error ||
-          'Registration failed. Email might already be registered.';
-        const isEmailConflict = errorMsg.toLowerCase().includes('email');
-        return {
-          error: errorMsg,
-          fieldErrors: isEmailConflict ? { email: errorMsg } : undefined,
-          values: {
-            name,
-            email,
-          },
-        };
-      }
-
+  if (!res.ok) {
+    if (res.status === 0) {
       return {
-        error:
-          data?.message ||
-          data?.error ||
-          'Registration failed. Please check your details and try again.',
+        error: 'Registration service is unreachable. Please check your connection and try again.',
       };
     }
 
-    redirectTo = '/login?registered=true';
-  } catch (error) {
-    console.error('[AUTH] Network error in registerAction:', error);
+    const backendMsg = res.data?.message || res.data?.error || res.error;
+    console.error(
+      `[AUTH] Registration failed with upstream status [${res.status}]:`,
+      backendMsg || 'No error body'
+    );
+
+    if (res.status >= 500) {
+      return {
+        error: 'Our registration service is temporarily unavailable. Please try again later.',
+      };
+    }
+
+    if (res.status === 403) {
+      return {
+        error:
+          backendMsg ||
+          'Access denied by server security. Please try again later.',
+        values: { name, email },
+      };
+    }
+
+    if (res.status === 400) {
+      const errorMsg =
+        backendMsg || 'Registration failed. Email might already be registered.';
+      const isEmailConflict = errorMsg.toLowerCase().includes('email');
+      return {
+        error: errorMsg,
+        fieldErrors: isEmailConflict ? { email: errorMsg } : undefined,
+        values: { name, email },
+      };
+    }
+
     return {
-      error: 'Registration service is unreachable. Please check your connection and try again.',
+      error:
+        backendMsg ||
+        'Registration failed. Please check your details and try again.',
     };
   }
 
-  if (redirectTo) {
-    redirect(redirectTo);
-  }
-
-  return { success: true };
+  redirect('/login?registered=true');
 }
 
 export async function logoutAction(): Promise<void> {
@@ -264,7 +236,6 @@ export async function logoutAction(): Promise<void> {
   revalidatePath('/', 'layout');
   redirect('/login');
 }
-
 
 export async function getAuthSessionAction(): Promise<{ isLoggedIn: boolean }> {
   const cookieStore = await cookies();
