@@ -1,8 +1,6 @@
-'use client';
+'use client'; // Next.js requires route error boundaries to be Client Components.
 
-import { useEffect } from 'react';
-import Button from '@/components/common/Button';
-import StateMessage from '@/components/common/StateMessage';
+import RouteErrorFallback from '@/components/common/RouteErrorFallback';
 
 export default function StoreError({
   error,
@@ -11,26 +9,16 @@ export default function StoreError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  useEffect(() => {
-    console.error('[ROUTE ERROR] Captured in StoreError boundary:', error);
-  }, [error]);
-
   return (
-    <div className="w-full py-8">
-      <StateMessage
-        title="Unable to load products"
-        message="Our catalog service is currently experiencing technical difficulties. Please try again."
-        variant="error"
-      >
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-          <Button variant="outline" onClick={() => reset()}>
-            Try Again
-          </Button>
-          <Button href="/products" variant="primary">
-            Reset All Filters
-          </Button>
-        </div>
-      </StateMessage>
-    </div>
+    <RouteErrorFallback
+      error={error}
+      reset={reset}
+      logLabel="[ROUTE ERROR] Captured in StoreError boundary:"
+      title="Unable to load products"
+      message="Our catalog service is currently experiencing technical difficulties. Please try again."
+      secondaryHref="/products"
+      secondaryLabel="Reset All Filters"
+      className="w-full py-8"
+    />
   );
 }

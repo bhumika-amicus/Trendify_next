@@ -1,6 +1,8 @@
-
 'use client';
 
+// GlobalError replaces RootLayout (layout.tsx) when the root shell crashes,
+// so layout.tsx's `./globals.css` import is never loaded unless we import it here.
+import './globals.css';
 import { useEffect } from 'react';
 import Button from '@/components/common/Button';
 import StateMessage from '@/components/common/StateMessage';
@@ -32,9 +34,18 @@ export default function GlobalError({
                 Try Again
               </Button>
 
-              <Button href="/" variant="primary">
+              {/*
+                Use a native <a> instead of <Button href="/"> (Next.js <Link>):
+                when RootLayout has crashed, client-side SPA routing state may also
+                be broken, so a hard browser reload safely resets the entire app.
+              */}
+              {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+              <a
+                href="/"
+                className="inline-flex items-center justify-center border cursor-pointer transition-all duration-200 active:scale-98 focus-visible:outline-2 focus-visible:outline-brand-orange focus-visible:outline-offset-2 bg-brand-orange text-white border-brand-orange hover:bg-brand-orange-hover hover:border-brand-orange-hover hover:shadow-[0_4px_10px_rgba(255,79,10,0.25)] px-6 py-2.5 text-sm font-bold"
+              >
                 Back to Home
-              </Button>
+              </a>
             </div>
           </StateMessage>
         </main>

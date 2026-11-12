@@ -1,8 +1,6 @@
-'use client';
+'use client'; // Next.js requires route error boundaries to be Client Components.
 
-import { useEffect } from 'react';
-import Button from '@/components/common/Button';
-import StateMessage from '@/components/common/StateMessage';
+import RouteErrorFallback from '@/components/common/RouteErrorFallback';
 
 export default function ProductDetailError({
   error,
@@ -11,26 +9,16 @@ export default function ProductDetailError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  useEffect(() => {
-    console.error('[ROUTE ERROR] Captured in ProductDetailError:', error);
-  }, [error]);
-
   return (
-    <div className="mx-auto min-h-[50vh] w-full max-w-7xl px-4 py-12 sm:px-6 md:px-10">
-      <StateMessage
-        title="Unable to load product"
-        message="We encountered an issue retrieving this product. Please try again or explore other items."
-        variant="error"
-      >
-        <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
-          <Button variant="outline" onClick={() => reset()}>
-            Try Again
-          </Button>
-          <Button href="/products" variant="primary">
-            Return to Products
-          </Button>
-        </div>
-      </StateMessage>
-    </div>
+    <RouteErrorFallback
+      error={error}
+      reset={reset}
+      logLabel="[ROUTE ERROR] Captured in ProductDetailError:"
+      title="Unable to load product"
+      message="We encountered an issue retrieving this product. Please try again or explore other items."
+      secondaryHref="/products"
+      secondaryLabel="Return to Products"
+      className="mx-auto min-h-[50vh] w-full max-w-7xl px-4 py-12 sm:px-6 md:px-10"
+    />
   );
 }
