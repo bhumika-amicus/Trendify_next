@@ -1,6 +1,5 @@
 'use client';
 
-import { memo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Trash2, Loader2 } from 'lucide-react';
@@ -15,7 +14,7 @@ interface CartItemRowProps {
   isDeleting?: boolean;
 }
 
-function CartItemRow({
+export default function CartItemRow({
   item,
   onQuantityChange,
   onRemove,
@@ -107,5 +106,3 @@ function CartItemRow({
     </div>
   );
 }
-
-export default memo(CartItemRow);

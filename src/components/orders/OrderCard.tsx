@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, memo } from 'react';
+import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { ChevronDown, ChevronUp, RotateCcw } from 'lucide-react';
 import type { OrderSummaryItem, OrderDetail } from '@/types';
@@ -18,7 +18,7 @@ interface OrderCardProps {
   initialDetailError?: string | null;
 }
 
-function OrderCard({
+export default function OrderCard({
   order,
   initialExpanded = false,
   initialDetail = null,
@@ -186,5 +186,3 @@ function OrderCard({
     </div>
   );
 }
-
-export default memo(OrderCard);

@@ -1,6 +1,5 @@
 'use client';
 
-import { memo, useCallback } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -10,7 +9,7 @@ interface PaginationProps {
   onPageChange?: (page: number) => void;
 }
 
-function Pagination({
+export default function Pagination({
   currentPage,
   totalPages,
   onPageChange,
@@ -19,21 +18,18 @@ function Pagination({
   const pathname = usePathname();
   const rawSearchParams = useSearchParams();
 
-  const handlePageChange = useCallback(
-    (pageNumber: number) => {
-      if (onPageChange) {
-        onPageChange(pageNumber);
-        return;
-      }
-      const params = new URLSearchParams(rawSearchParams?.toString() || '');
-      params.set('page', String(pageNumber));
-      router.push(`${pathname}?${params.toString()}`);
-      if (typeof window !== 'undefined') {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-    },
-    [onPageChange, pathname, rawSearchParams, router]
-  );
+  const handlePageChange = (pageNumber: number) => {
+    if (onPageChange) {
+      onPageChange(pageNumber);
+      return;
+    }
+    const params = new URLSearchParams(rawSearchParams?.toString() || '');
+    params.set('page', String(pageNumber));
+    router.push(`${pathname}?${params.toString()}`);
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
   if (totalPages <= 1) {
     return null;
@@ -91,5 +87,3 @@ function Pagination({
     </nav>
   );
 }
-
-export default memo(Pagination);

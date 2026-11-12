@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, memo } from 'react';
+import { useState } from 'react';
 import { Minus, Plus } from 'lucide-react';
 
 interface QuantitySelectorProps {
@@ -11,7 +11,7 @@ interface QuantitySelectorProps {
   className?: string;
 }
 
-function QuantitySelector({
+export default function QuantitySelector({
   quantity,
   onQuantityChange,
   disabled = false,
@@ -143,5 +143,3 @@ function QuantitySelector({
     </div>
   );
 }
-
-export default memo(QuantitySelector);

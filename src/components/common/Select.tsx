@@ -1,5 +1,3 @@
-'use client';
-
 import type { SelectHTMLAttributes, ReactNode, Ref } from 'react';
 import { ChevronDown, Loader2 } from 'lucide-react';
 

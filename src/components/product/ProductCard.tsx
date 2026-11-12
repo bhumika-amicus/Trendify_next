@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, memo } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -19,7 +19,7 @@ interface ProductCardProps {
   product: Product;
 }
 
-function ProductCard({ product }: ProductCardProps) {
+export default function ProductCard({ product }: ProductCardProps) {
   const router = useRouter();
   const { setCartCount } = useCartActions();
   const [isAdding, setIsAdding] = useState(false);
@@ -126,5 +126,3 @@ function ProductCard({ product }: ProductCardProps) {
     </Card>
   );
 }
-
-export default memo(ProductCard);

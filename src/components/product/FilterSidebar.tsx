@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, memo } from 'react';
+import { useState } from 'react';
 import { ChevronUp, ChevronDown } from 'lucide-react';
 import type { Category, Brand } from '@/types';
 import { useProductFilters } from '@/hooks/useProductFilters';
@@ -16,7 +16,7 @@ export interface FilterSidebarProps {
   brands?: Brand[];
 }
 
-function FilterSidebar({
+export default function FilterSidebar({
   categories = [],
   brands = [],
 }: FilterSidebarProps) {
@@ -158,5 +158,3 @@ function FilterSidebar({
     </aside>
   );
 }
-
-export default memo(FilterSidebar);
