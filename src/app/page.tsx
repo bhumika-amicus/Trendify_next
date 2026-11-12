@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
-import Hero from '@/components/layout/Hero';
-import PromoBannerGrid from '@/components/product/PromoBannerGrid';
-import ServiceHighlights from '@/components/layout/ServiceHighlights';
+import Hero from '@/components/home/Hero';
+import PromoBannerGrid from '@/components/home/PromoBannerGrid';
+import ServiceHighlights from '@/components/home/ServiceHighlights';
 import FeaturedProductsSection from '@/components/home/FeaturedProductsSection';
 import FeaturedProductsSkeleton from '@/components/home/FeaturedProductsSkeleton';
 import ShopByCategorySection from '@/components/home/ShopByCategorySection';

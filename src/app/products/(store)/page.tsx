@@ -5,7 +5,7 @@ import ProductGrid from '@/components/product/ProductGrid';
 import StateMessage from '@/components/common/StateMessage';
 import Pagination from '@/components/common/Pagination';
 import Button from '@/components/common/Button';
-import EmptyCartToast from '@/components/common/EmptyCartToast';
+import EmptyCartToast from '@/components/product/EmptyCartToast';
 import { parseProductSearchParams } from '@/utils/productParams';
 
 export const metadata: Metadata = {
@@ -31,7 +31,6 @@ export default async function ProductListingPage({
     page,
   } = parseProductSearchParams(rawParams, PAGE_SIZE);
 
-  // Fetch data directly on the server (Server Component)
   const { products, totalRecords, totalPages } = await getProductsServer(apiParams);
 
   const currentQueryString = urlParams.toString();

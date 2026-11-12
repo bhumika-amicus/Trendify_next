@@ -1,5 +1,5 @@
 import { getCategoriesServer } from '@/services/serverProductService';
-import ShopByCategory from '@/components/product/ShopByCategory';
+import ShopByCategory from './ShopByCategory';
 import StateMessage from '@/components/common/StateMessage';
 
 /**
@@ -46,6 +46,5 @@ export default async function ShopByCategorySection() {
     );
   }
 
-  // 3. Success -> Render category grid
   return <ShopByCategory categories={categories} />;
 }

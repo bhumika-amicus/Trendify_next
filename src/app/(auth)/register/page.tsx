@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/utils/session';
-import RegisterForm from './RegisterForm';
+import RegisterForm from '@/components/auth/RegisterForm';
 
 export const metadata: Metadata = {
   title: 'Create Account',

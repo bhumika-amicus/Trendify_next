@@ -1,6 +1,7 @@
 /**
  * Server-only configuration.
- * Used exclusively by Next.js Route Handlers (app/api/...) to contact the .NET backend.
+ * Used by server-side modules (Server Actions, Route Handlers, Server Services, and proxy)
+ * to communicate with the upstream .NET backend.
  */
 export const DOTNET_API_BASE_URL =
   process.env.DOTNET_API_BASE_URL ||

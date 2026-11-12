@@ -18,7 +18,6 @@ export default function CartOrderSummary({
   return (
     <div className="w-full lg:w-80 xl:w-96 self-start lg:sticky lg:top-6">
       <div className="border border-gray-200 bg-white shadow-sm rounded-lg overflow-hidden">
-        {/* Header matching original design */}
         <div className="bg-gray-900 text-white font-bold py-3 px-6 tracking-wider text-sm">
           ORDER SUMMARY
         </div>

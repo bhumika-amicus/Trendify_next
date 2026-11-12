@@ -11,8 +11,8 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 
 import type { Product } from '@/types';
-import Button from '../common/Button';
-import ProductCard from './ProductCard';
+import Button from '@/components/common/Button';
+import ProductCard from '@/components/product/ProductCard';
 
 interface FeaturedProductCarouselProps {
   products: Product[];

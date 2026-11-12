@@ -1,5 +1,5 @@
 import { getFeaturedProductsServer } from '@/services/serverProductService';
-import FeaturedProductCarousel from '@/components/product/FeaturedProductCarousel';
+import FeaturedProductCarousel from './FeaturedProductCarousel';
 import StateMessage from '@/components/common/StateMessage';
 
 /**
@@ -11,7 +11,6 @@ export default async function FeaturedProductsSection() {
 
   const products = await getFeaturedProductsServer(8);
 
-  // 1. Upstream failure -> Section-level error state with Retry
   if (products === null) {
     return (
       <section className="w-full max-w-full overflow-hidden px-11 py-16 max-[650px]:px-4.5">
@@ -30,7 +29,6 @@ export default async function FeaturedProductsSection() {
     );
   }
 
-  // 2. Empty catalog -> Section-level empty state
   if (products.length === 0) {
     return (
       <section className="w-full max-w-full overflow-hidden px-11 py-16 max-[650px]:px-4.5">
@@ -49,6 +47,5 @@ export default async function FeaturedProductsSection() {
     );
   }
 
-  // 3. Success -> Render the carousel
   return <FeaturedProductCarousel products={products} />;
 }

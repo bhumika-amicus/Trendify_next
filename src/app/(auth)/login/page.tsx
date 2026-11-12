@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/utils/session';
-import LoginForm from './LoginForm';
+import LoginForm from '@/components/auth/LoginForm';
 
 export const metadata: Metadata = {
   title: 'Sign In',

@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Breadcrumbs from '@/components/common/Breadcrumbs';
 import AboutCard from '@/components/about/AboutCard';
-import { whoWeAreCards, whatWeStandForCards } from '@/data/aboutData';
+import { whoWeAreCards, whatWeStandForCards } from '@/components/about/aboutData';
 
 export const metadata: Metadata = {
   title: 'About Us',
@@ -13,7 +13,6 @@ export const metadata: Metadata = {
 export default function AboutPage() {
   return (
     <div className="flex flex-col w-full">
-      {/* 1. Hero Banner with hero.png, Breadcrumb, and About Trendify Title */}
       <section className="relative w-full overflow-hidden bg-black min-h-[260px] md:min-h-[340px] flex flex-col justify-end">
         <div className="absolute inset-0">
           <Image
@@ -44,7 +43,6 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* 2. Introductory "Our Story" Section */}
       <section
         id="story"
         className="bg-white py-12 px-4 sm:px-6 md:px-10 border-b border-border-subtle"
@@ -65,7 +63,6 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* 3. "Who We Are" Section with Reusable AboutCard Component */}
       <section className="bg-surface-subtle py-16 px-4 sm:px-6 md:px-10 border-b border-border-subtle">
         <div className="mx-auto max-w-7xl">
           <h2 className="text-3xl sm:text-4xl font-extrabold text-text-main text-center mb-12">
@@ -80,7 +77,6 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* 4. "What We Stand For" Section with Reusable AboutCard Component */}
       <section className="bg-white py-16 px-4 sm:px-6 md:px-10">
         <div className="mx-auto max-w-7xl">
           <h2 className="text-3xl sm:text-4xl font-extrabold text-text-main text-center mb-12">

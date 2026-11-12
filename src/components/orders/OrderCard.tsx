@@ -63,7 +63,6 @@ function OrderCard({
     }
   };
 
-  // Toggle accordion panel
   const handleToggleExpand = () => {
     if (isLoadingDetail) return; // Guard against concurrent duplicate clicks
 
@@ -78,7 +77,6 @@ function OrderCard({
     }
   };
 
-  // Reorder handler
   const handleReorder = async () => {
     if (isReordering) return;
     setIsReordering(true);

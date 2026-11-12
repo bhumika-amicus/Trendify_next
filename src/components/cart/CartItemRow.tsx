@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import { memo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Trash2, Loader2 } from 'lucide-react';
@@ -108,4 +108,4 @@ function CartItemRow({
   );
 }
 
-export default React.memo(CartItemRow);
+export default memo(CartItemRow);
