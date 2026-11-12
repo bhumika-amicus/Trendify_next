@@ -19,6 +19,7 @@ export default function AboutCard({ card }: AboutCardProps) {
           src={card.image}
           alt={card.title}
           fill
+          placeholder="blur"
           className="object-cover transition-transform duration-300 hover:scale-105"
           sizes="(max-width: 768px) 100vw, 33vw"
         />

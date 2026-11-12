@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
+import heroImg from '../../../public/hero.png';
 import Breadcrumbs from '@/components/common/Breadcrumbs';
 import AboutCard from '@/components/about/AboutCard';
 import { whoWeAreCards, whatWeStandForCards } from '@/components/about/aboutData';
@@ -16,10 +17,11 @@ export default function AboutPage() {
       <section className="relative w-full overflow-hidden bg-black min-h-[260px] md:min-h-[340px] flex flex-col justify-end">
         <div className="absolute inset-0">
           <Image
-            src="/hero.png"
+            src={heroImg}
             alt="About Trendify Banner"
             fill
             priority
+            placeholder="blur"
             className="object-cover object-center opacity-60"
             sizes="100vw"
           />
