@@ -17,6 +17,7 @@ export interface AuthFieldErrors {
 export interface AuthActionState {
   error?: string;
   fieldErrors?: AuthFieldErrors;
+  //if password becomes wrong or clear then we want to preserve the email and name values so that user doesn't have to retype them
   values?: {
     name?: string;
     email?: string;
