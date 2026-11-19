@@ -1,7 +1,7 @@
 export default function FilterSidebarSkeleton() {
   return (
     <aside
-      className="w-full border border-gray-200 bg-white p-3.5 rounded-lg shadow-sm animate-pulse space-y-6"
+      className="self-start sticky top-4 lg:top-6 w-full border border-gray-200 bg-white p-3.5 rounded-lg shadow-sm animate-pulse space-y-6"
       aria-label="Loading filters"
     >
       {/* Category Section Skeleton */}

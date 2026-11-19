@@ -39,12 +39,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`h-full antialiased overflow-x-hidden ${inter.variable}`}>
-      <body className="min-h-full flex flex-col bg-white text-text-body font-sans overflow-x-hidden">
+    <html lang="en" className={`h-full antialiased overflow-x-clip ${inter.variable}`}>
+      <body className="min-h-full flex flex-col bg-white text-text-body font-sans overflow-x-clip">
         <AuthProvider>
           <CartProvider>
             <NavBar />
-            <main className="flex-1 flex flex-col w-full min-w-0 overflow-x-hidden">
+            <main className="flex-1 flex flex-col w-full min-w-0">
               {children}
             </main>
             <Footer />

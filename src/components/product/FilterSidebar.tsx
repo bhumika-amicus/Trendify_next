@@ -56,7 +56,7 @@ export default function FilterSidebar({
   };
 
   return (
-    <aside className="sticky top-4 z-10 rounded-lg border border-gray-200 bg-white p-3.5 lg:top-6 overflow-y-auto max-h-[calc(100vh-2.5rem)] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+    <aside className="self-start sticky top-4 z-10 rounded-lg border border-gray-200 bg-white p-3.5 lg:top-6 overflow-y-auto max-h-[calc(100vh-2.5rem)] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
       {/* Mobile: FILTERS toggle accordion button + inline Clear all */}
       <div className="flex items-center justify-between border-b-2 border-brand-orange-500 pb-2 mb-2 lg:hidden">
         <button

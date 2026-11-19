@@ -73,7 +73,7 @@
     background-color: #ffffff;
     color: var(--color-text-body);
     line-height: 1.5;
-    overflow-x: hidden;
+    overflow-x: clip;
   }
 }
 
