@@ -1,7 +1,7 @@
 import React from 'react';
 import Button from '@/components/common/Button';
 import { formatINR } from '@/utils/formatters';
-import { TAX_RATE } from '@/utils/cartCalculations';
+import { TAX_RATE } from '@/utils/pricingCalculations';
 import type { CartSummary } from '@/types';
 
 export interface CartOrderSummaryProps {

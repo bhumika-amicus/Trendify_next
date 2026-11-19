@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useOptimistic, useTransition } from 'react';
+import { useEffect, useOptimistic, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import type { CartItem } from '@/types';
@@ -8,22 +8,23 @@ import CartItemRow from './CartItemRow';
 import CartOrderSummary from './CartOrderSummary';
 import StateMessage from '@/components/common/StateMessage';
 import { updateCartQuantityAction, removeCartItemAction } from '@/actions/cart';
-import { calculateCartSummary } from '@/utils/cartCalculations';
+import { calculateCartSummary } from '@/utils/pricingCalculations';
 import { useCartActions } from '@/context/CartContext';
 
 interface CartViewProps {
   items: CartItem[];
 }
 
-type OptimisticAction = { type: 'UPDATE_QTY'; productId: number; quantity: number };
+type OptimisticAction =
+  | { type: 'UPDATE_QTY'; productId: number; quantity: number }
+  | { type: 'DELETE_ITEM'; productId: number };
 
 export default function CartView({ items }: CartViewProps) {
   const router = useRouter();
   const { setCartCount } = useCartActions();
   const [isPending, startTransition] = useTransition();
-  const [deletingProductId, setDeletingProductId] = useState<number | null>(null);
 
-  // Optimistic state updates quantities locally in 0ms before the server response
+  // Optimistic state updates quantities and removals locally in 0ms before the server response
   const [optimisticItems, setOptimisticItems] = useOptimistic(
     items,
     (state: CartItem[], action: OptimisticAction) => {
@@ -40,6 +41,8 @@ export default function CartView({ items }: CartViewProps) {
                 : item
             )
             .filter((item) => item.quantity > 0);
+        case 'DELETE_ITEM':
+          return state.filter((item) => item.productId !== action.productId);
         default:
           return state;
       }
@@ -53,56 +56,56 @@ export default function CartView({ items }: CartViewProps) {
   }, [optimisticSummary.totalCount, setCartCount]);
 
   const handleQuantityChange = async (productId: number, quantity: number) => {
-    startTransition(() => {
+    startTransition(async () => {
       setOptimisticItems({ type: 'UPDATE_QTY', productId, quantity });
-    });
 
-    const res = await updateCartQuantityAction({ productId, quantity });
-    if (!res.success) {
-      if (res.requireAuth) {
-        toast.error('Please log in to manage your cart.');
-        router.push('/login?callbackUrl=/cart');
-        return;
-      }
-      toast.error(res.error || 'Failed to update quantity. Please try again.');
-      router.refresh();
-      return;
-    }
-    if (typeof res.count === 'number') {
-      setCartCount(res.count);
-    }
-  };
-
-  const handleRemove = async (productId: number, productName?: string) => {
-    if (deletingProductId) return;
-
-    setDeletingProductId(productId);
-
-    try {
-      const res = await removeCartItemAction({ productId });
+      const res = await updateCartQuantityAction({ productId, quantity });
       if (!res.success) {
         if (res.requireAuth) {
           toast.error('Please log in to manage your cart.');
           router.push('/login?callbackUrl=/cart');
           return;
         }
-        toast.error(res.error || 'Failed to remove item.');
+        toast.error(res.error || 'Failed to update quantity. Please try again.');
+        router.refresh();
         return;
       }
-
       if (typeof res.count === 'number') {
         setCartCount(res.count);
       }
-      router.refresh();
-      toast.success(
-        productName ? `${productName} removed from cart` : 'Item removed from cart',
-        { duration: 2500 }
-      );
-    } catch {
-      toast.error('Failed to remove item. Please try again.', { duration: 3000 });
-    } finally {
-      setDeletingProductId(null);
-    }
+    });
+  };
+
+  const handleRemove = async (productId: number, productName?: string) => {
+    startTransition(async () => {
+      setOptimisticItems({ type: 'DELETE_ITEM', productId });
+
+      try {
+        const res = await removeCartItemAction({ productId });
+        if (!res.success) {
+          if (res.requireAuth) {
+            toast.error('Please log in to manage your cart.');
+            router.push('/login?callbackUrl=/cart');
+            return;
+          }
+          toast.error(res.error || 'Failed to remove item.');
+          router.refresh();
+          return;
+        }
+
+        if (typeof res.count === 'number') {
+          setCartCount(res.count);
+        }
+        router.refresh();
+        toast.success(
+          productName ? `${productName} removed from cart` : 'Item removed from cart',
+          { duration: 2500 }
+        );
+      } catch {
+        toast.error('Failed to remove item. Please try again.', { duration: 3000 });
+        router.refresh();
+      }
+    });
   };
 
   if (optimisticItems.length === 0) {
@@ -148,7 +151,6 @@ export default function CartView({ items }: CartViewProps) {
                 item={item}
                 onQuantityChange={handleQuantityChange}
                 onRemove={handleRemove}
-                isDeleting={deletingProductId === item.productId}
               />
             ))}
           </div>

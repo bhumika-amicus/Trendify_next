@@ -26,7 +26,7 @@ export default function FeaturedProductCarousel({
   return (
     <section
       id="products"
-      className="w-full max-w-full overflow-hidden px-11 py-16 max-[650px]:px-4.5 [&_.swiper-pagination-bullet-active]:bg-text-muted!"
+      className="mx-auto max-w-350 overflow-hidden px-12 py-16 max-[650px]:px-4.5 [&_.swiper-pagination-bullet-active]:bg-text-muted!"
     >
       <div className="section-heading">
         <h2>Featured Products</h2>

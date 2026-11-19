@@ -7,7 +7,7 @@ import {
   SHIPPING_RATES,
   type ShippingAddressFormData,
 } from '@/schemas/checkout';
-import { calculateCheckoutSummary } from '@/utils/cartCalculations';
+import { calculateCheckoutSummary } from '@/utils/pricingCalculations';
 
 export interface UseCheckoutFormProps {
   initialItems: CartItem[];

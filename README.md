@@ -305,7 +305,7 @@ Testing in Next.js App Router requires different testing strategies depending on
 | **Client UI** | `ProductCard.tsx`, `CartView.tsx` | `jsdom` | React Testing Library + `userEvent` | Accessible queries (`getByRole`, `getByText`), quantity steppers, Add to Cart interaction, and auth redirection. |
 | **Server Actions** | `actions/cart.ts` | `node`/`jsdom` | Jest (async function testing) | Zod schema validation (parameterized with `test.each`), session cookie checks, backend service sync, and `revalidatePath('/cart')`. |
 | **Route Handlers** | `api/categories/route.ts`, `api/products/route.ts` | `node` (`@jest-environment node`) | Pure Node.js Web API testing | Direct invocation of `GET`/`POST`, HTTP status codes (`200`, `401`, `400`, `502`, `500`), and search/pagination query parameter extraction. |
-| **Business Logic** | `utils/cartCalculations.ts` | `node` | Unit assertions | Subtotal, 18% GST tax precision, ₹100 standard shipping boundary, and defensive array fallback. |
+| **Business Logic** | `utils/pricingCalculations.ts` | `node` | Unit assertions | Subtotal, 18% GST tax precision, dynamic & standard shipping boundaries, and defensive array fallback. |
 
 ---
 
@@ -329,7 +329,7 @@ npm run test:coverage
 ```text
 PASS  __tests__/api/categories.test.ts
 PASS  __tests__/api/products.test.ts
-PASS  __tests__/utils/cartCalculations.test.ts
+PASS  __tests__/utils/pricingCalculations.test.ts
 PASS  __tests__/actions/cart.test.ts
 PASS  __tests__/components/ProductCard.test.tsx
 PASS  __tests__/components/CartView.test.tsx
@@ -377,7 +377,7 @@ All files               |   73.46 |     54.8 |   66.66 |   73.46 |
  src/services           |   27.27 |      100 |       0 |   27.27 |                                                                                  
   serverApi.ts          |   27.27 |      100 |       0 |   27.27 | 36-39,42-44,46-48,55-66,73-86,92-104,107-209                                     
  src/utils              |   74.49 |    46.93 |   66.66 |   74.49 |                                                                                  
-  cartCalculations.ts   |     100 |    55.55 |     100 |     100 | 9-13,33-42                                                                       
+  pricingCalculations.ts|     100 |      100 |     100 |     100 |                                                                                  
   formatters.ts         |   56.66 |      100 |      50 |   56.66 | 18-30                                                                            
   productAdapter.ts     |      50 |      100 |       0 |      50 | 25-37,44-55,61-70                                                                
   productParams.ts      |   87.28 |    14.28 |     100 |   87.28 | 29-30,32-39,61-63,69,75                                                          
@@ -401,7 +401,7 @@ All files               |   73.46 |     54.8 |   66.66 |   73.46 |
    - Route Handlers run under `/** @jest-environment node */` to utilize native Web API `Request` and `Response` objects without JSDOM browser emulation overhead.
 5. **Code Fixes & Polish**:
    - Rectified an 8% vs 18% tax discrepancy in `CartOrderSummary.tsx`.
-   - Added defensive array guards in `cartCalculations.ts` to prevent runtime crashes when items are uninitialized.
+   - Added defensive array guards in `pricingCalculations.ts` to prevent runtime crashes when items are uninitialized.
    - Resolved all ESLint warnings in test setup files for clean `npm run lint` execution.
 
 ---

@@ -8,7 +8,7 @@ export default function FeaturedProductsSkeleton() {
   return (
     <section
       id="products-loading"
-      className="w-full max-w-full overflow-hidden px-11 py-16 max-[650px]:px-4.5"
+      className="mx-auto max-w-350 overflow-hidden px-12 py-16 max-[650px]:px-4.5"
       aria-busy="true"
       aria-label="Loading featured products"
     >

@@ -19,7 +19,7 @@ export default async function FeaturedProductsSection() {
 
   if (products === null) {
     return (
-      <section className="w-full max-w-full overflow-hidden px-11 py-16 max-[650px]:px-4.5">
+      <section className="mx-auto max-w-350 overflow-hidden px-12 py-16 max-[650px]:px-4.5">
         <div className="section-heading mb-6!">
           <h2>Featured Products</h2>
         </div>
@@ -37,7 +37,7 @@ export default async function FeaturedProductsSection() {
 
   if (products.length === 0) {
     return (
-      <section className="w-full max-w-full overflow-hidden px-11 py-16 max-[650px]:px-4.5">
+      <section className="mx-auto max-w-350 overflow-hidden px-12 py-16 max-[650px]:px-4.5">
         <div className="section-heading mb-6!">
           <h2>Featured Products</h2>
         </div>

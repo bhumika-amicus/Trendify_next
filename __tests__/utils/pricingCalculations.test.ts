@@ -1,11 +1,12 @@
 import {
+  calculatePricingSummary,
   calculateCartSummary,
   calculateCheckoutSummary,
   STANDARD_SHIPPING_CHARGE,
-} from '@/utils/cartCalculations';
+} from '@/utils/pricingCalculations';
 import type { CartItem } from '@/types';
 
-describe('cartCalculations utility', () => {
+describe('pricingCalculations utility', () => {
   const sampleItems: CartItem[] = [
     {
       productId: 1,
