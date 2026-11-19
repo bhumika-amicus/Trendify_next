@@ -158,7 +158,12 @@ export async function serverApiFetch<T>(
     if (!response.ok) {
       if (response.status >= 500) {
         console.error(
-          `[SERVER_API_5XX] Upstream failure on ${normalizedPath} [${response.status}]:`,
+          `[SERVER_API_5XX] Upstream failure on ${normalizedPath} [HTTP ${response.status}]:`,
+          responseData
+        );
+      } else {
+        console.warn(
+          `[SERVER_API_4XX] Upstream client error on ${normalizedPath} [HTTP ${response.status}]:`,
           responseData
         );
       }

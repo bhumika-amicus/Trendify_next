@@ -20,7 +20,10 @@ export async function getAddressesServer(
   });
 
   if (!res.ok) {
-    console.error('[ADDRESS_API] getAddressesServer failed:', res.error);
+    console.error(
+      `[ADDRESS_API] getAddressesServer failed [HTTP ${res.status}]:`,
+      res.error ?? 'Server error'
+    );
     return null;
   }
 

@@ -44,6 +44,10 @@ export async function getProductsServer(
   );
 
   if (!res.ok || !res.data) {
+    console.error(
+      `[PRODUCTS] Upstream search failure [HTTP ${res.status}]:`,
+      res.error ?? 'Server error'
+    );
     throw new ApiError(
       res.error || 'Failed to load products from upstream service.',
       res.status || 500
@@ -67,7 +71,10 @@ export async function getFeaturedProductsServer(
   );
 
   if (!res.ok || !res.data) {
-    console.error('[FEATURED PRODUCTS] Upstream failure:', res.error);
+    console.error(
+      `[FEATURED PRODUCTS] Upstream failure [HTTP ${res.status}]:`,
+      res.error ?? 'Server error'
+    );
     return null;
   }
 
@@ -96,6 +103,10 @@ export const getProductByIdServer = cache(
     }
 
     if (!res.ok || !res.data) {
+      console.error(
+        `[PRODUCT_DETAIL] Fetch failure for ID ${id} [HTTP ${res.status}]:`,
+        res.error ?? 'Server error'
+      );
       throw new ApiError(
         res.error || `Failed to load product details for ID ${id}`,
         res.status || 500
@@ -117,7 +128,10 @@ export async function getCategoriesServer(): Promise<Category[] | null> {
   });
 
   if (!res.ok) {
-    console.error('[CATEGORIES] Upstream failure:', res.error);
+    console.error(
+      `[CATEGORIES] Upstream failure [HTTP ${res.status}]:`,
+      res.error ?? 'Server error'
+    );
     return null;
   }
 
@@ -135,7 +149,10 @@ export async function getBrandsServer(): Promise<Brand[] | null> {
   });
 
   if (!res.ok) {
-    console.error('[BRANDS] Upstream failure:', res.error);
+    console.error(
+      `[BRANDS] Upstream failure [HTTP ${res.status}]:`,
+      res.error ?? 'Server error'
+    );
     return null;
   }
 

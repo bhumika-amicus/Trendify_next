@@ -70,7 +70,10 @@ export async function getOrderHistoryServer(
 
   if (!res.ok || !res.data) {
     const errorMsg = res.error || 'Failed to load order history from server.';
-    console.warn('[ORDER_API] getOrderHistory failed:', errorMsg);
+    console.warn(
+      `[ORDER_API] getOrderHistory failed [HTTP ${res.status}]:`,
+      errorMsg
+    );
     return {
       orders: [],
       page,
@@ -118,7 +121,10 @@ export async function getOrderDetailServer(
 
   if (!res.ok || !res.data) {
     const errorMsg = res.error || `Order #${orderId} could not be found.`;
-    console.warn(`[ORDER_API] getOrderDetail failed for order #${orderId}:`, errorMsg);
+    console.warn(
+      `[ORDER_API] getOrderDetail failed for order #${orderId} [HTTP ${res.status}]:`,
+      errorMsg
+    );
     return {
       success: false,
       error: errorMsg,
