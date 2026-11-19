@@ -8,11 +8,6 @@ const FeaturedProductCarousel = dynamic(() => import('./FeaturedProductCarousel'
   loading: () => <FeaturedProductsSkeleton />,
 });
 
-/**
- * Async Server Component for Featured Products.
- * Fetches products on the server and streams independently inside a Suspense boundary.
- * Renders an inline error state if the service is down, or empty state if no products exist.
- */
 export default async function FeaturedProductsSection() {
 
   const products = await getFeaturedProductsServer(8);

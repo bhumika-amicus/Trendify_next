@@ -4,8 +4,7 @@ import { useState } from 'react';
 import { ChevronUp, ChevronDown } from 'lucide-react';
 import type { Category, Brand } from '@/types';
 import { useProductFilters } from '@/hooks/useProductFilters';
-import CategoryFilter from './filters/CategoryFilter';
-import BrandFilter from './filters/BrandFilter';
+import CheckboxFilterGroup from './filters/CheckboxFilterGroup';
 import PriceFilter from './filters/PriceFilter';
 import RatingFilter from './filters/RatingFilter';
 import SortFilter from './filters/SortFilter';
@@ -111,21 +110,33 @@ export default function FilterSidebar({
         className={`lg:block ${isMobileFiltersOpen ? 'block mt-4' : 'hidden'}`}
       >
         {/* 1. Category */}
-        <CategoryFilter
-          categories={categories}
-          selectedCategoryId={selectedCategoryId}
+        <CheckboxFilterGroup<Category>
+          title="Category"
+          section="category"
+          items={categories}
+          getItemId={(c) => c.categoryId}
+          getItemName={(c) => c.name}
+          selectedId={selectedCategoryId}
           isOpen={openSections.category}
           onToggle={() => toggleSection('category')}
-          onToggleCategory={toggleCategory}
+          onSelect={toggleCategory}
+          hasTopMargin={false}
+          emptyMessage="No categories found."
         />
 
         {/* 2. Brand */}
-        <BrandFilter
-          brands={brands}
-          selectedBrandId={brandId}
+        <CheckboxFilterGroup<Brand>
+          title="Brand"
+          section="brand"
+          items={brands}
+          getItemId={(b) => b.brandId}
+          getItemName={(b) => b.name}
+          selectedId={brandId}
           isOpen={openSections.brand}
           onToggle={() => toggleSection('brand')}
-          onToggleBrand={toggleBrand}
+          onSelect={toggleBrand}
+          hasTopMargin={true}
+          emptyMessage="No brands found."
         />
 
         {/* 3. Price */}
