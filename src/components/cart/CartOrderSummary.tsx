@@ -39,6 +39,9 @@ export default function CartOrderSummary({
                 {shipping > 0 ? formatINR(shipping) : 'Free'}
               </span>
             </div>
+            <p className="-mt-2 text-[11px] text-gray-500">
+              Delivery options (Express, Overnight) can be selected at checkout.
+            </p>
 
             <div className="flex justify-between">
               <span>Tax ({Math.round(TAX_RATE * 100)}%):</span>
