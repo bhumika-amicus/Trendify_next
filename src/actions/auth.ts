@@ -139,6 +139,9 @@ export async function loginAction(
       ? '/'
       : callbackUrl;
 
+  // Purge cached layout states (e.g. NavBar) to reflect the new user session instantly
+  revalidatePath('/', 'layout');
+
   return { success: true, redirectTo: targetUrl };
 }
 

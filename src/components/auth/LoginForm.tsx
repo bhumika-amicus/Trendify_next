@@ -25,6 +25,7 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
       refreshCartCount();
       const target = state.redirectTo || callbackUrl || '/';
       router.push(target);
+      router.refresh();
     }
   }, [state?.success, state?.redirectTo, callbackUrl, setLoggedIn, refreshCartCount, router]);
 
