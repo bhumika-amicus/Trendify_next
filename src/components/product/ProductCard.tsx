@@ -50,16 +50,21 @@ export default function ProductCard({ product }: ProductCardProps) {
           </h2>
         </Link>
 
-        {product.rating !== undefined && (
-          <div className="mb-3 flex flex-col items-center justify-center gap-2">
+        {/* 1. Rating: Displayed if available, with min-height placeholder to prevent grid misalignment */}
+        <div className="mb-2 flex items-center justify-center min-h-[1.25rem]">
+          {product.rating !== undefined && (
             <RatingStars rating={product.rating} size="sm" scoreFormat="simple" />
-            <QuantitySelector
-              quantity={quantity}
-              onQuantityChange={setQuantity}
-              disabled={isAdding}
-            />
-          </div>
-        )}
+          )}
+        </div>
+
+        {/* 2. Quantity Selector: Always accessible regardless of product rating */}
+        <div className="mb-3 flex justify-center">
+          <QuantitySelector
+            quantity={quantity}
+            onQuantityChange={setQuantity}
+            disabled={isAdding}
+          />
+        </div>
 
         <div className="mb-3 flex items-baseline justify-center gap-1 whitespace-nowrap">
           <span className="text-base font-bold text-brand-orange">{formattedTotalPrice}</span>

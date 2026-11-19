@@ -11,6 +11,7 @@ import StateMessage from '@/components/common/StateMessage';
 import OrderFilterTabs from '@/components/orders/OrderFilterTabs';
 import OrderListView from '@/components/orders/OrderListView';
 import OrderCardSkeleton from '@/components/orders/OrderCardSkeleton';
+import Pagination from '@/components/common/Pagination';
 import { buildUrl } from '@/utils/urlHelpers';
 
 export const metadata: Metadata = {
@@ -18,30 +19,35 @@ export const metadata: Metadata = {
   description: 'Track delivery progress, inspect items, and reorder from your purchase history on Trendify.',
 };
 
+const ORDERS_PAGE_SIZE = 10;
+
 interface OrdersPageProps {
   searchParams: Promise<{
     status?: string;
     orderId?: string;
+    page?: string;
   }>;
 }
 
 interface OrdersListSectionProps {
   token: string;
   status?: string;
+  page: number;
   parsedOrderId?: number;
 }
 
 /**
  * Async Server Component: Fetches order history and targeted order details.
- * Suspended independently by status so tab switching streams fresh skeletons instantly.
+ * Suspended independently by status and page so tab/page switching streams fresh skeletons instantly.
  */
 async function OrdersListSection({
   token,
   status,
+  page,
   parsedOrderId,
 }: OrdersListSectionProps) {
   const [historyResult, targetedDetailResult] = await Promise.all([
-    getOrderHistoryServer(token, { status }),
+    getOrderHistoryServer(token, { status, page, pageSize: ORDERS_PAGE_SIZE }),
     parsedOrderId
       ? getOrderDetailServer(token, parsedOrderId)
       : Promise.resolve(null),
@@ -55,7 +61,7 @@ async function OrdersListSection({
       ? targetedDetailResult.error ?? 'Unable to load order details.'
       : null;
 
-  const retryHref = buildUrl('/orders', { status });
+  const retryHref = buildUrl('/orders', { status, page: page > 1 ? page : undefined });
 
   if (historyResult.error) {
     return (
@@ -74,26 +80,47 @@ async function OrdersListSection({
     return (
       <StateMessage
         variant="empty"
-        title="No orders yet"
+        title={page > 1 ? 'No orders on this page' : 'No orders yet'}
         message={
-          status && status !== 'all'
+          page > 1
+            ? `There are no orders on page ${page}. Try returning to the first page.`
+            : status && status !== 'all'
             ? `You have no ${status.toLowerCase()} orders at the moment.`
             : 'No orders yet. Start shopping!'
         }
-        buttonText={status && status !== 'all' ? 'View All Orders' : 'Start Shopping'}
-        actionHref={status && status !== 'all' ? '/orders' : '/products'}
+        buttonText={
+          page > 1
+            ? 'Go to Page 1'
+            : status && status !== 'all'
+            ? 'View All Orders'
+            : 'Start Shopping'
+        }
+        actionHref={
+          page > 1
+            ? buildUrl('/orders', { status })
+            : status && status !== 'all'
+            ? '/orders'
+            : '/products'
+        }
         className="my-8"
       />
     );
   }
 
   return (
-    <OrderListView
-      orders={historyResult.orders}
-      initialOrderId={parsedOrderId}
-      initialDetail={initialDetail}
-      initialDetailError={initialDetailError}
-    />
+    <div className="space-y-6">
+      <OrderListView
+        orders={historyResult.orders}
+        initialOrderId={parsedOrderId}
+        initialDetail={initialDetail}
+        initialDetailError={initialDetailError}
+      />
+
+      <Pagination
+        currentPage={historyResult.page}
+        totalPages={historyResult.totalPages}
+      />
+    </div>
   );
 }
 
@@ -103,7 +130,11 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
     redirect('/login?callbackUrl=/orders');
   }
 
-  const { status, orderId } = await searchParams;
+  const { status, orderId, page } = await searchParams;
+
+  // Strict page number validation
+  const numPage = Number(page);
+  const currentPage = Number.isInteger(numPage) && numPage > 0 ? numPage : 1;
 
   // Strict positive-integer validation
   const numOrderId = Number(orderId);
@@ -126,7 +157,7 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
       <OrderFilterTabs activeStatus={status} />
 
       <Suspense
-        key={`${status ?? 'all'}-${parsedOrderId ?? 'none'}`}
+        key={`${status ?? 'all'}-p${currentPage}-${parsedOrderId ?? 'none'}`}
         fallback={
           <div className="space-y-4">
             <OrderCardSkeleton />
@@ -138,6 +169,7 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
         <OrdersListSection
           token={user.token}
           status={status}
+          page={currentPage}
           parsedOrderId={parsedOrderId}
         />
       </Suspense>
