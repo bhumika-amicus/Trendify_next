@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 import type { CartItem, Address } from '@/types';
 import {
   ShippingAddressSchema,
@@ -31,6 +31,7 @@ export function useCheckoutForm({
     shippingMethod: 'standard',
   });
 
+  // not necessary that all will have errors hence partial
   const [errors, setErrors] = useState<
     Partial<Record<keyof ShippingAddressFormData, string>>
   >({});
@@ -46,32 +47,32 @@ export function useCheckoutForm({
   );
 
   // Field change handler with cascading resets for dependent geographic fields
-  const handleFieldChange = useCallback(
-    (field: keyof ShippingAddressFormData, value: string) => {
-      setFormData((prev) => {
-        const next = { ...prev, [field]: value };
-        if (field === 'country') {
-          next.state = '';
-          next.city = '';
-        } else if (field === 'state') {
-          next.city = '';
-        }
-        return next;
-      });
+  const handleFieldChange = (
+    field: keyof ShippingAddressFormData,
+    value: string
+  ) => {
+    setFormData((prev) => {
+      const next = { ...prev, [field]: value };
+      if (field === 'country') {
+        next.state = '';
+        next.city = '';
+      } else if (field === 'state') {
+        next.city = '';
+      }
+      return next;
+    });
 
-      // Clear the error for this field as soon as user types
-      setErrors((prev) => {
-        if (!prev[field]) return prev;
-        const next = { ...prev };
-        delete next[field];
-        return next;
-      });
-    },
-    []
-  );
+    // Clear the error for this field as soon as user types
+    setErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
 
   // Atomically populate address fields when a saved address card is selected
-  const setAddressFromSaved = useCallback((addr: Address) => {
+  const setAddressFromSaved = (addr: Address) => {
     setFormData((prev) => ({
       ...prev,
       address: addr.addressLine1,
@@ -93,10 +94,10 @@ export function useCheckoutForm({
       delete next.country;
       return next;
     });
-  }, []);
+  };
 
   // Clear address fields when creating a brand-new address, keeping contact info intact
-  const clearAddressFields = useCallback(() => {
+  const clearAddressFields = () => {
     setFormData((prev) => ({
       ...prev,
       address: '',
@@ -106,10 +107,10 @@ export function useCheckoutForm({
       postalCode: '',
       country: '',
     }));
-  }, []);
+  };
 
   // Zod-based validation returning a boolean and populating typed error messages
-  const validate = useCallback((): boolean => {
+  const validate = (): boolean => {
     const result = ShippingAddressSchema.safeParse(formData);
 
     if (!result.success) {
@@ -127,7 +128,7 @@ export function useCheckoutForm({
 
     setErrors({});
     return true;
-  }, [formData]);
+  };
 
   return {
     formData,

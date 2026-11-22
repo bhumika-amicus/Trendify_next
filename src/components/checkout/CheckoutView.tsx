@@ -36,6 +36,7 @@ export default function CheckoutView({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cod');
 
+  //Checks if the user has an address flagged with isDefault: true. If not, it falls back to the first address in the array, or null if the user is a new customer.
   const defaultAddr =
     initialAddresses.find((a) => a.isDefault) || initialAddresses[0] || null;
 
@@ -61,11 +62,12 @@ export default function CheckoutView({
   const handleStepClick = (targetStep: CheckoutStepNumber) => {
     if (targetStep === currentStep) return;
 
+    // Rule 1: Backward navigation is ALWAYS allowed (zero validation needed)
     if (targetStep < currentStep) {
       setCurrentStep(targetStep);
       return;
     }
-
+    // Rule 2: Moving forward from Step 1 requires full Zod validation
     if (currentStep === 1) {
       if (validate()) {
         setCurrentStep(targetStep);
@@ -74,7 +76,7 @@ export default function CheckoutView({
       }
       return;
     }
-
+    // Rule 3: Moving from Step 2 to Step 3 is unrestricted (Payment default is already 'cod')
     if (currentStep === 2) {
       setCurrentStep(targetStep);
     }
@@ -115,13 +117,14 @@ export default function CheckoutView({
       });
 
       if (!res.success) {
+        // Case A: Session Expired Mid-Checkout
         if (res.requireAuth) {
           toast.error('Please log in to complete your checkout.', { id: toastId });
           router.push('/login?callbackUrl=/checkout');
           return;
         }
+        //Case B: Validation Errors Mid-Checkout (e.g., stock issues or address validation failure)
         toast.error(res.error || 'Failed to place order.', { id: toastId });
-
         const errorLower = res.error?.toLowerCase() || '';
         if (errorLower.includes('address') || errorLower.includes('stock')) {
           setCurrentStep(1);
@@ -130,7 +133,7 @@ export default function CheckoutView({
         return;
       }
 
-      // 0ms Navbar Cart Badge update: Instant empty state
+      // Navbar Cart Badge update: Instant empty state
       resetCart();
 
       toast.success('Order placed successfully!', { id: toastId, duration: 4000 });
