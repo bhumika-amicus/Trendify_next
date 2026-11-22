@@ -13,6 +13,7 @@ interface ShippingStepProps {
   errors: Partial<Record<keyof ShippingAddressFormData, string>>;
   onFieldChange: (field: keyof ShippingAddressFormData, value: string) => void;
   savedAddresses: Address[];
+  selectedAddressId: number | null;
   onAddressSelectionChange: (addressId: number | null) => void;
   onSelectSavedAddress: (address: Address) => void;
   onClearAddressFields: () => void;
@@ -26,6 +27,7 @@ export default function ShippingStep({
   errors,
   onFieldChange,
   savedAddresses,
+  selectedAddressId,
   onAddressSelectionChange,
   onSelectSavedAddress,
   onClearAddressFields,
@@ -48,6 +50,7 @@ export default function ShippingStep({
         errors={errors}
         onChange={onFieldChange}
         savedAddresses={savedAddresses}
+        selectedAddressId={selectedAddressId}
         onAddressSelectionChange={onAddressSelectionChange}
         onSelectSavedAddress={onSelectSavedAddress}
         onClearAddressFields={onClearAddressFields}

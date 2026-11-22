@@ -15,6 +15,7 @@ interface AddressSectionProps {
   errors: Partial<Record<keyof ShippingAddressFormData, string>>;
   onChange: (field: keyof ShippingAddressFormData, value: string) => void;
   savedAddresses: Address[];
+  selectedAddressId: number | null;
   onAddressSelectionChange: (addressId: number | null) => void;
   onSelectSavedAddress: (address: Address) => void;
   onClearAddressFields: () => void;
@@ -28,6 +29,7 @@ export default function AddressSection({
   errors,
   onChange,
   savedAddresses,
+  selectedAddressId,
   onAddressSelectionChange,
   onSelectSavedAddress,
   onClearAddressFields,
@@ -44,9 +46,6 @@ export default function AddressSection({
     !hasSavedAddresses
   );
   const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
-  const [selectedAddressId, setSelectedAddressId] = useState<number | null>(
-    defaultAddr?.addressId ?? null
-  );
 
   const {
     countries,
@@ -91,20 +90,20 @@ export default function AddressSection({
   };
 
   const handleSelect = (addr: Address) => {
-    setSelectedAddressId(addr.addressId);
     setIsAddingNewAddress(false);
     onAddressSelectionChange(addr.addressId);
     onSelectSavedAddress(addr);
   };
 
   const handleEdit = (addr: Address) => {
-    setSelectedAddressId(addr.addressId);
     setFormMode('edit');
     setIsAddingNewAddress(true);
-    // When editing, send null as selectedAddressId so backend saves updated address as new or updated
+
+    //if the user edits the address, the backend needs to validate and save it as an updated entry, not blindly reuse the old saved ID!
     onAddressSelectionChange(null);
     onSelectSavedAddress(addr);
 
+    //populate the form fields with the selected address data
     if (addr.country) {
       void loadAddressLocations(addr.country, addr.state);
     }
@@ -115,12 +114,10 @@ export default function AddressSection({
 
     if (addingNew) {
       setFormMode('create');
-      setSelectedAddressId(null);
       onAddressSelectionChange(null);
       onClearAddressFields();
       resetLocations();
     } else if (defaultAddr) {
-      setSelectedAddressId(defaultAddr.addressId);
       onAddressSelectionChange(defaultAddr.addressId);
       onSelectSavedAddress(defaultAddr);
     }

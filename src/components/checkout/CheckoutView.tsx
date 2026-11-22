@@ -175,6 +175,7 @@ export default function CheckoutView({
                 errors={errors}
                 onFieldChange={handleFieldChange}
                 savedAddresses={initialAddresses}
+                selectedAddressId={selectedAddressId}
                 onAddressSelectionChange={setSelectedAddressId}
                 onSelectSavedAddress={setAddressFromSaved}
                 onClearAddressFields={clearAddressFields}
