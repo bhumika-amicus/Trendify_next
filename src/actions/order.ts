@@ -69,9 +69,10 @@ export async function placeOrderAction(
   try {
     let resolvedAddressId = selectedAddressId;
 
-    // 1. Verify address ownership or create new address in backend database
+    // 1. Fetch all addresses belonging to THIS logged-in user:
     if (resolvedAddressId) {
       const userAddresses = (await getAddressesServer(sessionToken)) ?? [];
+      // 2. Verify that this address ID actually belongs to THEM:
       const isOwner = userAddresses.some((a) => a.addressId === resolvedAddressId);
       if (!isOwner) {
         return {
@@ -80,6 +81,7 @@ export async function placeOrderAction(
         };
       }
     } else {
+        // If no saved ID was provided, create and save the new address in DB:
       const addressRes = await createAddressServer(sessionToken, {
         addressLine1: address,
         addressLine2: apartment || null,
