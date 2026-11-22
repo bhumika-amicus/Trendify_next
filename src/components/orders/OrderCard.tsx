@@ -4,7 +4,7 @@ import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { ChevronDown, ChevronUp, RotateCcw } from 'lucide-react';
 import type { OrderSummaryItem, OrderDetail } from '@/types';
-import { formatINR, formatDate } from '@/utils/formatters';
+import { formatINR, formatDate, formatOrderId } from '@/utils/formatters';
 import { useCartActions } from '@/context/CartContext';
 import { reorderAction, fetchOrderDetailAction } from '@/actions/order';
 import Button from '@/components/common/Button';
@@ -32,7 +32,7 @@ export default function OrderCard({
   const [detail, setDetail] = useState<OrderDetail | null>(initialDetail);
   const [isReordering, setIsReordering] = useState(false);
 
-  const formattedOrderId = `ORD-2026-${order.orderId.toString().padStart(3, '0')}`;
+  const formattedOrderId = formatOrderId(order.orderId, order.createdAt);
   const formattedDate = formatDate(order.createdAt);
 
   const statusLower = (order.orderStatus || '').toLowerCase().trim();
@@ -139,7 +139,6 @@ export default function OrderCard({
 
         {/* Right Actions */}
         <div className="flex items-center gap-2.5 sm:gap-3 shrink-0 self-end sm:self-center">
-          {/* VIEW / HIDE DETAILS button (Uses outline variant to preserve clear visual hierarchy against the orange badge) */}
           <Button
             variant="secondary"
             size="sm"
@@ -156,7 +155,7 @@ export default function OrderCard({
             )}
           </Button>
 
-          {/* REORDER button (Delivered orders only - uses primary variant with built-in loading spinner) */}
+   
           {isDelivered && (
             <Button
               variant="primary"

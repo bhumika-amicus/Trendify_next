@@ -28,3 +28,15 @@ export function formatDate(isoDate?: string): string {
     return isoDate || 'Recent';
   }
 }
+
+/**
+ * Formats an order ID into a standardized, branded reference (e.g., "ORD-2026-014").
+ * Dynamically resolves the year from createdAt if available.
+ */
+export function formatOrderId(orderId: number, createdAt?: string): string {
+  const year =
+    createdAt && !isNaN(new Date(createdAt).getTime())
+      ? new Date(createdAt).getFullYear()
+      : 2026;
+  return `ORD-${year}-${orderId.toString().padStart(3, '0')}`;
+}

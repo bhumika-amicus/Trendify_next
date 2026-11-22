@@ -1,6 +1,6 @@
 import Button from '@/components/common/Button';
 import type { OrderSummaryItem } from '@/types';
-import { formatINR, formatDate } from '@/utils/formatters';
+import { formatINR, formatDate, formatOrderId } from '@/utils/formatters';
 import OrderStatusBadge from '@/components/orders/OrderStatusBadge';
 
 interface RecentOrderItemProps {
@@ -13,7 +13,7 @@ interface RecentOrderItemProps {
  * Deep-links to /orders?orderId=... to auto-expand details on the orders page.
  */
 export default function RecentOrderItem({ order }: RecentOrderItemProps) {
-  const formattedOrderId = `ORD-2026-${order.orderId.toString().padStart(3, '0')}`;
+  const formattedOrderId = formatOrderId(order.orderId, order.createdAt);
 
   return (
     <div className="rounded-lg border border-gray-100 bg-gray-50/70 p-5 hover:bg-gray-50 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-4">
