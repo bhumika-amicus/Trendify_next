@@ -6,7 +6,6 @@ import AddressSection from './AddressSection';
 import DeliverySpeedSection from './DeliverySpeedSection';
 import type { ShippingAddressFormData } from '@/schemas/checkout';
 import type { Address } from '@/types';
-import type { StateOption } from '@/services/locationService';
 
 interface ShippingStepProps {
   formData: ShippingAddressFormData;
@@ -18,7 +17,7 @@ interface ShippingStepProps {
   onSelectSavedAddress: (address: Address) => void;
   onClearAddressFields: () => void;
   initialCountries?: string[];
-  initialStates?: StateOption[];
+  initialStates?: string[];
   initialCities?: string[];
 }
 

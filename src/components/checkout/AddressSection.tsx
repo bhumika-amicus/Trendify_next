@@ -7,7 +7,6 @@ import AddressCard from './AddressCard';
 import AddressFormFields from './AddressFormFields';
 import type { ShippingAddressFormData } from '@/schemas/checkout';
 import type { Address } from '@/types';
-import type { StateOption } from '@/services/locationService';
 import { useLocationCascade } from '@/hooks/useLocationCascade';
 
 interface AddressSectionProps {
@@ -20,7 +19,7 @@ interface AddressSectionProps {
   onSelectSavedAddress: (address: Address) => void;
   onClearAddressFields: () => void;
   initialCountries?: string[];
-  initialStates?: StateOption[];
+  initialStates?: string[];
   initialCities?: string[];
 }
 

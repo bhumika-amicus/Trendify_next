@@ -1,8 +1,3 @@
-export interface StateOption {
-  name: string;
-  state_code: string;
-}
-
 export function isAbortError(err: unknown): boolean {
   return err instanceof Error && err.name === 'AbortError';
 }
@@ -14,7 +9,7 @@ interface ApiResponse<T> {
 }
 
 const API_BASE_URL = 'https://countriesnow.space/api/v0.1/countries';
-const stateCache = new Map<string, StateOption[]>();
+const stateCache = new Map<string, string[]>();
 const cityCache = new Map<string, string[]>();
 
 export async function getCountries(signal?: AbortSignal): Promise<string[]> {
@@ -46,7 +41,7 @@ export async function getCountries(signal?: AbortSignal): Promise<string[]> {
 export async function getStates(
   country: string,
   signal?: AbortSignal
-): Promise<StateOption[]> {
+): Promise<string[]> {
   if (!country) return [];
 
   const cached = stateCache.get(country);
@@ -64,13 +59,14 @@ export async function getStates(
       throw new Error(`Location API HTTP ${response.status}`);
     }
 
-    const result = (await response.json()) as ApiResponse<{ states?: StateOption[] }>;
+    const result = (await response.json()) as ApiResponse<{ states?: { name: string }[] }>;
     if (result.error || !result.data?.states) {
       throw new Error(result.msg || 'Invalid API response format');
     }
 
-    stateCache.set(country, result.data.states);
-    return result.data.states;
+    const stateNames = result.data.states.map((s) => s.name);
+    stateCache.set(country, stateNames);
+    return stateNames;
   } catch (err: unknown) {
     if (!isAbortError(err)) {
       console.warn(`[LOCATION_API] Failed to fetch states for ${country}:`, err);

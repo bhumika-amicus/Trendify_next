@@ -2,11 +2,9 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import {
-  getCountries,
   getStates,
   getCities,
   isAbortError,
-  type StateOption,
 } from '@/services/locationService';
 
 export interface LocationCascadeLoadingState {
@@ -23,7 +21,7 @@ export interface LocationCascadeErrorState {
 
 export interface UseLocationCascadeOptions {
   initialCountries?: string[];
-  initialStates?: StateOption[];
+  initialStates?: string[];
   initialCities?: string[];
 }
 
@@ -33,12 +31,12 @@ export function useLocationCascade({
   initialStates = [],
   initialCities = [],
 }: UseLocationCascadeOptions = {}) {
-  const [countries, setCountries] = useState<string[]>(initialCountries);
-  const [states, setStates] = useState<StateOption[]>(initialStates);
+  const [countries] = useState<string[]>(initialCountries);
+  const [states, setStates] = useState<string[]>(initialStates);
   const [cities, setCities] = useState<string[]>(initialCities);
 
   const [loading, setLoading] = useState<LocationCascadeLoadingState>({
-    countries: initialCountries.length === 0,
+    countries: false,
     states: false,
     cities: false,
   });
@@ -51,51 +49,6 @@ export function useLocationCascade({
 
   const stateAbortRef = useRef<AbortController | null>(null);
   const cityAbortRef = useRef<AbortController | null>(null);
-
-  const loadCountries = useCallback(async () => {
-    setLoading((prev) => ({ ...prev, countries: true }));
-    setError((prev) => ({ ...prev, countries: null }));
-
-    try {
-      const data = await getCountries();
-      if (data && data.length > 0) {
-        setCountries(data);
-      }
-    } catch (err: unknown) {
-      if (!isAbortError(err)) {
-        setError((prev) => ({ ...prev, countries: 'Unable to load countries' }));
-      }
-    } finally {
-      setLoading((prev) => ({ ...prev, countries: false }));
-    }
-  }, []);
-
-  // SSR fallback if countries list was empty
-  useEffect(() => {
-    let isSubscribed = true;
-    if (countries.length === 0) {
-      getCountries()
-        .then((data) => {
-          if (isSubscribed && data && data.length > 0) {
-            setCountries(data);
-            setError((prev) => ({ ...prev, countries: null }));
-          }
-        })
-        .catch((err: unknown) => {
-          if (isSubscribed && !isAbortError(err)) {
-            setError((prev) => ({ ...prev, countries: 'Unable to load countries' }));
-          }
-        })
-        .finally(() => {
-          if (isSubscribed) {
-            setLoading((prev) => ({ ...prev, countries: false }));
-          }
-        });
-    }
-    return () => {
-      isSubscribed = false;
-    };
-  }, [countries.length]);
 
   const loadStatesForCountry = useCallback(async (countryName: string) => {
     stateAbortRef.current?.abort();
@@ -253,7 +206,6 @@ export function useLocationCascade({
     cities,
     loading,
     error,
-    loadCountries,
     loadStatesForCountry,
     loadCitiesForState,
     loadAddressLocations,

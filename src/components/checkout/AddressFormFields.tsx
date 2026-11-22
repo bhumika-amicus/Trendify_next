@@ -5,7 +5,6 @@ import { Pencil, Plus, X } from 'lucide-react';
 import Input from '@/components/common/Input';
 import Select from '@/components/common/Select';
 import type { ShippingAddressFormData } from '@/schemas/checkout';
-import type { StateOption } from '@/services/locationService';
 
 export interface AddressFormFieldsProps {
   formData: ShippingAddressFormData;
@@ -15,7 +14,7 @@ export interface AddressFormFieldsProps {
   hasSavedAddresses: boolean;
   onCancel: () => void;
   countries: string[];
-  states: StateOption[];
+  states: string[];
   cities: string[];
   loading: { countries: boolean; states: boolean; cities: boolean };
   locationError: { countries: string | null; states: string | null; cities: string | null };
@@ -121,9 +120,10 @@ export default function AddressFormFields({
             required
             value={formData.state}
             onChange={onChange}
-            options={states.map((s) => ({ value: s.name, label: s.name }))}
+            options={states}
             isLoading={loading.states}
             loadingText="Loading states..."
+            //disabled if country not selected
             disabled={!formData.country}
             disabledText="Select a country first"
             placeholder={
@@ -146,6 +146,7 @@ export default function AddressFormFields({
             options={cities}
             isLoading={loading.cities}
             loadingText="Loading cities..."
+            //disabled if state not selected
             disabled={!formData.state}
             disabledText="Select a state first"
             placeholder={

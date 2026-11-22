@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import type { CartItem, Address } from '@/types';
 import type { PaymentMethod } from '@/schemas/checkout';
-import type { StateOption } from '@/services/locationService';
 import { placeOrderAction } from '@/actions/order';
 import { useCartActions } from '@/context/CartContext';
 import { useCheckoutForm } from '@/hooks/useCheckoutForm';
@@ -19,7 +18,7 @@ interface CheckoutViewProps {
   initialItems: CartItem[];
   initialAddresses: Address[];
   initialCountries: string[];
-  initialStates?: StateOption[];
+  initialStates?: string[];
   initialCities?: string[];
 }
 
