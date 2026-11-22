@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Pencil, MapPin, CheckCircle2, Circle, Trash2, Loader2 } from 'lucide-react';
+import { Pencil, MapPin, CheckCircle2, Circle } from 'lucide-react';
 import type { Address } from '@/types';
 
 interface AddressCardProps {
@@ -9,8 +9,6 @@ interface AddressCardProps {
   isSelected: boolean;
   onSelect: (address: Address) => void;
   onEdit: (address: Address) => void;
-  onDelete?: (addressId: number) => void;
-  isDeleting?: boolean;
 }
 
 export default function AddressCard({
@@ -18,8 +16,6 @@ export default function AddressCard({
   isSelected,
   onSelect,
   onEdit,
-  onDelete,
-  isDeleting = false,
 }: AddressCardProps) {
   return (
     <div
@@ -89,27 +85,6 @@ export default function AddressCard({
           <Pencil size={13} />
           <span>Edit</span>
         </button>
-
-        {onDelete && (
-          <button
-            type="button"
-            aria-label="Delete address"
-            disabled={isDeleting}
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(address.addressId);
-            }}
-            className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-semibold text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
-            title="Delete address"
-          >
-            {isDeleting ? (
-              <Loader2 size={13} className="animate-spin text-red-500" />
-            ) : (
-              <Trash2 size={13} />
-            )}
-            <span>Delete</span>
-          </button>
-        )}
       </div>
     </div>
   );
