@@ -76,32 +76,24 @@ async function OrdersListSection({
     );
   }
 
+  // Self-healing pagination: if an invalid out-of-range page is requested, seamlessly redirect to page 1
+  if (page > 1 && historyResult.orders.length === 0) {
+    redirect(buildUrl('/orders', { status }));
+  }
+
   if (historyResult.orders.length === 0) {
+    const isFiltered = Boolean(status && status !== 'all');
     return (
       <StateMessage
         variant="empty"
-        title={page > 1 ? 'No orders on this page' : 'No orders yet'}
+        title={isFiltered ? `No ${status} orders` : 'No orders yet'}
         message={
-          page > 1
-            ? `There are no orders on page ${page}. Try returning to the first page.`
-            : status && status !== 'all'
-            ? `You have no ${status.toLowerCase()} orders at the moment.`
+          isFiltered
+            ? `You have no ${status?.toLowerCase()} orders at the moment.`
             : 'No orders yet. Start shopping!'
         }
-        buttonText={
-          page > 1
-            ? 'Go to Page 1'
-            : status && status !== 'all'
-            ? 'View All Orders'
-            : 'Start Shopping'
-        }
-        actionHref={
-          page > 1
-            ? buildUrl('/orders', { status })
-            : status && status !== 'all'
-            ? '/orders'
-            : '/products'
-        }
+        buttonText={isFiltered ? 'View All Orders' : 'Start Shopping'}
+        actionHref={isFiltered ? '/orders' : '/products'}
         className="my-8"
       />
     );
