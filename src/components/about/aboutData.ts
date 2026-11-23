@@ -1,10 +1,10 @@
 import type { StaticImageData } from 'next/image';
-import storyImg from '../../../public/about/story.jpg';
-import innovationImg from '../../../public/about/innovation.jpg';
-import locationsImg from '../../../public/about/locations.jpg';
-import valuesImg from '../../../public/about/values.jpg';
-import sustainabilityImg from '../../../public/about/sustainability.jpg';
-import communityImg from '../../../public/about/community.jpg';
+import storyImg from '@/assets/images/about/story.jpg';
+import innovationImg from '@/assets/images/about/innovation.jpg';
+import locationsImg from '@/assets/images/about/locations.jpg';
+import valuesImg from '@/assets/images/about/values.jpg';
+import sustainabilityImg from '@/assets/images/about/sustainability.jpg';
+import communityImg from '@/assets/images/about/community.jpg';
 
 export interface AboutCardItem {
   image: StaticImageData;

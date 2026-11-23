@@ -10,7 +10,7 @@ import Breadcrumbs from '@/components/common/Breadcrumbs';
 import RatingStars from '@/components/common/RatingStars';
 import ProductAddToCart from '@/components/product/ProductAddToCart';
 import { formatINR } from '@/utils/formatters';
-import { shimmerBlurDataUrl } from '@/utils/shimmer';
+import { defaultProductPlaceholder } from '@/assets/images';
 
 // Enable Incremental Static Regeneration (ISR) with a 60-second window
 export const revalidate = 60;
@@ -81,12 +81,7 @@ export default async function ProductDetailPage({
     notFound();
   }
 
-  const imageSrc = product.imageUrl || '/placeholder-product.png';
-  const isExternalImage = Boolean(
-    product.imageUrl &&
-      product.imageUrl.startsWith('http') &&
-      !product.imageUrl.includes('images.unsplash.com')
-  );
+  const imageSrc = product.imageUrl || defaultProductPlaceholder;
 
   return (
     <div className="mx-auto min-h-[50vh] w-full max-w-7xl px-4 py-6 sm:px-6 md:px-10">
@@ -108,10 +103,9 @@ export default async function ProductDetailPage({
               width={400}
               height={400}
               placeholder="blur"
-              blurDataURL={shimmerBlurDataUrl(400, 400)}
+              blurDataURL={defaultProductPlaceholder.blurDataURL}
               className="max-h-100 w-full object-contain mix-blend-multiply"
               priority
-              unoptimized={isExternalImage}
             />
           </div>
 

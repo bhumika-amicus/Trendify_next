@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
-import heroImg from '../../../public/hero.png';
+import heroImg from '@/assets/images/hero.png';
 import Breadcrumbs from '@/components/common/Breadcrumbs';
 import AboutCard from '@/components/about/AboutCard';
 import { whoWeAreCards, whatWeStandForCards } from '@/components/about/aboutData';

@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import heroImg from '../../../public/hero.png';
+import heroImg from '@/assets/images/hero.png';
 import ProductSearch from '@/components/product/ProductSearch';
 
 export default function Hero() {

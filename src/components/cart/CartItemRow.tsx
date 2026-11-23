@@ -6,6 +6,7 @@ import { Trash2, Loader2 } from 'lucide-react';
 import type { CartItem } from '@/types';
 import QuantitySelector from './QuantitySelector';
 import { formatINR } from '@/utils/formatters';
+import { defaultProductPlaceholder } from '@/assets/images';
 
 interface CartItemRowProps {
   item: CartItem;
@@ -42,7 +43,7 @@ export default function CartItemRow({
           className="relative h-24 w-24 shrink-0 overflow-hidden rounded bg-gray-50 border border-gray-200"
         >
           <Image
-            src={item.imageUrl || '/placeholder-product.png'}
+            src={item.imageUrl || defaultProductPlaceholder}
             alt={item.productName}
             fill
             sizes="96px"

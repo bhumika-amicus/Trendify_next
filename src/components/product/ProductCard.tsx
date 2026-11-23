@@ -8,8 +8,8 @@ import Card from '@/components/common/Card';
 import RatingStars from '@/components/common/RatingStars';
 import QuantitySelector from '@/components/cart/QuantitySelector';
 import { formatINR } from '@/utils/formatters';
-import { shimmerBlurDataUrl } from '@/utils/shimmer';
 import { useAddToCart } from '@/hooks/useAddToCart';
+import { defaultProductPlaceholder } from '@/assets/images';
 
 interface ProductCardProps {
   product: Product;
@@ -33,11 +33,11 @@ export default function ProductCard({ product }: ProductCardProps) {
         className="relative flex h-40 w-full items-center justify-center border-b border-border-light bg-white max-[650px]:h-48 group overflow-hidden"
       >
         <Image
-          src={product.imageUrl || '/placeholder-product.png'}
+          src={product.imageUrl || defaultProductPlaceholder}
           alt={product.name}
           fill
           placeholder="blur"
-          blurDataURL={shimmerBlurDataUrl(300, 200)}
+          blurDataURL={defaultProductPlaceholder.blurDataURL}
           className="object-contain p-2 transition-transform duration-300 group-hover:scale-105"
           sizes="(max-width: 650px) 100vw, (max-width: 1024px) 33vw, 25vw"
         />
