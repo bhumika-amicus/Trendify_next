@@ -81,7 +81,7 @@ export default async function ProductDetailPage({
     notFound();
   }
 
-  const imageSrc = product.imageUrl || '/placeholder.jpg';
+  const imageSrc = product.imageUrl || '/placeholder-product.png';
   const isExternalImage = Boolean(
     product.imageUrl &&
       product.imageUrl.startsWith('http') &&

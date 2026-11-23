@@ -42,7 +42,7 @@ export default function CartItemRow({
           className="relative h-24 w-24 shrink-0 overflow-hidden rounded bg-gray-50 border border-gray-200"
         >
           <Image
-            src={item.imageUrl || '/placeholder.jpg'}
+            src={item.imageUrl || '/placeholder-product.png'}
             alt={item.productName}
             fill
             sizes="96px"

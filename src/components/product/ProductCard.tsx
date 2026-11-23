@@ -33,7 +33,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         className="relative flex h-40 w-full items-center justify-center border-b border-border-light bg-white max-[650px]:h-48 group overflow-hidden"
       >
         <Image
-          src={product.imageUrl || '/placeholder.jpg'}
+          src={product.imageUrl || '/placeholder-product.png'}
           alt={product.name}
           fill
           placeholder="blur"

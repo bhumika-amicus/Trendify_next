@@ -54,7 +54,7 @@ export default function CheckoutOrderSummary({
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded bg-gray-50 border border-gray-200">
                     <Image
-                      src={item.imageUrl || '/placeholder.jpg'}
+                      src={item.imageUrl || '/placeholder-product.png'}
                       alt={item.productName}
                       fill
                       sizes="40px"
