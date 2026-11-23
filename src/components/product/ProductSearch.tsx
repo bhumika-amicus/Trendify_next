@@ -89,7 +89,7 @@ function ProductSearchContent({
     }
   }, [debouncedSearchTerm, pathname, performSearch]);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: React.SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
     isTypingRef.current = false;
     const query = inputValue.trim();
