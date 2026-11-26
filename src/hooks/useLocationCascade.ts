@@ -7,19 +7,19 @@ import {
   isAbortError,
 } from '@/services/locationService';
 
-export interface LocationCascadeLoadingState {
+interface LocationCascadeLoadingState {
   countries: boolean;
   states: boolean;
   cities: boolean;
 }
 
-export interface LocationCascadeErrorState {
+interface LocationCascadeErrorState {
   countries: string | null;
   states: string | null;
   cities: string | null;
 }
 
-export interface UseLocationCascadeOptions {
+interface UseLocationCascadeOptions {
   initialCountries?: string[];
   initialStates?: string[];
   initialCities?: string[];

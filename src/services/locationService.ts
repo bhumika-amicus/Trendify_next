@@ -2,10 +2,58 @@ export function isAbortError(err: unknown): boolean {
   return err instanceof Error && err.name === 'AbortError';
 }
 
-interface ApiResponse<T> {
-  data: T;
-  error?: boolean;
-  msg?: string;
+interface CountryRecord {
+  country: string;
+}
+
+interface StateRecord {
+  name: string;
+}
+
+function isRecord(val: unknown): val is Record<string, unknown> {
+  return typeof val === 'object' && val !== null;
+}
+
+function isCountryListResponse(
+  val: unknown
+): val is { data: CountryRecord[]; error?: boolean; msg?: string } {
+  return (
+    isRecord(val) &&
+    !val.error &&
+    Array.isArray(val.data) &&
+    val.data.length > 0 &&
+    val.data.every((item) => isRecord(item) && typeof item.country === 'string')
+  );
+}
+
+function isStateListResponse(
+  val: unknown
+): val is { data: { states?: StateRecord[] }; error?: boolean; msg?: string } {
+  return (
+    isRecord(val) &&
+    !val.error &&
+    isRecord(val.data) &&
+    Array.isArray(val.data.states) &&
+    val.data.states.every((item) => isRecord(item) && typeof item.name === 'string')
+  );
+}
+
+function isCityListResponse(
+  val: unknown
+): val is { data: string[]; error?: boolean; msg?: string } {
+  return (
+    isRecord(val) &&
+    !val.error &&
+    Array.isArray(val.data) &&
+    val.data.every((item) => typeof item === 'string')
+  );
+}
+
+function getErrorMessage(val: unknown, fallback: string): string {
+  if (isRecord(val) && typeof val.msg === 'string' && val.msg.trim().length > 0) {
+    return val.msg;
+  }
+  return fallback;
 }
 
 const API_BASE_URL = 'https://countriesnow.space/api/v0.1/countries';
@@ -23,9 +71,9 @@ export async function getCountries(signal?: AbortSignal): Promise<string[]> {
       throw new Error(`Location API HTTP ${response.status}`);
     }
 
-    const result = (await response.json()) as ApiResponse<{ country: string }[]>;
-    if (result.error || !Array.isArray(result.data) || result.data.length === 0) {
-      throw new Error(result.msg || 'Invalid API response format');
+    const result: unknown = await response.json();
+    if (!isCountryListResponse(result)) {
+      throw new Error(getErrorMessage(result, 'Invalid API response format'));
     }
 
     return result.data.map(({ country }) => country);
@@ -59,9 +107,9 @@ export async function getStates(
       throw new Error(`Location API HTTP ${response.status}`);
     }
 
-    const result = (await response.json()) as ApiResponse<{ states?: { name: string }[] }>;
-    if (result.error || !result.data?.states) {
-      throw new Error(result.msg || 'Invalid API response format');
+    const result: unknown = await response.json();
+    if (!isStateListResponse(result) || !result.data.states) {
+      throw new Error(getErrorMessage(result, 'Invalid API response format'));
     }
 
     const stateNames = result.data.states.map((s) => s.name);
@@ -99,9 +147,9 @@ export async function getCities(
       throw new Error(`Location API HTTP ${response.status}`);
     }
 
-    const result = (await response.json()) as ApiResponse<string[]>;
-    if (result.error || !Array.isArray(result.data)) {
-      throw new Error(result.msg || 'Invalid API response format');
+    const result: unknown = await response.json();
+    if (!isCityListResponse(result)) {
+      throw new Error(getErrorMessage(result, 'Invalid API response format'));
     }
 
     cityCache.set(cacheKey, result.data);

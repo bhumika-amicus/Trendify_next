@@ -23,6 +23,13 @@ interface AddressSectionProps {
   initialCities?: string[];
 }
 
+function isShippingField(
+  field: string,
+  data: ShippingAddressFormData
+): field is keyof ShippingAddressFormData {
+  return field in data;
+}
+
 export default function AddressSection({
   formData,
   errors,
@@ -79,7 +86,9 @@ export default function AddressSection({
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    onChange(name as keyof ShippingAddressFormData, value);
+    if (isShippingField(name, formData)) {
+      onChange(name, value);
+    }
 
     if (name === 'country') {
       void loadStatesForCountry(value);

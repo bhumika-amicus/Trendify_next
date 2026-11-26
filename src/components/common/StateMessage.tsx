@@ -4,7 +4,7 @@ import Button, { type ButtonVariant } from './Button';
 
 export type StateVariant = 'error' | 'empty' | 'info';
 
-export interface StateMessageProps {
+interface StateMessageProps {
   title: string;
   message: string;
   buttonText?: string;

@@ -9,9 +9,16 @@ import {
 } from '@/schemas/checkout';
 import { calculateCheckoutSummary } from '@/utils/pricingCalculations';
 
-export interface UseCheckoutFormProps {
+interface UseCheckoutFormProps {
   initialItems: CartItem[];
   defaultAddress: Address | null;
+}
+
+function isShippingField(
+  key: unknown,
+  data: ShippingAddressFormData
+): key is keyof ShippingAddressFormData {
+  return typeof key === 'string' && key in data;
 }
 
 export function useCheckoutForm({
@@ -117,9 +124,9 @@ export function useCheckoutForm({
       const fieldErrors: Partial<Record<keyof ShippingAddressFormData, string>> =
         {};
       result.error.issues.forEach((issue) => {
-        const fieldName = issue.path[0] as keyof ShippingAddressFormData;
-        if (fieldName && !fieldErrors[fieldName]) {
-          fieldErrors[fieldName] = issue.message;
+        const rawField = issue.path[0];
+        if (isShippingField(rawField, formData) && !fieldErrors[rawField]) {
+          fieldErrors[rawField] = issue.message;
         }
       });
       setErrors(fieldErrors);

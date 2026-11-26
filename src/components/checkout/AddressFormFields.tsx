@@ -6,7 +6,7 @@ import Input from '@/components/common/Input';
 import Select from '@/components/common/Select';
 import type { ShippingAddressFormData } from '@/schemas/checkout';
 
-export interface AddressFormFieldsProps {
+interface AddressFormFieldsProps {
   formData: ShippingAddressFormData;
   errors: Partial<Record<keyof ShippingAddressFormData, string>>;
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;

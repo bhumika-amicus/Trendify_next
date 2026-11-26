@@ -10,6 +10,13 @@ interface ContactInfoSectionProps {
   onChange: (field: keyof ShippingAddressFormData, value: string) => void;
 }
 
+function isContactField(
+  field: string,
+  data: Pick<ShippingAddressFormData, 'fullName' | 'email' | 'phone'>
+): field is 'fullName' | 'email' | 'phone' {
+  return field in data;
+}
+
 export default function ContactInfoSection({
   formData,
   errors,
@@ -17,7 +24,9 @@ export default function ContactInfoSection({
 }: ContactInfoSectionProps) {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    onChange(name as keyof ShippingAddressFormData, value);
+    if (isContactField(name, formData)) {
+      onChange(name, value);
+    }
   };
 
   return (

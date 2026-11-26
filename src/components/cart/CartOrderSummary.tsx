@@ -4,7 +4,7 @@ import { formatINR } from '@/utils/formatters';
 import { TAX_RATE } from '@/utils/pricingCalculations';
 import type { CartSummary } from '@/types';
 
-export interface CartOrderSummaryProps {
+interface CartOrderSummaryProps {
   summary: CartSummary;
   isPending?: boolean;
 }

@@ -1,6 +1,6 @@
 import { Star, StarHalf } from 'lucide-react';
 
-export interface RatingStarsProps {
+interface RatingStarsProps {
   rating?: number;
   maxRating?: number;
   size?: 'sm' | 'md' | 'lg';

@@ -1,6 +1,6 @@
 import { DOTNET_API_BASE_URL } from '@/config';
 
-export interface ServerApiOptions extends Omit<RequestInit, 'body'> {
+interface ServerApiOptions extends Omit<RequestInit, 'body'> {
   token?: string;
   body?: unknown;
 }

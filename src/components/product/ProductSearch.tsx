@@ -18,7 +18,7 @@ const styles = {
   },
 };
 
-export interface ProductSearchProps {
+interface ProductSearchProps {
   variant?: 'header' | 'hero';
   placeholder?: string;
 }

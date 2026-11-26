@@ -3,7 +3,7 @@
 import FilterSectionHeader from './FilterSectionHeader';
 import type { FilterSection } from './filterConfig';
 
-export interface CheckboxFilterGroupProps<T> {
+interface CheckboxFilterGroupProps<T> {
   title: string;
   section: FilterSection;
   items: T[];

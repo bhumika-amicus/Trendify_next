@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Button from '@/components/common/Button';
 import StateMessage from '@/components/common/StateMessage';
 
-export interface RouteErrorFallbackProps {
+interface RouteErrorFallbackProps {
   error: Error & { digest?: string };
   reset: () => void;
   title: string;

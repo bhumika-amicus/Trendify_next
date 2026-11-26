@@ -10,7 +10,7 @@ import RatingFilter from './filters/RatingFilter';
 import SortFilter from './filters/SortFilter';
 import type { FilterSection } from './filters/filterConfig';
 
-export interface FilterSidebarProps {
+interface FilterSidebarProps {
   categories?: Category[];
   brands?: Brand[];
 }

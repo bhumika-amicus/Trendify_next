@@ -3,7 +3,7 @@
 import { useState, type InputHTMLAttributes, type ReactNode, type Ref } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 
-export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
   headerAction?: ReactNode;

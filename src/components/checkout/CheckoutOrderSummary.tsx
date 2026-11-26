@@ -9,7 +9,7 @@ import { formatINR } from '@/utils/formatters';
 import type { CheckoutStepNumber } from './CheckoutSteps';
 import { defaultProductPlaceholder } from '@/assets/images';
 
-export interface CheckoutSummaryData {
+interface CheckoutSummaryData {
   subtotal: number;
   shippingFee: number;
   tax: number;

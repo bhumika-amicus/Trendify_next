@@ -4,7 +4,7 @@ import type { ProductSortBy, SortOrder } from '@/types';
 
 export type FilterSection = 'category' | 'brand' | 'price' | 'rating' | 'sort';
 
-export interface PriceRangeOption {
+interface PriceRangeOption {
   label: string;
   min?: number;
   max?: number;
@@ -16,7 +16,7 @@ export const PRICE_RANGES: PriceRangeOption[] = [
   { label: 'Above ₹50,000', min: 50000, max: undefined },
 ];
 
-export interface RatingOption {
+interface RatingOption {
   label: string;
   value: number;
 }
@@ -28,12 +28,12 @@ export const RATING_OPTIONS: RatingOption[] = [
   { label: '4 stars & above', value: 4 },
 ];
 
-export interface SortDirectionOption {
+interface SortDirectionOption {
   label: ReactNode;
   order: SortOrder;
 }
 
-export interface SortOptionConfig {
+interface SortOptionConfig {
   type: ProductSortBy;
   label: string;
   defaultOrder: SortOrder;

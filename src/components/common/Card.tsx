@@ -2,7 +2,7 @@ import { type ReactNode, type HTMLAttributes } from 'react';
 
 export type CardVariant = 'elevated' | 'bordered' | 'flat';
 
-export interface CardProps extends HTMLAttributes<HTMLDivElement> {
+interface CardProps extends HTMLAttributes<HTMLDivElement> {
   variant?: CardVariant;
   hoverable?: boolean;
   as?: 'div' | 'article' | 'section';

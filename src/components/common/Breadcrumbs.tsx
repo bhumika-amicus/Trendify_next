@@ -4,13 +4,13 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ChevronRight } from 'lucide-react';
 
-export interface BreadcrumbItem {
+interface BreadcrumbItem {
   label: string;
   path?: string;
   href?: string;
 }
 
-export interface BreadcrumbsProps {
+interface BreadcrumbsProps {
   items?: BreadcrumbItem[];
   className?: string;
   separator?: React.ReactNode;
