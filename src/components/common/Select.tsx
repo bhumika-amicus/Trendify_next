@@ -84,7 +84,7 @@ export default function Select({
             !options.some((opt) =>
               typeof opt === 'string' ? opt === props.value : opt.value === props.value
             ) && (
-              <option value={props.value as string} key={String(props.value)}>
+              <option value={String(props.value)} key={String(props.value)}>
                 {String(props.value)}
               </option>
             )}

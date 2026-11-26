@@ -53,7 +53,7 @@ export default function DeliverySpeedSection({
                   name="shippingMethod"
                   value={option.id}
                   checked={isSelected}
-                  onChange={() => onChange(option.id as ShippingMethod)}
+                  onChange={() => onChange(option.id)}
                   className="h-4 w-4 text-brand-orange focus:ring-brand-orange border-gray-300 shrink-0 cursor-pointer"
                 />
                 <div className="w-9 h-9 rounded-full bg-orange-50 flex items-center justify-center shrink-0 text-brand-orange">
